@@ -1,0 +1,103 @@
+<form id="wifi-config-form">
+  <table class="m">
+    <tr>
+      <td class="bg w180">Tila:</td>
+      <td id="wifi-1-status-state"></td>
+    </tr>
+    <tr>
+      <td class="bg">IP-osoite:</td>
+      <td id="wifi-1-status-ip"></td>
+    </tr>
+    <tr>
+      <td class="bg">Verkko:</td>
+      <td id="wifi-1-status-ssid"></td>
+    </tr>
+  </table>
+  <br>
+  <table class="m">
+    <tr>
+      <td class="bg w180">Wifi käytössä</td>
+      <td>
+        <input type="checkbox" id="wifi-1-enable">
+      </td>
+    </tr>
+    <tr>
+      <td class="bg">Wifi-verkko</td>
+      <td>
+        <input type="text" id="wifi-1-ssid">
+        <input type="hidden" id="wifi-1-ssid-orig">
+        <input type="button" value="Valitse listalta" id="btn-ssid-select">
+
+        <div class="h" id="ssid-list-container">
+          <br>
+          <select id="ssid-list">
+            <option value=""> </option>
+          </select>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td class="bg">Salasana</td>
+      <td>
+      <input type="password" id="wifi-1-pass" value="_default_">
+      </td>
+    </tr>
+    <tr>
+      <td class="bg">Lisäasetukset</td>
+      <td>
+        <input type="button" value="Näytä lisäasetukset" id="btn-wifi-ip-settings" />
+
+        <table class="m h" id="table-wifi-ip-settings" style="margin-top:1rem;">
+          <tr>
+            <td class="bg">DHCP käytössä (autom. IP):</td>
+            <td> <input type="checkbox" id="wifi-1-dhcp"> </td>
+          </tr>
+          <tr>
+            <td class="bg">IP-osoite:</td>
+            <td> <input type="text" id="wifi-1-ip"> </td>
+          </tr>
+          <tr>
+            <td class="bg">Aliverkon peite:</td>
+            <td> <input type="text" id="wifi-1-mask"> </td>
+          </tr>
+          <tr>
+            <td class="bg">Yhdyskäytävä:</td>
+            <td> <input type="text" id="wifi-1-gw"> </td>
+          </tr>
+          <tr>
+            <td class="bg">Nimipalvelin (DNS):</td>
+            <td> <input type="text" id="wifi-1-nameserver"> </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <br>
+  <table class="m">
+    <tr>
+      <td class="bg w180">Tukiasema käytössä</td>
+      <td> <input type="checkbox" id="wifi-ap-enable"> </td>
+    </tr>
+    <tr>
+      <td class="bg">Tukiaseman verkko</td>
+      <td> <input type="text" id="wifi-ap-ssid" disabled> </td>
+    </tr>
+    <tr>
+      <td class="bg">Verkon salasana</td>
+      <td> 
+        <input type="password" id="wifi-ap-pass"> 
+        <br>
+        <input type="checkbox" id="wifi-ap-is-open"> <label for="wifi-ap-is-open">Ei salasanaa (avoin)</label>
+      </td>
+    </tr>
+  </table>
+
+  <br>
+
+  <div class="tc">
+    <input type="submit" value="Tallenna asetukset">
+  </div>
+</form>
+
+<script src="content-wifi.js"></script>
+<script src="?req=content-wifi.js"></script>

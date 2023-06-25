@@ -1,0 +1,48 @@
+<div>
+  <table class="m">
+    <tr>
+      <td class="bg w180">Ohjauksen tila:</td>
+      <td>
+        <b><span id="status-relayOnReq"></span></b>
+        <div id="status-loading" class="spin-sm" style="float:right;"></div>
+        <div style="clear: botd;"></div>
+      </td>
+    </tr>
+    <tr>
+      <td class="bg">S&auml;hk&ouml;n hinta nyt:</td>
+      <td id="status-priceInfo"></td>
+    </tr>
+    <tr>
+      <td class="bg">Ohjaustyyppi:</td>
+      <td id="status-mode"></td>
+    </tr>
+    <tr>
+      <td class="bg">Viime tulos:</td>
+      <td id="status-lastCheckResultStr"></td>
+    </tr>
+    <tr>
+      <td class="bg">Lis&auml;tiedot:</td>
+      <td id="status-infoStr"></td>
+    </tr>
+  </table>
+  <small>
+    <div id="status-alv"></div>
+  </small>
+  <br>
+  <div style="max-height:190px;overflow-y: scroll;">
+    <table style="widtd:100%">
+      <tdead style="position:sticky;inset-block-start:0;">
+        <tr>
+          <td class="title bg">Aika</td>
+          <td class="title bg">Ohjaus</td>
+          <td class="title bg">Selite</td>
+        </tr>
+      </tdead>
+      <tbody id="status-relay-log">
+      </tbody>
+    </table>
+    <div id="status-info" class="tc" style="font-size:x-small"></div>
+  </div>
+</div>
+<script src="content-status.js"></script>
+<script src="?req=content-status.js"></script>
