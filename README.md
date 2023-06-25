@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/github/license/jisotalo/shelly-porssisahko)](https://choosealicense.com/licenses/agpl-3.0/)
 [![Support](https://img.shields.io/badge/Support_with-PayPal-yellow)](https://www.paypal.com/donate/?business=KUWBXXCVGZZME&no_recurring=0&currency_code=EUR)
 
-Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka yrittää venyttää laitteen rajoja. Kehitetty ja testattu käyttäen Shelly Plus 1PM -relekytkintä. Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksen Shellyn muistiin.
+Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka yrittää venyttää laitteen rajoja. Kehitetty ja testattu käyttäen Shelly Plus 1PM -relekytkintä, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon). Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksen Shellyn muistiin.
 
 Mahdollisesti hyödyllinen, jos haluat yksinkertaisesti ohjata relekytkintä sähkön hinnan mukaan, ilman ylimääräistä säätöä ja muita laitteita.
 
@@ -43,8 +43,6 @@ Itse koodi ei ole selkeintä eikä kommentteja ole paljoa. Yksi syy on juuri til
 * Releohjauksen vaihdon lokitus
 * Tekninen lokitus
 * Sisäinen ohje
-
-Testattu omassa käytössä ja toiminut ilman ongelmia 33 vuorokautta putkeen.
 
 ## Skriptin asennus
 
@@ -104,8 +102,12 @@ Tämän voi tehdä myös Shellyn omalla hallintapaneelilla.
 
 2. Siirry Wifi-välilehteen
 3. Aseta Wifi päälle, klikkaa `Valitse listalta` ja valitse haluamasi verkko ilmestyvästä alasvetovalikosta. Syötä myös mahdollinen salasana.
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/e69554a6-168b-4fd9-b488-433c7c04664d)
+
 4. Aseta myös tukiasemalle salasana, jos näet tarpeelliseksi.
 5. Tallenna asetukset
+
 
 Nyt sivun päivittämisen jälkeen Wifin tilatiedot ja IP-osoite ilmestyvät sivun ylälaitaan. Pörssisähkön käyttöliittymä on saatavilla myös tässä verkossa, eli esimerkissä hallintaan pääsee osoitteella [http://192.168.237.118/script/1/porssi](http://192.168.237.118/script/1/porssi).
 
@@ -161,7 +163,12 @@ Toimii esim. jos halutaan lämmittää varaajaa aina 4 tuntia, mutta jos sähkö
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/e6c728c7-6461-419c-bbb0-a4531630c9e1)
 
 ## Kehitys
-TODO
+
+Statics-kansio sisältää html-, css- ja javascript-koodit. Nämä kopioidaan käsin `shelly-porssisahko.js`-skriptin web-serverin pyyntöihin.
+
+Html-koodit minimoidaan poistamalla rivinvaihdot (vscode: F1 + join lines), css- ja js -tiedostot ajamalla vscoden Minify-pluginin läpi.
+
+Kehitysympäristöä voi ajaa omalla koneella `start static server port 8080.ps1` -PowerShell-skriptillä. Tällöin Shellyn IP-osoite asetetaan `script.js`-tiedostossa [rivillä 3](https://github.com/jisotalo/shelly-porssisahko/blob/master/statics/script.js#L3). Kun PowerShell-skripti on käynnissä, pyörittää se simppeliä serveriä portissa 8080.
 
 
 ## In English
