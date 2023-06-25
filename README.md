@@ -102,7 +102,7 @@ Tämän voi tehdä myös Shellyn omalla hallintapaneelilla.
 3. Aseta Wifi päälle, klikkaa `Valitse listalta`-painiketta. Skripti hakee saatavilla olevat verkot.
 4. Valitse haluamasi verkko ilmestyvästä alasvetovalikosta. Syötä myös mahdollinen salasana.
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/e69554a6-168b-4fd9-b488-433c7c04664d)
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/e0f906bf-3384-4248-b96a-cbdbefa7af5d)
 
 5. Tallenna asetukset. Shelly yrittää yhdistää uuteen verkkoon.
 
