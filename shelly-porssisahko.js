@@ -15,7 +15,7 @@ let DEFAULT_SETTINGS = {
   alwaysOnPriceLimit: 0,
   backupHours: [],
   dataSource: 0,
-  alv: 0.1,
+  alv: 0.24,
   errorCmd: false,
   welcomeShown: false
 };
