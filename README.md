@@ -4,35 +4,34 @@
 
 **In English - see bottom of the page.**
 
-Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka yrittää venyttää laitteen rajoja. Kehitetty ja testattu käyttäen Shelly Plus 1PM -relekytkintä, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon). Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksen Shellyn muistiin.
+Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka yrittää venyttää laitteen rajoja. Kehitetty ja testattu käyttäen Shelly Plus 1PM -relekytkintä, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon). Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksensa Shellyn muistiin.
 
 Mahdollisesti hyödyllinen, jos haluat yksinkertaisesti ohjata relekytkintä sähkön hinnan mukaan, ilman ylimääräistä säätöä ja muita laitteita.
 
-Sain inspiraation projektiin alunperin [spot-hinta.fi](https://spot-hinta.fi/) -palvelusta. Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -APIa eikä välissä ole kolmannen osapuolen palveluita. Ei tarvitse rekisteröityä mihinkään.
+Sain inspiraation projektiin alunperin [spot-hinta.fi](https://spot-hinta.fi/) -palvelusta. Skripti käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -APIa, eli välissä ei ole kolmannen osapuolen palveluita. Ei myöskään tarvitse rekisteröityä mihinkään.
 
 ![UVPmzHeV7U](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/b5b9d1ae-0373-4e17-9baf-b4ec2c5a6530)
 
 
 ## Projektin tila
 
-Toimiva ja testattu omassa käytössä, pisimmillään 33 vuorokautta ilman uudelleenkäynnistystä, ja tällöinkin pysäytin sen tämän ohjeen tekoa varten. Tarkoitus on kehittää eteenpäin, kuitenkin Shellyn skriptin koko ja laitteen rajat alkavat jo tulla vastaan.
+Toimiva ja testattu omassa käytössä. Pisin kokeilujakso on ollut 33 vuorokautta ilman uudelleenkäynnistystä. Tarkoitus on kehittää eteenpäin aina kun sille päälle sattuu, Shellyn rajat alkavat kuitenkin tulla vastaan. 
 
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/199098ff-ae01-46e6-92b3-4fef68e90ead)
 
-Itse koodi ei ole selkeintä eikä kommentteja ole paljoa. Yksi syy on juuri tilan puute eli merkien minimointi on tärkeää. Tarkoitus on kuitenkin vielä parannella koodia pikkuhiljaa. 
-
 **Kehitysajatuksia**
-* Koodin läpikäyntiä ja siistimistä
+* Koodin läpikäyntiä ja siistimistä (kommentteja ei juuri ole koska pitää olla pieni tiedosto)
 * Ohjaustapojen kehittäminen
 * Skriptin asennuksen helpottaminen (saisiko helpommaksi jos jakaa muutamaan osaan?) 
 * README:n kehitystä
 * "Buildauksen" kehittämistä - tiedostojen parempi minimointi ja kommenttien poisto tuotantoskriptistä
 * Englannin kieli + tuki muille maille?
+* `shelly-porssisahko.js`-tiedoston minimointi?
 
 ## Ominaisuudet
 
 * Skripti pyörittää shellyn sisällä omaa web-serveriä käyttöliittymää varten
-* Ohjaus 24h halvimpien tuntien mukaan tai yksinkertaisesti tuntihinnan perusteella
+* Kolme ohjaustapaa: käsiohjaus, hintaraja tai halvimmat tunnit
 * Tilan seuranta selaimen kautta
 * Ohjaus-, Wifi- ja tukiasema-asetusten muokkaus selaimen kautta
 * Sähkön ALV-% asetus
@@ -94,34 +93,29 @@ Jos olet asettanut websocket debugging -ominaisuuden päälle, voit myös tarkas
 
 Jatka seuraavan kappaleen ohjeilla.
 
-## Verkon konfigurointi
+## Wifi-verkon asetukset
 
 Tämän voi tehdä myös Shellyn omalla hallintapaneelilla.
 
 1. Avaa [http://192.168.33.1/script/1/porssi](http://192.168.33.1/script/1/porssi)
-
 2. Siirry Wifi-välilehteen
-3. Aseta Wifi päälle, klikkaa `Valitse listalta` ja valitse haluamasi verkko ilmestyvästä alasvetovalikosta. Syötä myös mahdollinen salasana.
+3. Aseta Wifi päälle, klikkaa `Valitse listalta`-painiketta. Skripti hakee saatavilla olevat verkot.
+4. Valitse haluamasi verkko ilmestyvästä alasvetovalikosta. Syötä myös mahdollinen salasana.
 
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/e69554a6-168b-4fd9-b488-433c7c04664d)
 
-4. Aseta myös tukiasemalle salasana, jos näet tarpeelliseksi.
-5. Tallenna asetukset
+5. Tallenna asetukset. Shelly yrittää yhdistää uuteen verkkoon.
 
-
-Nyt sivun päivittämisen jälkeen Wifin tilatiedot ja IP-osoite ilmestyvät sivun ylälaitaan. Pörssisähkön käyttöliittymä on saatavilla myös tässä verkossa, eli esimerkissä hallintaan pääsee osoitteella [http://192.168.237.118/script/1/porssi](http://192.168.237.118/script/1/porssi).
-
+Sivu vaatii tällä hetkellä päivityksen, jotta tilatiedot päivittyvät. Päivittämisen jälkeen näet Shellyn IP-osoitteen, mikäli yhdistäminen onnistui.
 
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/ca4cdb1a-b629-44a5-8c31-cea267468a77)
 
-Loki-välilehdeltä nähdään myös että kellonaika on haettu internetistä:
-
-`25.06.2023 20:14:14 - Kellonaika on nyt tiedossa. UTC-aika: 2023-06-25T17:14:14Z`
+Pörssisähkön käyttöliittymä on saatavilla myös tässä verkossa, eli ylläolevassa tilanteessa hallintaan pääsee `Kotiverkko`-verkossa osoitteella [http://192.168.237.118/script/1/porssi](http://192.168.237.118/script/1/porssi).
 
 
-## Pörssisähkön konfigurointi
+## Pörssisähkön asetukset
 
-Pörssisähköasetukset konfiguroidaan `Asetukset`-sivun alta. Ohjaustapoja on kolme: käsiohjaus, hintaraja, halvimmat tunnit.
+Pörssisähköasetukset konfiguroidaan `Asetukset`-sivun alta. Ohjaustapoja on kolme: käsiohjaus, hintaraja ja halvimmat tunnit.
 
 ### Käsiohjaus
 
@@ -159,22 +153,13 @@ Toimii esim. jos halutaan lämmittää varaajaa aina 4 tuntia, mutta jos sähkö
 | Hätätilaohjaus | Jos yhteyttä ei ole eikä kellonaika tiedetä, missä tilassa ohjaus on | `on/off` |
 | Tervetuloa | Näytetäänkö tervetuloaviesti kun sivu avataan | `on/off` |
 
-
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/e6c728c7-6461-419c-bbb0-a4531630c9e1)
-
-## Kehitys
-
-*Tämä on kesken* 
-
-Statics-kansio sisältää html-, css- ja javascript-koodit. Nämä kopioidaan käsin `shelly-porssisahko.js`-skriptin web-serverin pyyntöihin.
-
-Html-koodit minimoidaan poistamalla rivinvaihdot (vscode: F1 + join lines), css- ja js -tiedostot ajamalla vscoden Minify-pluginin läpi.
-
-Web-puolen kehitysympäristöä voi ajaa omalla koneella `start static server port 8080.ps1` -PowerShell-skriptillä. Tällöin Shellyn IP-osoite asetetaan `script.js`-tiedostossa [rivillä 3](https://github.com/jisotalo/shelly-porssisahko/blob/master/statics/script.js#L3). Kun PowerShell-skripti on käynnissä, pyörittää se simppeliä serveriä portissa 8080 ja pyynnöt ohjautuvat Shellyyn.
-
 ## Sähköinen kytkentä
 
 Lue lisää häiriösuojauksesta [spot-hinta.fi -sivustolta](https://spot-hinta.fi/shelly/).
+
+## Kehitysympäristö ja toiminta
+
+*TODO* 
 
 ## In English
 
