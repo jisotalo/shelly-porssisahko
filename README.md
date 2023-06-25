@@ -1,5 +1,5 @@
 # shelly-porssisahko - Pörssisähköohjaus Shelly-releisiin
-[![License](https://img.shields.io/github/license/jisotalo/shelly-porssisahko)](https://choosealicense.com/licenses/agpl-3.0/)
+[![License](https://img.shields.io/badge/License-AGPLv3-orange)](https://choosealicense.com/licenses/agpl-3.0/)
 [![Support](https://img.shields.io/badge/Support_with-PayPal-yellow)](https://www.paypal.com/donate/?business=KUWBXXCVGZZME&no_recurring=0&currency_code=EUR)
 
 **In English - see bottom of the page.**
@@ -175,7 +175,7 @@ Web-puolen kehitysympäristöä voi ajaa omalla koneella `start static server po
 
 ## In English
 
-This is a script to control relay by electric spot price for Shelly products (especially Shelly Plus 1PM) with web-based user interface.
+This is a script to control relay by Nordpool electric spot prices for Shelly products (especially Shelly Plus 1PM) with web-based user interface.
 
 At the moment it's available only in Finnish and the spot price is queried for Finland. However other Nordpool countries would be trivial to add.
 
