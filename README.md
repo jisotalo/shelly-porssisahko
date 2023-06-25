@@ -1,14 +1,14 @@
-# shelly-porssisahko - Pörssisähkö Shellyn laitteisiin
+# shelly-porssisahko - Pörssisähköohjaus Shelly-releisiin
 [![License](https://img.shields.io/github/license/jisotalo/shelly-porssisahko)](https://choosealicense.com/licenses/agpl-3.0/)
 [![Support](https://img.shields.io/badge/Support_with-PayPal-yellow)](https://www.paypal.com/donate/?business=KUWBXXCVGZZME&no_recurring=0&currency_code=EUR)
+
+**In English - see bottom of the page.**
 
 Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka yrittää venyttää laitteen rajoja. Kehitetty ja testattu käyttäen Shelly Plus 1PM -relekytkintä, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon). Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksen Shellyn muistiin.
 
 Mahdollisesti hyödyllinen, jos haluat yksinkertaisesti ohjata relekytkintä sähkön hinnan mukaan, ilman ylimääräistä säätöä ja muita laitteita.
 
 Sain inspiraation projektiin alunperin [spot-hinta.fi](https://spot-hinta.fi/) -palvelusta. Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -APIa eikä välissä ole kolmannen osapuolen palveluita. Ei tarvitse rekisteröityä mihinkään.
-
-**In English - see bottom of the page.**
 
 ![UVPmzHeV7U](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/b5b9d1ae-0373-4e17-9baf-b4ec2c5a6530)
 
@@ -164,11 +164,13 @@ Toimii esim. jos halutaan lämmittää varaajaa aina 4 tuntia, mutta jos sähkö
 
 ## Kehitys
 
+*Tämä on kesken* 
+
 Statics-kansio sisältää html-, css- ja javascript-koodit. Nämä kopioidaan käsin `shelly-porssisahko.js`-skriptin web-serverin pyyntöihin.
 
 Html-koodit minimoidaan poistamalla rivinvaihdot (vscode: F1 + join lines), css- ja js -tiedostot ajamalla vscoden Minify-pluginin läpi.
 
-Kehitysympäristöä voi ajaa omalla koneella `start static server port 8080.ps1` -PowerShell-skriptillä. Tällöin Shellyn IP-osoite asetetaan `script.js`-tiedostossa [rivillä 3](https://github.com/jisotalo/shelly-porssisahko/blob/master/statics/script.js#L3). Kun PowerShell-skripti on käynnissä, pyörittää se simppeliä serveriä portissa 8080.
+Web-puolen kehitysympäristöä voi ajaa omalla koneella `start static server port 8080.ps1` -PowerShell-skriptillä. Tällöin Shellyn IP-osoite asetetaan `script.js`-tiedostossa [rivillä 3](https://github.com/jisotalo/shelly-porssisahko/blob/master/statics/script.js#L3). Kun PowerShell-skripti on käynnissä, pyörittää se simppeliä serveriä portissa 8080 ja pyynnöt ohjautuvat Shellyyn.
 
 
 ## In English
