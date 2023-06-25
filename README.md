@@ -172,6 +172,9 @@ Html-koodit minimoidaan poistamalla rivinvaihdot (vscode: F1 + join lines), css-
 
 Web-puolen kehitysympäristöä voi ajaa omalla koneella `start static server port 8080.ps1` -PowerShell-skriptillä. Tällöin Shellyn IP-osoite asetetaan `script.js`-tiedostossa [rivillä 3](https://github.com/jisotalo/shelly-porssisahko/blob/master/statics/script.js#L3). Kun PowerShell-skripti on käynnissä, pyörittää se simppeliä serveriä portissa 8080 ja pyynnöt ohjautuvat Shellyyn.
 
+## Sähköinen kytkentä
+
+Lue lisää häiriösuojauksesta [spot-hinta.fi -sivustolta](https://spot-hinta.fi/shelly/).
 
 ## In English
 
