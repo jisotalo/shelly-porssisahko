@@ -1,0 +1,71 @@
+<!--
+/**
+* shelly-porssisahko
+* 
+* (c) Jussi isotalo - http://jisotalo.fi
+* https://github.com/jisotalo/shelly-porssisahko
+* 
+* License: GNU Affero General Public License v3.0 
+*/
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Pörssisähkö</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body>
+  <div class="top">
+    <div id="title">Pörssisähkö</div>
+    <div id="spin" class="spin-sm"></div>
+    <div id="copy">&copy; Jussi Isotalo (<a href="https://jisotalo.fi" target="_blank">jisotalo.fi</a>)</div>
+  </div>
+
+  <div id="loading">
+    <div class="loadingspinner"></div>
+    <div id="loading-text">Ladataan skriptejä</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab">
+      <input type="radio" name="css-tabs" id="tab-status" checked class="tab-switch">
+      <label for="tab-status" class="tab-label">Tila</label>
+      <div class="tab-content" id="c-tab-status"></div>
+    </div>
+    <div class="tab">
+      <input type="radio" name="css-tabs" id="tab-config" class="tab-switch">
+      <label for="tab-config" class="tab-label">Asetukset</label>
+      <div class="tab-content" id="c-tab-config"></div>
+    </div>
+  </div>
+  <script>
+    /* If true, development environment is active (http is served from localhost) */
+    const DEV = window.location.origin.includes("localhost");
+
+    let d = document;
+    let e = (e) => d.createElement(e);
+    let a = (e) => d.body.appendChild(e);
+
+    /**
+     * Helper that adds a <script> tag with file f
+     */
+    let reqJs = (f) => {
+      let script = e("script");
+      script.src = DEV ? f : `?r=${f}`;
+      a(script);
+    }
+
+    /*Loading script and css based on if we are running on shelly or dev environment*/
+    let css = e("link");
+    css.rel = "stylesheet";
+    css.href = DEV ? "s.css" : "?r=s.css";
+    a(css);
+
+    reqJs("s.js");
+  </script>
+</body>
+
+</html>

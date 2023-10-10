@@ -1,0 +1,56 @@
+<table class="m">
+  <tr>
+    <td class="bg w180">Ohjaus nyt:</td>
+    <td>
+      <b><span id="s-cmd">Ladataan...</span></b>
+    </td>
+  </tr>
+  <tr>
+    <td class="bg">Ohjauksen selite:</td>
+    <td id="s-st"></td>
+  </tr>
+  <tr>
+    <td class="bg">S&auml;hk&ouml;n hinta nyt:</td>
+    <td id="s-price"></td>
+  </tr>
+  <tr>
+    <td class="bg">Ohjaustyyppi:</td>
+    <td id="s-mode"></td>
+  </tr>
+  <tr>
+    <td class="bg">Tila:</td>
+    <td id="s-info"></td>
+  </tr>
+</table>
+
+<div class="flx flx-mob-col">
+  <div class="tc fg1fb0 mr5">
+    <div class="tc mt10"><b>Päivän hintatiedot</b></div>
+    <table>
+      <tr>
+        <td class="t bg">Aika</td>
+        <td class="t bg">Hinta</td>
+        <td class="t bg">Ohjaus</td>
+      </tr>
+      <tbody id="s-prices">
+      </tbody>
+    </table>
+  </div>
+  <div class="tc fg1fb0 ml5">
+    <div class="tc mt10"><b>Ohjaushistoria</b></div>
+    <table>
+      <tr>
+        <td class="t bg">Aika</td>
+        <td class="t bg">Ohjaus</td>
+      </tr>
+      <tbody id="s-hist">
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="s-version" class="tc mt10"></div>
+
+<script>
+  reqJs("tab-status.js");
+</script>

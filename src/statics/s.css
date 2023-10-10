@@ -1,28 +1,44 @@
-* {
+/**
+ * shelly-porssisahko
+ * 
+ * (c) Jussi isotalo - http://jisotalo.fi
+ * https://github.com/jisotalo/shelly-porssisahko
+ * 
+ * License: GNU Affero General Public License v3.0 
+ */
+ * {
   box-sizing: border-box;
 }
 
-body {
-  background: #2c3e50;
-  color: #ecf0f1;
-  line-height: 1.4em;
-  font-size: 0.9em;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
-
+body,
 a {
   color: #ecf0f1;
 }
 
-.wrapper {
+body {
+  background: #2c3e50;
+  line-height: 1.4em;
+  font-size: 0.9em;
+  font-family: Verdana;
   max-width: 50rem;
   width: 100%;
   margin: 0 auto;
+  padding: 5px 10px;
 }
 
 #title {
   font-size: 1.4em;
   margin-bottom: 5px;
+}
+
+#copy {
+  font-size: 0.8em;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.flx {
+  display: flex;
 }
 
 .tabs {
@@ -69,15 +85,13 @@ a {
 
 .tab-content {
   width: 100%;
-  min-height: 12.5rem;
   position: absolute;
   z-index: 1;
   top: 2.75em;
   left: 0;
-  padding: 1.618rem;
+  padding: 1rem;
   background: #fff;
   color: #2c3e50;
-  border-bottom: 0.25rem solid #bdc3c7;
   opacity: 0;
   transition: all 0.35s;
 }
@@ -100,16 +114,7 @@ a {
 
 .top {
   display: grid;
-  grid-template-columns: 1fr auto;
-}
-
-.copyright {
-  display: flex;
-}
-
-.copyright>div {
-  font-size: smaller;
-  align-self: flex-end;
+  grid-template-columns: 1fr auto 1fr;
 }
 
 
@@ -143,9 +148,9 @@ a {
 
 .spin-sm {
   pointer-events: none;
-  width: 1rem;
-  height: 1rem;
-  border: 0.1rem solid transparent;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 0.2rem solid transparent;
   border-color: #1abc9c;
   border-top-color: white;
   border-radius: 50%;
@@ -158,10 +163,14 @@ a {
   }
 }
 
-td.title,
+td.t,
 td.bg {
   font-weight: bold;
   vertical-align: top;
+}
+
+.flx-mob-col {
+  flex-direction: row;
 }
 
 @media(max-width: 480px) {
@@ -170,8 +179,7 @@ td.bg {
     width: 100% !important;
   }
 
-
-  table.m td.title,
+  table.m td.t,
   table.m td.bg {
     margin-left: 0px;
     border-top: 0;
@@ -180,6 +188,13 @@ td.bg {
 
   table.m tr:first-child {
     border-top: 1px black solid;
+  }
+
+  .flx-mob-col {
+    flex-direction: column;
+  }
+  .flx-mob-col>div {
+    margin: 0 0;
   }
 }
 
@@ -191,7 +206,6 @@ table {
   border-spacing: 0;
   border-collapse: collapse;
   width: 100%;
-
 }
 
 td.bg {
@@ -220,40 +234,27 @@ td.fit {
   width: 180px;
 }
 
-txt-green {
-  color: green;
+.mt10 {
+  margin-top: 10px;
 }
 
-txt-red {
-  color: red;
+.fg1fb0 {
+  flex-grow: 1;
+  flex-basis: 0;
 }
 
-#modal {
-  z-index: 2000;
-  position: fixed;
-  margin: auto;
-  top: 5vh;
-  left: 0;
-  right: 0;
-  width: 40rem;
-  border: 2px solid #2c3e50;
-  color:black;
-  background: white;
-  visibility: hidden;
+.mr5 {
+  margin: 0 5px;
 }
-#modal-t {
-  background: #1abc9c;
-  text-align: center;
-  line-height: normal;
-  font-size:1.1rem;
-  padding: 2px;
+
+.ml5 {
+  margin-left: 5px;
 }
-#modal-c {
-  padding: 5px;
-  min-height: 10em;
-  word-break: break-word;
+
+.b {
+  font-weight: bold;
 }
-#modal-b {
-  padding: 5px;
-  text-align: center;
+
+.btn {
+  font-size: 1.1em;
 }
