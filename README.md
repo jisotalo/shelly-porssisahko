@@ -35,6 +35,49 @@ Uutta versiota ei ole vielä pitkäaikaistestattu.
 
 Nämä saadaan kuntoon jos Shelly nostaa muistirajoitusta. Tällä hetkellä ei vaan yksinkertaisesti ole tarpeeksi muistia.
 
+## Todettu toimivaksi seuraavilla laitteilla
+* Shelly Plus 1PM
+
+
+## Asennus
+1. Ota Shelly käyttöön, yhdistä se wifi-verkkoon ja päivitä sen firmware (ainakin varmista että se on 1.0.0 tai uudempi)
+2. Valinnainen: Laita **Websocket debug** päälle (Settings -> Debug -> Enable websocket debug). Näin näet suoraan hallintapaneelin osoitteen skriptin alla.
+3. Avaa **Scripts**-sivu Shellyn hallinnasta. Poista olemassaolevat skriptit, jos niitä on.
+4. Paina **Library**-painiketta
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/21abeef6-4191-433c-8134-f5f12a29b6af)
+
+5. Aukeavassa ikkunassa paina **Configure URL**
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/ccd4b9fd-f9f2-4f42-8bc9-74c9486f6432)
+
+6. Syötä osoitteeksi `https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/shelly-library.json` ja paina **Save**
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/972fedb9-8503-4d90-a9b2-3af6f430ed7d)
+
+7. Nyt kirjastoon ilmestyy pörssisähköohjaus. Asenna se painamalla **Insert code**
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/9139dad1-e3ec-4a09-9e39-d940af5ea9d7)
+
+8. Kun skripti ilmestyy, paina **Save**
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2a241033-4ccb-415e-b422-373ec7ce54ef)
+
+9. Tallentamisen jälkeen paina **Start**, jolloin skripti käynnistyy
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/8b30aa9f-b9de-44a7-9677-6872404b022d)
+
+10. Jos websocket debug on päällä (**kohta 2**), näet hallinnan osoitteen suoraan skriptin alla konsolissa. Kopioi tämä osoite ja avaa se selaimella. Jos et näe sitä niin osoite on muotoa `http://ip-osoite/script/1`
+
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2b28b29e-3e7b-4ea9-8a11-4d612bbaf99b)
+
+11. Varmista vielä että skripti käynnistyy aina automaattisesti. Eli **Scripts**-sivulla pitää shelly-porssisahko.js -skriptin kohdalla olla valinta päällä.
+
+    ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2d9fbb5f-e2c5-4f5c-a457-5606825184f3)
+
+12. Valmista. **Älä asenna muita skriptejä - muisti loppuu kesken**
+
 ## Sähköinen kytkentä
 
 Lue lisää häiriösuojauksesta [spot-hinta.fi -sivustolta](https://spot-hinta.fi/shelly/).
