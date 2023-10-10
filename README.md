@@ -2,14 +2,7 @@
 [![License](https://img.shields.io/badge/License-AGPLv3-orange)](https://choosealicense.com/licenses/agpl-3.0/)
 [![Support](https://img.shields.io/badge/Support_with-PayPal-yellow)](https://www.paypal.com/donate/?business=KUWBXXCVGZZME&no_recurring=0&currency_code=EUR)
 
-## ------ HUOMIO 19.09.2023! ------
-Tämä ei tällä hetkellä toimi enää Shellyn firmiksen 1.0.0 ja uudemman kanssa. Lisäsivät paljon rajoituksia skriptien muistin käyttöön.
-
-Uusi versio on työn alla ja siitä tulee entistä parempi!
-
----
-
-**In English - see bottom of the page.**
+*In English - see bottom of the page.*
 
 Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka venyttää laitteen rajoja. Kehitetty ja testattu käyttäen Shelly Plus 1PM -relekytkintä, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon). Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksensa Shellyn muistiin.
 
