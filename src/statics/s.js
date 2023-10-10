@@ -52,6 +52,9 @@ let MODE_STR = [
  */
 let state = undefined;
 
+/** Callbacks called when state is updated */
+let CBS = [];
+
 /**
  * Helper that is used for DBG calls to add caller information
  */
@@ -250,13 +253,15 @@ const updateLoop = async () => {
       state = null;
     }
 
+    CBS.forEach(cb => cb());
+
   } catch (err) {
     console.error(me(), `Error:`, err);
     state = null;
 
   } finally {
     qs("#spin").style.visibility = "hidden";
-    setTimeout(updateLoop, 5000);
+    setTimeout(updateLoop, 10000);
   }
 }
 

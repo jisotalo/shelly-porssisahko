@@ -46,24 +46,24 @@
     const DEV = window.location.origin.includes("localhost");
 
     let d = document;
-    let e = (e) => d.createElement(e);
-    let a = (e) => d.body.appendChild(e);
+    let createElement = (e) => d.createElement(e);
+    let appendChild = (e) => d.body.appendChild(e);
 
     /**
      * Helper that adds a <script> tag with file f
      */
     let reqJs = (f) => {
-      let script = e("script");
+      let script = createElement("script");
       script.src = DEV ? f : `?r=${f}`;
-      a(script);
+      appendChild(script);
     }
 
     /*Loading script and css based on if we are running on shelly or dev environment*/
-    let css = e("link");
+    let css = createElement("link");
     css.rel = "stylesheet";
     css.href = DEV ? "s.css" : "?r=s.css";
-    a(css);
-
+    appendChild(css);
+  
     reqJs("s.js");
   </script>
 </body>

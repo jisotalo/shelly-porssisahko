@@ -74,7 +74,7 @@ let logData = [];
 let _ = {
   s: {
     /** version number */
-    v: "2.0.0-beta1",
+    v: "2.0.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -333,8 +333,8 @@ function logicRunNeeded() {
   let now = new Date();
   let chk = new Date(_.s.chkTs * 1000);
 
-  //return (chk.getHours() !== now.getHours() || chk.getFullYear() !== now.getFullYear());
-  return (chk.getMinutes() !== now.getMinutes() || chk.getFullYear() !== now.getFullYear());
+  return (chk.getHours() !== now.getHours() || chk.getFullYear() !== now.getFullYear());
+  //for debugging: return (chk.getMinutes() !== now.getMinutes() || chk.getFullYear() !== now.getFullYear());
 }
 
 /**
@@ -343,7 +343,7 @@ function logicRunNeeded() {
  * @param isLoop If true then loopRunning is set to false after finished
  */
 function getPrices(isLoop) {
-  let me = "getPrices()";
+  //let me = "getPrices()";
   //log(me, "haetaan päivän hinnat (yritys " + (_.s.errCnt + 1) + "/" + C_ERRC + ")");
 
   let now = new Date();
@@ -370,7 +370,7 @@ function getPrices(isLoop) {
   start = null;
   end = null;
 
-  log(me, "URL:" + req.url);
+  //log(me, "URL:" + req.url);
 
   Shelly.call("HTTP.GET", req, function (res, err, msg, isLoop) {
     req = null;
@@ -417,7 +417,7 @@ function getPrices(isLoop) {
           activePos = res.body_b64.indexOf(";\"", activePos) + 2;
           row[1] = Number(res.body_b64.substring(activePos, res.body_b64.indexOf("\"", activePos)).replace(",", "."));
           //Converting price to c/kWh and adding VAT to price
-          row[1] = row[1] / 10.0 * (100 + _.c.vat) / 100.0;
+          row[1] = row[1] / 10.0 * (100 + (row[1] > 0 ? _.c.vat : 0)) / 100.0;
 
           //Add transfer fees (if any)
           let hour = new Date(row[0] * 1000).getHours();

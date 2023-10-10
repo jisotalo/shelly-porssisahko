@@ -9,20 +9,11 @@
 {
   let configRead = false;
 
-  const loop = async () => {
-    if (configRead) {
-      return;
-    }
-
+  const onUpdate = async () => {
     try {
-      if (state === undefined) {
-        setTimeout(loop, 1000);
+      if (state === undefined || configRead || !state) {
         return;
-
-      } else if (!state) {
-        throw new Error("no data");
       }
-
       let c = state.c;
 
       qs("#c-mode").innerHTML = MODE_STR.map((m, i) => `<option value="${i}">${m}</option>`)
@@ -50,8 +41,6 @@
     } catch (err) {
       console.error(me(), `Error:`, err);
 
-    } finally {
-      setTimeout(loop, 1000);
     }
   };
 
@@ -108,6 +97,7 @@
     }
   };
 
-  loop();
+  onUpdate();
+  CBS.push(onUpdate);
   qs("#c-save").addEventListener("click", save);
 }

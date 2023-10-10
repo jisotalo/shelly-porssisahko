@@ -423,7 +423,7 @@ const uploadAndBuildAll = async () => {
 }
 
 const listenUdp = async () => {
-  fs.unlink("./log.txt").catch();
+  fs.unlink("./log.txt").catch(err => {});
 
   const socket = dgram.createSocket('udp4');
 

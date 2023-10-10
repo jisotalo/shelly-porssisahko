@@ -11,7 +11,7 @@
   let prevHour = 0;
   let prevHistoryTs = 0;
 
-  const loop = async () => {
+  const onUpdate = async () => {
     try {
       if (state === undefined) {
         return;
@@ -29,6 +29,7 @@
       qs("#s-mode").innerHTML = MODE_STR[c.mode];
       qs("#s-price").innerHTML = `${s.p.now.toFixed(2)} c/kWh`;
       qs("#s-st").innerHTML = STATE_STR[s.st];
+      qs("#s-day").innerHTML = `Keskiarvo: ${s.p.avg.toFixed(2)} c/kWh<br>Halvin: ${s.p.low.toFixed(2)} c/kWh<br>Kallein: ${s.p.high.toFixed(2)} c/kWh`;
       qs("#s-info").innerHTML = `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))} - ${s.p.ts > 0 ? `hinnat haettu ${formatTime(new Date(s.p.ts * 1000))}` : "hintatietoja haetaan..."}`;
       qs("#s-version").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
 
@@ -119,9 +120,10 @@
       qs("#s-state").innerHTML = "";
 
     } finally {
-      setTimeout(loop, 1000);
+      //setTimeout(loop, 5000);
     }
   };
 
-  loop();
+  onUpdate();
+  CBS.push(onUpdate);
 }
