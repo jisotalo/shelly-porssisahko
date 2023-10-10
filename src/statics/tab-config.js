@@ -64,8 +64,8 @@
         }
       }
 
-      c.err = qs("#c-err").checked;
-      c.m0.cmd = qs("#c-m0-cmd").checked;
+      c.err = qs("#c-err").checked ? 1 : 0;
+      c.m0.cmd = qs("#c-m0-cmd").checked ? 1 : 0;
       c.m1.lim = n(qs("#c-m1-lim").value);
       c.m2.per = n(qs("#c-m2-per").value);
       c.m2.cnt = n(qs("#c-m2-cnt").value);

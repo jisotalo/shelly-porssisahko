@@ -74,7 +74,7 @@ let logData = [];
 let _ = {
   s: {
     /** version number */
-    v: "2.0.0",
+    v: "2.0.1",
     /** status as number */
     st: 0,
     /** active command */
