@@ -1,0 +1,22 @@
+{
+  "name": "shelly-porssisahko",
+  "version": "1.0.0",
+  "description": "This is used for building/minifying shelly-porssisahko",
+  "main": "shelly-builder.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node shelly-builder.js --build",
+    "upload": "node shelly-builder.js --upload",
+    "start": "npm run build && npm run upload",
+    "serve": "serve ./src/statics",
+    "debug": "node shelly-builder.js --debug"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "html-minifier": "^4.0.0",
+    "serve": "^14.2.1",
+    "uglify-js": "^3.17.4"
+  }
+}

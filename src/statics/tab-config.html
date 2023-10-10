@@ -1,0 +1,108 @@
+<!--
+/**
+* shelly-porssisahko
+* 
+* (c) Jussi isotalo - http://jisotalo.fi
+* https://github.com/jisotalo/shelly-porssisahko
+* 
+* License: GNU Affero General Public License v3.0 
+*/
+-->
+<div class="tc b">YLEISET</div>
+<table class="m">
+  <tr>
+    <td class="bg w180">Ohjaustyyppi</td>
+    <td>
+      <select id="c-mode">
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="bg w180">Ohjattava lähtö</td>
+    <td>
+      <input type="text" id="c-out" size="2">
+    </td>
+  </tr>
+  <tr>
+    <td class="bg w180">Sähkön ALV</td>
+    <td>
+      <input type="text" id="c-vat" size="2"> %
+    </td>
+  </tr>
+  <tr>
+    <td class="bg w180">Siirtomaksut</td>
+    <td>
+      07-22: <input type="text" id="c-day" size="2"> c/kWh
+      <div class="mt10">22-07: <input type="text" id="c-night" size="2"> c/kWh</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="bg">Varmuustunnit</td>
+    <td id="c-backups"></td>
+  </tr>
+  <tr>
+    <td class="bg">Hätätilaohjaus</td>
+    <td>
+      <input type="checkbox" id="c-err"><label for="c-err"> ON/OFF</label>
+    </td>
+  </tr>
+</table>
+
+<div class="tc mt10 b">KÄSIOHJAUS</div>
+<table class="m">
+  <tr>
+    <td class="bg w180">Ohjaus</td>
+    <td>
+      <input type="checkbox" id="c-m0-cmd"><label for="c-m0-cmd"> ON/OFF</label>
+    </td>
+  </tr>
+</table>
+
+<div class="tc mt10 b">HINTARAJA</div>
+<table class="m">
+  <tr>
+    <td class="bg w180">Hintaraja</td>
+    <td>
+      <input type="text" id="c-m1-lim" size="2"> c/kWh
+    </td>
+  </tr>
+</table>
+
+<div class="tc mt10 b">JAKSON HALVIMMAT TUNNIT</div>
+<table class="m">
+  <tr>
+    <td class="bg w180">Ajanjakso</td>
+    <td>
+      <select id="c-m2-per">
+        <option value="24">24</option>
+        <option value="12">12</option>
+        <option value="8">8</option>
+        <option value="6">6</option>
+        <option value="4">4</option>
+        <option value="3">3</option>
+        <option value="2">2</option>
+      </select>
+      h
+    </td>
+  </tr>
+  <tr>
+    <td class="bg w180">Tuntimäärä</td>
+    <td>
+      <input type="text" id="c-m2-cnt" size="2"> h
+    </td>
+  </tr>
+  <tr>
+    <td class="bg">Aina päällä -raja</td>
+    <td>
+      <input type="text" size="2" id="c-m2-lim"> c/kWh
+    </td>
+  </tr>
+</table>
+<div class="tc mt10">
+  <input id="c-save" type="button" value="Tallenna" class="btn">
+</div>
+
+
+<script>
+  reqJs("tab-config.js");
+</script>
