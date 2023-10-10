@@ -78,19 +78,25 @@ Nämä saadaan kuntoon jos Shelly nostaa muistirajoitusta. Tällä hetkellä ei 
 
 12. Valmista. **Älä asenna muita skriptejä - muisti loppuu kesken**
 
+## Käyttöohje
+
+*README kesken* 
+
 ## Sähköinen kytkentä
 
 Lue lisää häiriösuojauksesta [spot-hinta.fi -sivustolta](https://spot-hinta.fi/shelly/).
 
-## Kehitysympäristö ja toiminta
+## Teknistä tietoa ja kehitysympäristö 
 
-*TODO* 
+*README kesken* 
 
 ## In English
 
 This is a script to control relay by Nordpool electric spot prices for Shelly products (especially Shelly Plus 1PM) with web-based user interface.
 
-At the moment it's available only in Finnish and the spot price is queried for Finland. However other Nordpool countries is trivial to add.
+At the moment it's available only in Finnish and the spot price is queried for Finland. 
+
+There will soon be an English version (with country selection) available.
 
 ## Lisenssi / Lisence
 
