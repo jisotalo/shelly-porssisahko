@@ -1,5 +1,6 @@
 # shelly-porssisahko - Pörssisähköohjaus Shelly-releisiin
 [![License](https://img.shields.io/badge/License-AGPLv3-orange)](https://choosealicense.com/licenses/agpl-3.0/)
+[![GitHub](https://img.shields.io/badge/View%20on-GitHub-brightgreen)](https://github.com/jisotalo/shelly-porssisahko)
 [![Support](https://img.shields.io/badge/Support_with-PayPal-yellow)](https://www.paypal.com/donate/?business=KUWBXXCVGZZME&no_recurring=0&currency_code=EUR)
 
 *In English - see bottom of the page.*
@@ -13,30 +14,27 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboa
 ![0qmExM5DKq](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/adb41125-9be3-4bc4-9ba3-3eff180160bf)
 
 
+## Ominaisuudet
+* Oma web-serveri Shellyn sisällä ja siinä pyörivä käyttöliittymä
+* Valvonta ja konfigurointi selaimen avulla
+* Ei liityntöjä 3. osapuolen palveluihin
+* Kolme ohjaustapaa: 
+  * **käsiohjaus** - yksinkertaisesti ohjaus päälle/pois
+  * **hintaraja** - jos hinta on alle rajan, laitetaan ohjaus päälle 
+  * **jakson halvimmat tunnit** - valitaan halutulta aikajaksolta x halvinta tuntia (tai aina päälle kun tarpeeksi halpaa)
+* Vikasietoinen
+  * Varmuustunnit (jos ei hintoja mutta tiedetään kellonaika)
+  * Hätätilaohjaus (jos ei internet-yhteyttä eikä tiedetä kellonaikaa)
+* Todettu toimivaksi seuraavilla laitteilla
+  * Shelly Plus 1PM
+
 ## Projektin tila
 
 Versio 2 julkaistu 10.0.2023. Ensimmäinen versio lakkasi toimista kun Shelly kiristi skriptien koko- ja muistirajoituksia reilusti.
 
-Uusi versio on tehty alusta asti uusiksi ja skripti pakataan niin pieneen tilaan kuin mahdollista. Näin se mahtuu Shellyn uusiin rajoihin (jotka valmistaja on kyllä luvannut nostaa isommaksi).
+Uusi versio on tehty alusta asti uusiksi ja skripti pakataan niin pieneen tilaan kuin mahdollista. Näin se mahtuu Shellyn nykyisin rajoihin.
 
 Uutta versiota ei ole vielä pitkäaikaistestattu.
-
-## Ominaisuudet
-* Oma web-serveri Shellyn sisällä ja siinä pyörivä käyttöliittymä
-* Valvonta ja konfigurointi selaimen avulla
-* Kolme ohjaustapaa: käsiohjaus, hintaraja tai jakson halvimmat tunnit
-* Vikasietoinen
-  * Varmuustunnit (jos ei hintoja mutta tiedetään kellonaika)
-  * Hätätilaohjaus (jos ei internet-yhteyttä eikä tiedetä kellonaikaa)
-
-## Puutteet
-- Logitus puuttuu
-- Vain 12 viime ohjauksen muutosta (~12h) pysyy muistissa. 24h ei ihan mahdu nykyisellään.
-
-Nämä saadaan kuntoon jos Shelly nostaa muistirajoitusta. Tällä hetkellä ei vaan yksinkertaisesti ole tarpeeksi muistia.
-
-## Todettu toimivaksi seuraavilla laitteilla
-* Shelly Plus 1PM
 
 
 ## Asennus
@@ -78,18 +76,123 @@ Nämä saadaan kuntoon jos Shelly nostaa muistirajoitusta. Tällä hetkellä ei 
 
 12. Valmista. **Älä asenna muita skriptejä - muisti loppuu kesken**
 
-## Käyttöohje
+## Ohje
 
+### Etusivu
 *README kesken* 
+
+### Asetukset
+*README kesken* 
+
+**Yleiset**
+
+| Asetus | Selite | Esimerkki
+| --- | --- | ---
+| Ohjaustyyppi | Millä ohjaustavalla lähtöä ohjataan (katso alla)
+| Ohjattava lähtö | Shellyn ohjattavan lähdön numero | `0`
+| Sähkön ALV | Käytettävä ALV-% sähkön hinnalle [%]| `24` 
+| Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle [c/kWh]| päivä: `4` <br> yö: `3`
+| Varmuustunnit | Jos sähkön hintaa ei jostain syystä tiedetä, ohjataan lähtö näillä tunneilla päälle
+| Hätätilaohjaus | Jos Shelly ei jostain syystä tiedä kellonaikaa, ohjataan lähtö tähän tilaan
+
+**KÄSIOHJAUS**
+
+Asetukset voimassa vain jos ohjaustapa on *käsiohjaus*.
+
+| Asetus | Selite | Esimerkki
+| --- | --- | ---
+| Ohjaus | Laitetaankö lähtö päälle vai pois
+
+**HINTARAJA**
+
+Asetukset voimassa vain jos ohjaustapa on *hintaraja*.
+
+| Asetus | Selite | Esimerkki
+| --- | --- | ---
+| Hintaraja | Aseta hinta, jossa ja jonka alla lähtö asetetaan päälle. Muuten lähtö on pois päältä [c/kWh] | `4.25`
+
+**JAKSON HALVIMMAT TUNNIT**
+
+Asetukset voimassa vain jos ohjaustapa on *jakson halvimmat tunnit*.
+
+| Asetus | Selite | Esimerkki
+| --- | --- | ---
+| Ajanjakso | Minkä mittaisiin jaksoihin vuorokausi jaetaan. Jokaiselta jaksolta haetaan sitten halvimmat tunnit [h] | `6`
+| Tuntimäärä | Kuinka monta halvinta tuntia lähtö ohjataan päälle ajanjakson aikana.<br><br>Eli jos ajanjakso on 6h ja tuntimäärä 2, kello 00...06 lähtö ohjataan päälle kahtena halvimpana tuntina. Kuten myös kello 06...12 ja niin edelleen. | `2`
+| Aina päällä -raja | Jos sähkö on tätä halvempaa niin lähtö on aina päällä [c/kWh] | `-0.5`
+
+Alla esimerkki miten ohjaukset menevät 12.10.2023 hinnoilla ja yllä olevilla asetuksilla (6h, 2 halvinta tuntia, aina päällä -raja -0.5 c/kWh). Huomaa jaksojen korostus taustavärillä.
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/35324051-c58a-46f0-897f-afa5eb373c18)
+
+**TOIMINNOT**
+* **Pakko-ohjaus**
+  * Painamalla tätä voit asettaa lähdön päälle määritellyksi ajaksi (voi syöttää myös esim 0.5 = puoli tuntia)
+* **Avaa Shelly**
+  * Avaa uudessa välilehdessä Shellyn oman hallintasivun
+
+
+
+
+
 
 ## Sähköinen kytkentä
 
-Lue lisää häiriösuojauksesta [spot-hinta.fi -sivustolta](https://spot-hinta.fi/shelly/).
+Lue lisää häiriösuojauksesta esimerkiksi [spot-hinta.fi -sivustolta](https://spot-hinta.fi/shelly/).
 
-## Teknistä tietoa ja kehitysympäristö 
+## Teknistä tietoa ja kehitysympäristö
 
-*README kesken* 
+### Lyhyesti
+  * Shellyyn asennattava skripti on "kääntöprosessin" tulos
+  * Tämä jotta skripti saadaan mahtumaan mahdollisimman pieneen tilaan
+  * Staattiset web-serverin tiedostot (html, css, js) minimoidaan, pakataan gzip-muotoon ja base64-enkoodataan
+    * Nämä tiedostot sisällytetään `shelly-porssisahko.js`-skriptiin
+      * Esim `atob('#[tab-config.js]')` korvataan kyseisen tiedoston pakatulla sisällöllä, joten lopputulos on luokkaa `atob("H4sIAAAAAAAACo1...`
+  * Myös `shelly-porssisahko.js` minimoidaan
+  * Käyttää [elering.ee:n CSV-muotoista API:a](https://dashboard.elering.ee/assets/api-doc.html#/nps-controller/getPriceAsCSVUsingGET) (JSON vie liikaa muistia)
+    * Esim. [Suomen hinnat 12.10.2023 CSV:nä](https://dashboard.elering.ee/api/nps/price/csv?fields=fi&start=2023-10-12T00:00:00%2b03:00&end=2023-10-12T23:59:59%2b03:00)
 
+
+### Tiedostot ja kansiot
+* `src/shelly-porssisahko.js`
+  * Itse skripti, ei kuitenkaan ajettavissa Shellyssä (vaatii "kääntämisen")
+* `src/statics/`
+  * Staattiset html, js ja css -tiedostot
+* `dist/shelly-porssisahko.js`
+  * **"Käänetty" valmis skripti joka voidaan laittaa ajoon**
+  * Minimoitu ja sisältää myös staattiset tiedostot
+* `dist/statics/`
+  * Staattiset tiedostot, jotka muodostuvat kääntöprosessin aikana, debuggausta varten
+  * Minimoidut staattiset tiedostot sekä pakatut versiot
+  * Ei sisälly versiohallintaan
+
+### Muistin käyttö
+
+*README kesken*
+
+### Kehitysympäristö
+
+Käyttää Node.js -ympäristöä. 
+
+**Kääntöprosessi:**
+
+1) `npm i`
+2) `npm run build`
+3) `dist/shelly-porssisahko.js` on valmis ladattavaksi laitteeseen
+
+**Komentoja**
+* `npm run build`
+  * "kääntää" eli tekee valmiin `dist/shelly-porssisahko.js`-skriptin
+* `npm run upload`
+  * lähettää `dist/shelly-porssisahko.js`-skriptin määritettyyn shellyyn ja käynnistää sen
+* `npm start`
+  * ajaa `npm run build` ja sen jälkeen `npm run upload`
+* `npm run debug`
+  * kuuntelee porttiin 8001 tulevaa UDP-dataa
+  * aseta shellystä UDP debug muotoon `ip_osoitteesi:8001`
+* `npm run serve`
+  * käyttöliittymän kehitystä varten
+  * käynnistää paikallisen web-serverin ja tarjoaa `src/statics/` -kansion tiedostot portista 3000
 ## In English
 
 This is a script to control relay by Nordpool electric spot prices for Shelly products (especially Shelly Plus 1PM) with web-based user interface.

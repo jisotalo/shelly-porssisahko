@@ -6,7 +6,7 @@
  * 
  * License: GNU Affero General Public License v3.0 
  */
- * {
+* {
   box-sizing: border-box;
 }
 
@@ -193,6 +193,7 @@ td.bg {
   .flx-mob-col {
     flex-direction: column;
   }
+
   .flx-mob-col>div {
     margin: 0 0;
   }
@@ -255,6 +256,6 @@ td.fit {
   font-weight: bold;
 }
 
-.btn {
+input[type=button] {
   font-size: 1.1em;
 }

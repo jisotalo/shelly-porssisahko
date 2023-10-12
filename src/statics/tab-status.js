@@ -28,7 +28,7 @@
 
       qs("#s-mode").innerHTML = MODE_STR[c.mode];
       qs("#s-price").innerHTML = `${s.p.now.toFixed(2)} c/kWh`;
-      qs("#s-st").innerHTML = STATE_STR[s.st];
+      qs("#s-st").innerHTML = s.st === 9 ? STATE_STR[s.st].replace("%s", formatDateTime(new Date(s.fCmdTs * 1000), false)) : STATE_STR[s.st];
       qs("#s-day").innerHTML = `Keskiarvo: ${s.p.avg.toFixed(2)} c/kWh<br>Halvin: ${s.p.low.toFixed(2)} c/kWh<br>Kallein: ${s.p.high.toFixed(2)} c/kWh`;
       qs("#s-info").innerHTML = `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))} - ${s.p.ts > 0 ? `hinnat haettu ${formatTime(new Date(s.p.ts * 1000))}` : "hintatietoja haetaan..."}`;
       qs("#s-version").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
@@ -75,7 +75,7 @@
             || (c.mode === 1 && row[1] < c.m1.lim)
             || (c.mode === 2 && cheapest.includes(i))
             || (c.mode === 2 && row[1] < c.m2.lim);
-          
+
           if (i >= per + c.m2.per) {
             //Period changed
             per += c.m2.per;
@@ -113,7 +113,7 @@
     } catch (err) {
       console.error(me(), `Error:`, err);
 
-      qs("#s-cmd").innerHTML = "VIRHE - Tila ei tiedossa";
+      qs("#s-cmd").innerHTML = "Tila ei tiedossa";
       qs("#s-cmd").style.color = "red";
       qs("#s-mode").innerHTML = "";
       qs("#s-price").innerHTML = "";

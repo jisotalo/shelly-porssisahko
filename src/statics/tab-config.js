@@ -79,7 +79,7 @@
 
       const res = await getData(`${URL}/rpc/KVS.Set?key="porssi-config"&value=${(JSON.stringify(c))}`);
 
-      if (res.success) {
+      if (res.ok) {
         getData(`${URL_SCRIPT}?r=r`)
           .then(res => {
             alert(`Asetukset tallennettu!`);
@@ -90,14 +90,29 @@
           });
 
       } else {
-        alert(`Tallentaminen epäonnistui. Virhetiedot: ${res.statusText})`);
+        alert(`Tallentaminen epäonnistui. Virhetiedot: ${res.txt})`);
       }
     } catch (err) {
       alert("Virhe: " + err.message);
     }
   };
 
+  const force = async () => {
+    let data = prompt("Kuinka monta tuntia?");
+    if (data !== null) {
+      data = Number(data);
+      data = data > 0 ? Math.floor(Date.now() / 1000 + data * 60 * 60) : 0;
+
+      let res = await getData(`${URL_SCRIPT}?r=f&ts=${data}`);
+      console.log(res);
+
+      alert(res.ok ? "OK!" : `Virhe: ${res.txt}`);
+    }
+  }
+
   onUpdate();
   CBS.push(onUpdate);
   qs("#c-save").addEventListener("click", save);
+  qs("#c-shelly").addEventListener("click", () => window.open("/"));
+  qs("#c-force").addEventListener("click", force);
 }

@@ -9,7 +9,7 @@
 /** URL of the shelly (only if DEV active, otherwise it is same origin) */
 const URL = DEV ? "http://192.168.68.105" : "";
 
-/** URL of the logic script (script 2) */
+/** URL of the logic script */
 const URL_SCRIPT = `${URL}/script/1`;
 
 /** Shortcut for querySelector() call */
@@ -32,7 +32,8 @@ let STATE_STR = [
   "Hinta halvimpia tällä ajanjaksolla", //5
   "Hinta alle aina päällä -rajan", //6
   "Varmuustunti (ei hintatietoja, aika tiedossa)", //7
-  "Hätätilaohjaus (aika ei tiedossa)" //8
+  "Hätätilaohjaus (aika ei tiedossa)", //8
+  "Pakko-ohjaus (%s asti)" //9
 ]
 
 /**
@@ -149,11 +150,11 @@ const populateDynamicData = async (url, containerId) => {
     DBG(me(), "fetching", url, "for", containerId);
 
     const res = await getData(url, false);
-    if (res.success) {
+    if (res.ok) {
       qs(containerId).innerHTML = res.data;
       evalContainerScriptTags(containerId);
     } else {
-      qs(containerId).innerHTML = `Error getting data: ${res.statusText}`;
+      qs(containerId).innerHTML = `Error getting data: ${res.txt}`;
     }
     DBG(me(), "done for", containerId);
   } catch (err) {
@@ -179,9 +180,9 @@ const getData = async (url, isJson = true) => {
       DBG(me(), `Fetching ${url} done. Status code: ${res.status}`);
 
       return {
-        success: true,
-        statusCode: res.status,
-        statusText: res.statusText,
+        ok: true,
+        code: res.status,
+        txt: res.statusText,
         data
       };
 
@@ -189,9 +190,9 @@ const getData = async (url, isJson = true) => {
       console.error(`Failed to fetch ${url}: ${res.statusText} (${await res.text()})`);
 
       return {
-        success: false,
-        statusCode: res.status,
-        statusText: `Failed to fetch ${url}: ${res.statusText} (${(await res.text())})`,
+        ok: false,
+        code: res.status,
+        txt: `Failed to fetch ${url}: ${res.statusText} (${(await res.text())})`,
         data: null
       };
 
@@ -200,9 +201,9 @@ const getData = async (url, isJson = true) => {
     console.error(`Failed to fetch ${url}: (${JSON.stringify(err)})`);
 
     return {
-      success: false,
-      statusCode: -1,
-      statusText: `Failed to fetch ${url}: (${JSON.stringify(err)})`,
+      ok: false,
+      code: -1,
+      txt: `Failed to fetch ${url}: (${JSON.stringify(err)})`,
       data: null
     };
   } finally {
@@ -245,11 +246,11 @@ const updateLoop = async () => {
   try {
     const res = await getData(`${URL_SCRIPT}?r=s`);
 
-    if (res.success) {
+    if (res.ok) {
       state = res.data;
       
       //If status 503 the shelly is just now busy running the logic -> do nothing
-    } else if (res.statusCode !== 503) {
+    } else if (res.code !== 503) {
       state = null;
     }
 

@@ -74,7 +74,7 @@ let logData = [];
 let _ = {
   s: {
     /** version number */
-    v: "2.0.1",
+    v: "2.1.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -91,13 +91,15 @@ let _ = {
     timeOK: 0,
     /** 1 if config is checked */
     configOK: 0,
+    /** If forced manually to ON, then this is the timestamp until cmd shall be on */
+    fCmdTs: 0,
     /** current price info */
     p: {
       /** time when prices were read */
       ts: 0,
       /** current price */
       now: 0,
-      /** lowest price of the day */
+      /** lowest price of  the day */
       low: 0,
       /** highest price of the day */
       high: 0,
@@ -152,6 +154,15 @@ function padStart(num, targetLength, padString) {
   }
 
   return str;
+}
+
+/**
+ * Wrapper for Date.getDate to help minifying
+ * @param {Date} dt 
+ * @returns 
+ */
+function getDate(dt) {
+  return dt.getDate();
 }
 
 
@@ -313,7 +324,7 @@ function pricesNeeded() {
     - we have a valid time
     - prices have never been fetched OR prices are from different day
   */
-  res = _.s.timeOK && (_.s.p.ts === 0 || new Date(_.s.p.ts * 1000).getDate() !== now.getDate());
+  res = _.s.timeOK && (_.s.p.ts === 0 || getDate(new Date(_.s.p.ts * 1000)) !== getDate(now));
 
   //If fetching prices has failed too many times -> wait until trying again
   if (_.s.errCnt >= C_ERRC && (epoch(now) - _.s.errTs) < C_ERRD) {
@@ -333,8 +344,16 @@ function logicRunNeeded() {
   let now = new Date();
   let chk = new Date(_.s.chkTs * 1000);
 
-  return (chk.getHours() !== now.getHours() || chk.getFullYear() !== now.getFullYear());
-  //for debugging: return (chk.getMinutes() !== now.getMinutes() || chk.getFullYear() !== now.getFullYear());
+  return (chk.getHours() !== now.getHours()
+    || chk.getFullYear() !== now.getFullYear())
+    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
+
+  //for debugging:
+  /*
+  return (chk.getMinutes() !== now.getMinutes()
+    || chk.getFullYear() !== now.getFullYear())
+    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
+    */
 }
 
 /**
@@ -352,7 +371,7 @@ function getPrices(isLoop) {
     + "-"
     + padStart(now.getMonth() + 1, 2, "0")
     + "-"
-    + padStart(now.getDate(), 2, "0")
+    + padStart(getDate(now), 2, "0")
     + "T00:00:00"
     + "%2b03:00";
 
@@ -376,7 +395,7 @@ function getPrices(isLoop) {
     req = null;
 
     try {
-      if (err === 0 && res !== null && res !== undefined && res.code === 200 && res.body_b64) {
+      if (err === 0 && res != null && res.code === 200 && res.body_b64) {
         //Clearing some fields to save memory
         res.headers = null;
         res.message = null;
@@ -458,18 +477,20 @@ function getPrices(isLoop) {
         let now = new Date();
         let priceDate = new Date(_.p[0][0] * 1000);
 
-        if (priceDate.getDate() === now.getDate()) {
+        if (getDate(priceDate) === getDate(now)) {
           _.s.p.ts = epoch(now);
           _.s.p.now = getPriceNow();
 
           //log(me, "päivän hintatiedot päivitetty");
 
         } else {
-          throw new Error("virhe, hinnat eri päivältä - nyt:" + now.toString() + " - data:" + priceDate.toString());
+          //throw new Error("virhe, hinnat eri päivältä - nyt:" + now.toString() + " - data:" + priceDate.toString());
+          throw new Error("päivävirhe " + now.toString() + " - " + priceDate.toString());
         }
 
       } else {
-        throw new Error("virhe luettaessa hintoja: " + err + "(" + msg + ") - " + JSON.stringify(res));
+        //throw new Error("virhe luettaessa hintoja: " + err + "(" + msg + ") - " + JSON.stringify(res));
+        throw new Error("lukuvirhe " + err + "(" + msg + ") - " + JSON.stringify(res));
       }
 
     } catch (err) {
@@ -477,18 +498,22 @@ function getPrices(isLoop) {
       _.s.errTs = 0;
       _.s.p.ts = 0;
       _.p = [];
-      log(me, "virhe: " + JSON.stringify(err));
+      log(me, JSON.stringify(err));
 
+      /*
       if (err.message.indexOf("virhe") >= 0) {
-        //log(me, err.message);
+        log(me, err.message);
       } else {
-        //log(me, "virhe: " + JSON.stringify(err));
+        log(me, "virhe: " + JSON.stringify(err));
       }
+      */
     }
 
+    /*
     if (_.s.errCnt >= C_ERRC) {
       //log(me, "luku epäonnistui " + EC + " kertaa, pidetään taukoa");
     }
+    */
 
     //Run logic no matter what happened
     logic(isLoop);
@@ -545,7 +570,7 @@ function logic(isLoop) {
   try {
     let now = new Date();
 
-    if (_.s.timeOK && (_.s.p.ts > 0 && new Date(_.s.p.ts * 1000).getDate() === now.getDate())) {
+    if (_.s.timeOK && (_.s.p.ts > 0 && getDate(new Date(_.s.p.ts * 1000)) === getDate(now))) {
       //We have time and we have price data for today
       _.s.p.now = getPriceNow();
 
@@ -593,6 +618,16 @@ function logic(isLoop) {
       cmd = _.c.err === 1;
       _.s.st = 8;
       //log(me, "kellonaikaa ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"));
+    }
+
+    //Manual force
+    if (_.s.fCmdTs > 0) {
+      if (_.s.fCmdTs - epoch(now) > 0) {
+        cmd = true;
+        _.s.st = 9;
+      } else {
+        _.s.fCmdTs = 0;
+      }
     }
 
     //Setting relay command and after that starting background timer again
@@ -729,8 +764,10 @@ function onServerRequest(request, response) {
   let MIME_CSS = "text/css";
 
   if (params.r === "s") {
+    //s = get state
     updateState();
 
+    //if k given, return only the key k
     if (params.k) {
       response.body = JSON.stringify(_[params.k]);
     } else {
@@ -738,14 +775,22 @@ function onServerRequest(request, response) {
     }
 
   } else if (params.r === "l") {
+    //l = get log
     response.body = JSON.stringify(log);
 
   } else if (params.r === "r") {
+    //r = reload settings
     _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
     getConfig();
     _.s.p.ts = 0; //get prices
 
     response.body = JSON.stringify({ ok: true });
+
+  } else if (params.r === "f" && params.ts) {
+    //f = force
+    _.s.fCmdTs = Number(params.ts);
+    _.s.chkTs = 0;
+    response.code = 204;
 
   } else if (!params.r || params.r === "index.html") {
     response.body = atob('#[index.html]');
@@ -786,7 +831,10 @@ function onServerRequest(request, response) {
     response.code = 404;
   }
 
-  response.headers = [["Content-Type", MIME_TYPE], ["Access-Control-Allow-Origin", "*"]];
+  response.headers = [["Content-Type", MIME_TYPE]];
+
+  //NOTE: Uncomment the next line for local development or remote API access (allows cors)
+  //response.headers.push(["Access-Control-Allow-Origin", "*"]);
 
   if (GZIP) {
     response.headers.push(["Content-Encoding", "gzip"]);
