@@ -24,11 +24,17 @@
       qs("#c-day").value = c.day;
       qs("#c-night").value = c.night;
 
-      let backups = "";
+      let hours = "";
       for (let i = 0; i < 24; i++) {
-        backups += `<input type="checkbox" id="c-backups-${i}"><label for="c-backups-${i}">${(i + 1).toString().padStart(2, "0")}</label> `
+        hours += `<input type="checkbox" id="c-X${i}">${("" + i).padStart(2, "0")} `
       }
-      qs("#c-backups").innerHTML = backups;
+      qs("#c-bk").innerHTML = hours.replaceAll("X", "b");
+      qs("#c-fh").innerHTML = hours.replaceAll("X", "f");
+
+      for (let i = 0; i < 24; i++) {
+        qs(`#c-b${i}`).checked = (c.bk & (1 << i)) == (1 << i);
+        qs(`#c-f${i}`).checked = (c.fh & (1 << i)) == (1 << i);
+      }
 
       qs("#c-err").checked = c.err ? "checked" : "";
       qs("#c-m0-cmd").checked = c.m0.cmd ? "checked" : "";
@@ -57,10 +63,14 @@
       c.day = n(qs("#c-day").value);
       c.night = n(qs("#c-night").value);
 
-      c.backups = [];
+      c.bk = 0;
+      c.fh = 0;
       for (let i = 0; i < 24; i++) {
-        if (qs(`#c-backups-${i}`).checked) {
-          c.backups.push(i);
+        if (qs(`#c-b${i}`).checked) {
+          c.bk = c.bk | (1 << i);
+        }
+        if (qs(`#c-f${i}`).checked) {
+          c.fh = c.fh | (1 << i);
         }
       }
 

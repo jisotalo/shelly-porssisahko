@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.2.0] - 13.10.2023
+- Lisätty uusi ominaisuus: pakko-ohjatut tunnit
+  - Voi pakottaa että ohjaus on päällä aina tiettyinä tunteina
+  - Kiitos ideasta petri1973 ([issue #4](https://github.com/jisotalo/shelly-porssisahko/issues/4))
+- Parannettu toimintaa ongelmatilanteissa
+- Optimoitu muistin käyttöä
+  - Vanhat varmuustunti-asetukset katoavat päivityksen yhteydessä
+  - Kommentoitu lokituksia pois shelly-koodista toistaiseksi
+- Bugikorjaus: Jos hintojen luku epäonnistui, skripti kaatui
+- Bugikorjaus: Korjattu varmuustuntien toiminta
+
 ## [2.1.0] - 12.10.2023
 - Lisätty asetussivulle kaksi nappia
   - Pakko-ohjaus (lähdön voi pakottaa päälle x tunniksi - ei väliä onko hinta kallis vai halpa)
@@ -21,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.2.0] - 13.10.2023
+- New feature: forced hoursLisätty uusi ominaisuus: pakko-ohjatut tunnit
+  - Thanks for the idea petri1973 ([issue #4](https://github.com/jisotalo/shelly-porssisahko/issues/4))
+- Better operation in problem situations
+- Optimized memory usage
+- Bug fix: If reading prices failed, script crashed
+- Bug fix: Fixed backup hour operation
+
 ## [2.1.0] - 12.10.2023
 - Added buttons to config page
   - Manual forcing feature (output can be set ON for next x hours - no matter what the price is / logic does)

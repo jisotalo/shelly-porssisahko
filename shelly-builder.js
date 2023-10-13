@@ -24,7 +24,7 @@ const { promisify } = require('node:util');
 const dgram = require('node:dgram');
 
 //Settings
-const BASE_URL = `http://192.168.68.105`;
+const BASE_URL = "http://192.168.68.105";
 const RPC_URL = `${BASE_URL}/rpc`;
 const MAX_CODE_CHUNK_SIZE = 1024;
 const GZIP = true;

@@ -9,9 +9,9 @@
 
 /**
  * Number of log lines saved to history
- * NOTE: At the moment 0 as Shelly memory limit is so low
+ * NOTE: Currenly commented out as we have no memory
  */
-let C_LOG = 0;
+//let C_LOG = 0;
 
 /**
  * Number of historical commands kept
@@ -59,22 +59,25 @@ let C_DEF = {
   day: 0,
   /** Night (22...07) transfer price c/kWh */
   night: 0,
-  /** Array of backup hours when relay output command is on if no data available */
-  backups: [],
+  /** Backup hours as binary*/
+  bk : 0,
   /** Relay output command if clock time is not known */
   err: 0,
   /** Output number to use */
-  out: 0
+  out: 0,
+  /** Forced ON hours as binary */
+  fh: 0
 };
 
 /** Log history */
-let logData = [];
+//let logData = [];
+//NOTE: Currenly commented out as we have no memory
 
 /** Main state of app */
 let _ = {
   s: {
     /** version number */
-    v: "2.1.0",
+    v: "2.2.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -108,7 +111,7 @@ let _ = {
     }
   },
   /** prices of the day (each item is array [epoch, price]*/
-  p: [[0, 0]],
+  p: [],
   /** command history (each item is array [epoch, cmd])*/
   h: [],
   /** actice config */
@@ -116,9 +119,12 @@ let _ = {
 };
 
 /**
- * True if loop is running (new one is not started)
+ * True if loop is running (new one is not started + HTTP requests are not handled)
  */
 let loopRunning = false;
+
+/** Active command (internal) - here because some weird issues if was inside logic()... (memory/stack issues?) */
+let cmd = false;
 
 /**
  * Returns true if hour in epoch timestamp is current hour
@@ -165,26 +171,26 @@ function getDate(dt) {
   return dt.getDate();
 }
 
-
 /**
  * Adds new log line row
  * @param {*} str 
  */
-function log(me, str) {
+function log(data, me) {
   let now = new Date();
-  console.log(now.toISOString().substring(11) + ": " + me + " - " + str);
+  console.log(now.toISOString().substring(11) + ": " + (me ? me + " - " : ""), data);
 
-  logData.push([epoch(now), me + ": " + str]);
+  //NOTE: Currenly commented out as we have no memory
+  /*logData.push([epoch(now), me + ": " + str]);
 
   if (logData.length >= C_LOG) {
     logData.splice(0, 1);
-  }
+  }*/
 }
 
 /**
  * Updates state
- * 
- * Some things need to be kept up-to-date here
+ * - Checks if time is OK
+ * - Some things need to be kept up-to-date here
  */
 function updateState() {
   let now = new Date();
@@ -213,14 +219,14 @@ function chkConfig(cb) {
   //Todo: Change to recursive, now hard-coded to max 2 levels
   for (let prop in C_DEF) {
     if (typeof _.c[prop] === "undefined") {
-      //log(me, "Asetus '" + prop + "' alustettu arvoon " + JSON.stringify(C_DEF[prop]));
+      //log("Asetus '" + prop + "' alustettu arvoon " + JSON.stringify(C_DEF[prop]), me);
       _.c[prop] = C_DEF[prop];
       count++;
 
     } else if (typeof C_DEF[prop] === "object") {
       for (let innerProp in C_DEF[prop]) {
         if (typeof _.c[prop][innerProp] === "undefined") {
-          //log(me, "Asetus '" + prop + "." + innerProp + "' alustettu arvoon " + JSON.stringify(C_DEF[prop][innerProp]));
+          //log("Asetus '" + prop + "." + innerProp + "' alustettu arvoon " + JSON.stringify(C_DEF[prop][innerProp]), me);
           _.c[prop][innerProp] = C_DEF[prop][innerProp];
           count++;
         }
@@ -234,9 +240,9 @@ function chkConfig(cb) {
   if (count > 0) {
     Shelly.call("KVS.Set", { key: "porssi-config", value: _.c }, function (res, err, msg, cb) {
       if (err !== 0) {
-        //log(me, "virhe tallennettaessa asetuksia:" + err + " - " + msg);
+        //log("virhe tallennettaessa asetuksia:" + err + " - " + msg, me);
       } else {
-        //log(me, "asetukset tallennettu");
+        //log("asetukset tallennettu", me);
       }
       if (cb) {
         cb(err === 0);
@@ -256,13 +262,12 @@ function chkConfig(cb) {
  */
 function getConfig(isLoop) {
   //let me = "getConfig()";
-
-  //log(me, "luetaan asetukset...");
+  //log("luetaan asetukset...", me);
 
   //Note: passing callback (cb) as userdata otherwise it can't be accessed from Shelly.call callback
   Shelly.call('KVS.Get', { key: "porssi-config" }, function (res, err, msg, isLoop) {
     if (!res) {
-      //log(me, "asetuksia ei löytynyt - alustetaan...");
+      //log("asetuksia ei löytynyt - alustetaan...", me);
       _.c = {};
 
     } else {
@@ -272,7 +277,7 @@ function getConfig(isLoop) {
     chkConfig(function (ok) {
       _.s.configOK = ok ? 1 : 0;
       _.s.chkTs = 0; //To run the logic again with new settings
-      //log(me, "asetukset ladattu");
+      //log("asetukset ladattu", me);
 
       if (isLoop) {
         loopRunning = false;
@@ -312,7 +317,6 @@ function loop() {
 
 /**
  * Returns true if we should get prices for today
- * @returns 
  */
 function pricesNeeded() {
   //let me = "pricesNeeded()";
@@ -328,8 +332,8 @@ function pricesNeeded() {
 
   //If fetching prices has failed too many times -> wait until trying again
   if (_.s.errCnt >= C_ERRC && (epoch(now) - _.s.errTs) < C_ERRD) {
-    //let timeLeft = (C_ERRD - (epoch(now) - _.s.errTs));
-    //log(me, "liikaa virheitä, odotetaan " + timeLeft.toFixed(0) + " s");
+    let timeLeft = (C_ERRD - (epoch(now) - _.s.errTs));
+    //log("liikaa virheitä, odotetaan " + timeLeft.toFixed(0) + " s", me);
     res = false;
 
   } else if (_.s.errCnt >= C_ERRC) {
@@ -340,6 +344,9 @@ function pricesNeeded() {
   return res;
 }
 
+/**
+ * Returns true if we should run the logic now
+ */
 function logicRunNeeded() {
   let now = new Date();
   let chk = new Date(_.s.chkTs * 1000);
@@ -353,7 +360,7 @@ function logicRunNeeded() {
   return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
-    */
+  */
 }
 
 /**
@@ -362,230 +369,233 @@ function logicRunNeeded() {
  * @param isLoop If true then loopRunning is set to false after finished
  */
 function getPrices(isLoop) {
-  //let me = "getPrices()";
-  //log(me, "haetaan päivän hinnat (yritys " + (_.s.errCnt + 1) + "/" + C_ERRC + ")");
-
   let now = new Date();
 
-  let start = now.getFullYear()
-    + "-"
-    + padStart(now.getMonth() + 1, 2, "0")
-    + "-"
-    + padStart(getDate(now), 2, "0")
-    + "T00:00:00"
-    + "%2b03:00";
+  try {
+    //let me = "getPrices()";
+    //log("haetaan päivän hinnat (yritys " + (_.s.errCnt + 1) + "/" + C_ERRC + ")", me);
 
-  let end = start.replace("T00:00:00", "T23:59:59");
+    let start = now.getFullYear()
+      + "-"
+      + padStart(now.getMonth() + 1, 2, "0")
+      + "-"
+      + padStart(getDate(now), 2, "0")
+      + "T00:00:00"
+      + "%2b03:00";
 
-  let req = {
-    //url: "https://dashboard.elering.ee/api/nps/price?start=" + start + "&end=" + end,
-    url: "https://dashboard.elering.ee/api/nps/price/csv?fields=fi&start=" + start + "&end=" + end,
-    timeout: 8,
-    ssl_ca: "*"
-  };
+    let end = start.replace("T00:00:00", "T23:59:59");
 
-  //Clearing variables to save memory
-  now = null;
-  start = null;
-  end = null;
+    let req = {
+      url: "https://dashboard.elering.ee/api/nps/price/csv?fields=fi&start=" + start + "&end=" + end,
+      timeout: 5,
+      ssl_ca: "*"
+    };
 
-  //log(me, "URL:" + req.url);
+    //Clearing variables to save memory
+    now = null;
+    start = null;
+    end = null;
 
-  Shelly.call("HTTP.GET", req, function (res, err, msg, isLoop) {
-    req = null;
+    //log("URL:" + req.url, me);
 
-    try {
-      if (err === 0 && res != null && res.code === 200 && res.body_b64) {
-        //Clearing some fields to save memory
-        res.headers = null;
-        res.message = null;
-        msg = null;
+    Shelly.call("HTTP.GET", req, function (res, err, msg, isLoop) {
+      req = null;
 
-        //log(me, "hintadata luettu, käydään läpi");
-        _.p = [];
-        _.s.p.high = -999;
-        _.s.p.low = 999;
+      try {
+        if (err === 0 && res != null && res.code === 200 && res.body_b64) {
+          //Clearing some fields to save memory
+          res.headers = null;
+          res.message = null;
+          msg = null;
 
-        //Converting base64 to text
-        res.body_b64 = atob(res.body_b64);
+          //log("hintadata luettu, käydään läpi", me);
+          _.p = [];
+          _.s.p.high = -999;
+          _.s.p.low = 999;
 
-        //Discarding header
-        res.body_b64 = res.body_b64.substring(res.body_b64.indexOf("\n") + 1);
+          //Converting base64 to text
+          res.body_b64 = atob(res.body_b64);
 
-        let activePos = 0;
+          //Discarding header
+          res.body_b64 = res.body_b64.substring(res.body_b64.indexOf("\n") + 1);
 
-        while (activePos >= 0) {
-          res.body_b64 = res.body_b64.substring(activePos);
-          activePos = 0;
+          let activePos = 0;
 
-          let row = [0, 0];
-          activePos = res.body_b64.indexOf("\"", activePos) + 1;
+          while (activePos >= 0) {
+            res.body_b64 = res.body_b64.substring(activePos);
+            activePos = 0;
 
-          if (activePos === 0) {
-            //" character not found -> end of data
-            break;
+            let row = [0, 0];
+            activePos = res.body_b64.indexOf("\"", activePos) + 1;
+
+            if (activePos === 0) {
+              //" character not found -> end of data
+              break;
+            }
+
+            //epoch
+            row[0] = Number(res.body_b64.substring(activePos, res.body_b64.indexOf("\"", activePos)));
+
+            //skip "; after timestamp
+            activePos = res.body_b64.indexOf("\"", activePos) + 2;
+
+            //price
+            activePos = res.body_b64.indexOf(";\"", activePos) + 2;
+            row[1] = Number(res.body_b64.substring(activePos, res.body_b64.indexOf("\"", activePos)).replace(",", "."));
+            //Converting price to c/kWh and adding VAT to price
+            row[1] = row[1] / 10.0 * (100 + (row[1] > 0 ? _.c.vat : 0)) / 100.0;
+
+            //Add transfer fees (if any)
+            let hour = new Date(row[0] * 1000).getHours();
+
+            if (hour >= 7 && hour < 22) {
+              //day
+              row[1] += _.c.day;
+            } else {
+              //night
+              row[1] += _.c.night;
+            }
+
+            //Adding and calculating stuff
+            _.p.push(row);
+
+            _.s.p.avg += row[1];
+
+            if (row[1] > _.s.p.high) {
+              _.s.p.high = row[1];
+            }
+
+            if (row[1] < _.s.p.low) {
+              _.s.p.low = row[1];
+            }
+
+            //find next row
+            activePos = res.body_b64.indexOf("\n", activePos);
           }
 
-          //epoch
-          row[0] = Number(res.body_b64.substring(activePos, res.body_b64.indexOf("\"", activePos)));
+          //Again to save memory..
+          res = null;
 
-          //skip "; after timestamp
-          activePos = res.body_b64.indexOf("\"", activePos) + 2;
+          //Calculate average
+          _.s.p.avg = _.p.length > 0 ? (_.s.p.avg / _.p.length) : 0;
 
-          //price
-          activePos = res.body_b64.indexOf(";\"", activePos) + 2;
-          row[1] = Number(res.body_b64.substring(activePos, res.body_b64.indexOf("\"", activePos)).replace(",", "."));
-          //Converting price to c/kWh and adding VAT to price
-          row[1] = row[1] / 10.0 * (100 + (row[1] > 0 ? _.c.vat : 0)) / 100.0;
+          //Check that read price data is from today
+          let now = new Date();
+          let priceDate = new Date(_.p[0][0] * 1000);
 
-          //Add transfer fees (if any)
-          let hour = new Date(row[0] * 1000).getHours();
+          if (getDate(priceDate) === getDate(now)) {
+            _.s.p.ts = epoch(now);
+            _.s.p.now = getPriceNow();
 
-          if (hour >= 7 && hour < 22) {
-            //day
-            row[1] += _.c.day;
+            //log("päivän hintatiedot päivitetty", me);
+
           } else {
-            //night
-            row[1] += _.c.night;
+            //throw new Error("virhe, hinnat eri päivältä - nyt:" + now.toString() + " - data:" + priceDate.toString());
+            throw new Error("date err " + now.toString() + " - " + priceDate.toString());
           }
-
-          //Adding and calculating stuff
-          _.p.push(row);
-
-          _.s.p.avg += row[1];
-
-          if (row[1] > _.s.p.high) {
-            _.s.p.high = row[1];
-          }
-
-          if (row[1] < _.s.p.low) {
-            _.s.p.low = row[1];
-          }
-
-
-          //find next row
-          activePos = res.body_b64.indexOf("\n", activePos);
-        }
-
-        //Again to save memory..
-        res = null;
-
-        //Calculate average
-        _.s.p.avg = _.p.length > 0 ? (_.s.p.avg / _.p.length) : 0;
-
-        //Check that read price data is from today
-        let now = new Date();
-        let priceDate = new Date(_.p[0][0] * 1000);
-
-        if (getDate(priceDate) === getDate(now)) {
-          _.s.p.ts = epoch(now);
-          _.s.p.now = getPriceNow();
-
-          //log(me, "päivän hintatiedot päivitetty");
 
         } else {
-          //throw new Error("virhe, hinnat eri päivältä - nyt:" + now.toString() + " - data:" + priceDate.toString());
-          throw new Error("päivävirhe " + now.toString() + " - " + priceDate.toString());
+          //throw new Error("virhe luettaessa hintoja: " + err + "(" + msg + ") - " + JSON.stringify(res));
+          throw new Error("conn.err (" + msg + ") " + JSON.stringify(res));
         }
 
-      } else {
-        //throw new Error("virhe luettaessa hintoja: " + err + "(" + msg + ") - " + JSON.stringify(res));
-        throw new Error("lukuvirhe " + err + "(" + msg + ") - " + JSON.stringify(res));
-      }
+      } catch (err) {
+        _.s.errCnt += 1;
+        _.s.errTs = epoch();
+        _.s.p.ts = 0;
+        _.p = [];
+        log(err);
 
-    } catch (err) {
-      _.s.errCnt += 1;
-      _.s.errTs = 0;
-      _.s.p.ts = 0;
-      _.p = [];
-      log(me, JSON.stringify(err));
+        //NOTE: All the rest are commented for now because of memory limit
+        /*
+        if (err.message.indexOf("virhe") >= 0) {
+          log(err.message, me);
+        } else {
+          log("virhe: " + JSON.stringify(err), me);
+        }
+        */
+      }
 
       /*
-      if (err.message.indexOf("virhe") >= 0) {
-        log(me, err.message);
-      } else {
-        log(me, "virhe: " + JSON.stringify(err));
+      NOTE: commented for now because of memory limit
+      if (_.s.errCnt >= C_ERRC) {
+        //log("luku epäonnistui " + EC + " kertaa, pidetään taukoa", me);
       }
       */
-    }
 
-    /*
-    if (_.s.errCnt >= C_ERRC) {
-      //log(me, "luku epäonnistui " + EC + " kertaa, pidetään taukoa");
-    }
-    */
+      //Run logic no matter what happened
+      logic(isLoop);
 
+    }, isLoop);
+  } catch (err) {
+    log(err);
     //Run logic no matter what happened
     logic(isLoop);
-
-  }, isLoop);
+  }
 }
 
 /**
- * Sets relay output to given cmd
+ * Sets relay output to cmd
  * If callback given, its called with success status, like cb(true)
- * @param {*} cmd 
  * @param {*} cb callback (optional)
  */
-function setRelay(cmd, cb) {
+function setRelay(cb) {
   //let me = "setRelay()";
   let prm = "{id:" + _.c.out + ",on:" + (cmd ? "true" : "false") + "}";
 
-  Shelly.call("Switch.Set", prm, function (res, err, msg, data) {
+  Shelly.call("Switch.Set", prm, function (res, err, msg, cb) {
     if (err === 0) {
-      //log(me, "lähtö asetettu " + (data.cmd ? "PÄÄLLE" : "POIS"));
+      //log("lähtö asetettu " + (cmd ? "PÄÄLLE" : "POIS"), me);
       _.s.cmd = cmd ? 1 : 0;
 
       while (_.h.length >= C_HIST) {
         _.h.splice(0, 1);
       }
-      _.h.push([epoch(), data.cmd ? 1 : 0]);
+      _.h.push([epoch(), cmd ? 1 : 0]);
 
       //Call callback (if any)
-      if (data.cb) {
-        data.cb(true);
+      if (cb) {
+        cb(true);
       }
 
     } else {
-      //log(me, "virhe asettaessa lähtöä " + (data.cmd ? "PÄÄLLE" : "POIS") + ": " + err + " - " + msg);
+      //log("virhe asettaessa lähtöä " + (cmd ? "PÄÄLLE" : "POIS") + ": " + err + " - " + msg, me);
 
       //Call callback (if any)
-      if (data.cb) {
-        data.cb(false);
+      if (cb) {
+        cb(false);
       }
     }
-
-  }, { cmd, cb });
+  }, cb);
 }
 
-let cmd = false;
 /**
  * Runs the main logic
  * 
  * @param isLoop If true then loopRunning is set to false after finished
  */
 function logic(isLoop) {
-  let me = "logic()";
+  //let me = "logic()";
+  let now = new Date();
+  cmd = false;
 
   try {
-    let now = new Date();
-
     if (_.s.timeOK && (_.s.p.ts > 0 && getDate(new Date(_.s.p.ts * 1000)) === getDate(now))) {
       //We have time and we have price data for today
       _.s.p.now = getPriceNow();
 
-      //log(me, "tämän tunnin hinta: " + _.s.p.now + " c/kWh");
+      //log("tämän tunnin hinta: " + _.s.p.now + " c/kWh", me);
 
       if (_.c.mode === 0) {
         //Manual mode
         cmd = _.c.m0.cmd === 1;
-        //log(me, "moodi on käsiohjaus, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"));
+        //log("moodi on käsiohjaus, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
         _.s.st = 1;
 
       } else if (_.c.mode === 1) {
         //Price limit
         cmd = _.s.p.now <= _.c.m1.lim;
-        //log(me, "moodi on hintaraja (" + _.c.m1.priceLimit + "), ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"));
+        //log("moodi on hintaraja (" + _.c.m1.priceLimit + "), ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
         _.s.st = cmd ? 2 : 3;
 
       } else if (_.c.mode === 2) {
@@ -599,39 +609,67 @@ function logic(isLoop) {
           _.s.st = 6;
         }
 
-        //log(me, "moodi on halvimmat tunnit, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"));
+        //log("moodi on halvimmat tunnit, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
       }
 
     } else if (_.s.timeOK) {
       //We have time but no data for today
+      _.s.st = 7;
+      
+      let binNow = (1 << now.getHours());
+      if ((_.c.bk & binNow) == binNow) {
+        cmd = true;
+      }
+      /*
       for (let i = 0; i < _.c.backups.length; i++) {
         if (_.c.backups[i] === now.getHours()) {
           cmd = true;
-          _.s.st = 7;
           break;
         }
-      }
-      //log(me, "hintatietoja ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"));
+      }*/
+      //log("hintatietoja ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
 
     } else {
       //Time is not known
       cmd = _.c.err === 1;
       _.s.st = 8;
-      //log(me, "kellonaikaa ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"));
+      //log("kellonaikaa ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
     }
 
-    //Manual force
-    if (_.s.fCmdTs > 0) {
-      if (_.s.fCmdTs - epoch(now) > 0) {
-        cmd = true;
-        _.s.st = 9;
-      } else {
-        _.s.fCmdTs = 0;
+    //Forcing automatically or manually
+    if (_.s.timeOK) {
+      //Forced hours
+      if (_.c.fh > 0) {
+        let binNow = (1 << now.getHours());
+        if ((_.c.fh & binNow) == binNow) {
+          cmd = true;
+          _.s.st = 10;
+        }
+      }
+/*
+      if (_.c.fh.length > 0) {
+        for (let i = 0; i < _.c.fh.length; i++) {
+          if (_.c.fh[i] === now.getHours()) {
+            cmd = true;
+            _.s.st = 10;
+            break;
+          }
+        }
+      }
+*/
+      //Manual force
+      if (_.s.fCmdTs > 0) {
+        if (_.s.fCmdTs - epoch(now) > 0) {
+          cmd = true;
+          _.s.st = 9;
+        } else {
+          _.s.fCmdTs = 0;
+        }
       }
     }
 
     //Setting relay command and after that starting background timer again
-    setRelay(cmd, function (ok) {
+    setRelay(function (ok) {
       if (ok) {
         _.s.chkTs = epoch();
       }
@@ -642,7 +680,8 @@ function logic(isLoop) {
     });
 
   } catch (err) {
-    //log(me, "virhe: " + JSON.stringify(err));
+    //log("virhe: " + JSON.stringify(err), me);
+    log(err);
 
     if (isLoop) {
       loopRunning = false;
@@ -715,8 +754,8 @@ function getPriceNow() {
   }
 
   //This should happen
-  //log(me, "tämän tunnin hintaa ei löytynyt");
-  throw new Error("price now not found");
+  //log("tämän tunnin hintaa ei löytynyt", me);
+  throw new Error("no price");
 }
 
 /**
@@ -744,109 +783,114 @@ function parseParams(params) {
  * @param {*} response 
  */
 function onServerRequest(request, response) {
-  if (loopRunning) {
-    request = null;
-    response.code = 503;
-    response.send();
-    return;
-  }
-
-  //Parsing parameters (key=value&key2=value2) to object
-  let params = parseParams(request.query);
-  request = null;
-
-  let MIME_TYPE = "application/json"; //default
-  response.code = 200; //default
-  let GZIP = false; //default
-
-  let MIME_HTML = "text/html";
-  let MIME_JS = "text/javascript";
-  let MIME_CSS = "text/css";
-
-  if (params.r === "s") {
-    //s = get state
-    updateState();
-
-    //if k given, return only the key k
-    if (params.k) {
-      response.body = JSON.stringify(_[params.k]);
-    } else {
-      response.body = JSON.stringify(_);
+  try {
+    if (loopRunning) {
+      request = null;
+      response.code = 503;
+      //NOTE: Uncomment the next line for local development or remote API access (allows cors)
+      //response.headers = [["Access-Control-Allow-Origin", "*"]];
+      response.send();
+      return;
     }
 
-  } else if (params.r === "l") {
-    //l = get log
-    response.body = JSON.stringify(log);
+    //Parsing parameters (key=value&key2=value2) to object
+    let params = parseParams(request.query);
+    request = null;
 
-  } else if (params.r === "r") {
-    //r = reload settings
-    _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
-    getConfig();
-    _.s.p.ts = 0; //get prices
+    let MIME_TYPE = "application/json"; //default
+    response.code = 200; //default
+    let GZIP = false; //default
 
-    response.body = JSON.stringify({ ok: true });
+    let MIME_HTML = "text/html";
+    let MIME_JS = "text/javascript";
+    let MIME_CSS = "text/css";
 
-  } else if (params.r === "f" && params.ts) {
-    //f = force
-    _.s.fCmdTs = Number(params.ts);
-    _.s.chkTs = 0;
-    response.code = 204;
+    if (params.r === "s") {
+      //s = get state
+      updateState();
 
-  } else if (!params.r || params.r === "index.html") {
-    response.body = atob('#[index.html]');
-    MIME_TYPE = MIME_HTML;
-    GZIP = true;
+      //if k given, return only the key k
+      if (params.k) {
+        response.body = JSON.stringify(_[params.k]);
+      } else {
+        response.body = JSON.stringify(_);
+      }
 
-  } else if (params.r === "s.js") {
-    response.body = atob('#[s.js]');
-    MIME_TYPE = MIME_JS;
-    GZIP = true;
+    } else if (params.r === "l") {
+      //l = get log
+      response.body = JSON.stringify(log);
 
-  } else if (params.r === "s.css") {
-    response.body = atob('#[s.css]');
-    MIME_TYPE = MIME_CSS;
-    GZIP = true;
+    } else if (params.r === "r") {
+      //r = reload settings
+      _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
+      getConfig();
+      _.s.p.ts = 0; //get prices
 
-  } else if (params.r === "tab-status.html") {
-    response.body = atob('#[tab-status.html]');
-    MIME_TYPE = MIME_HTML;
-    GZIP = true;
+      response.body = JSON.stringify({ ok: true });
 
-  } else if (params.r === "tab-status.js") {
-    response.body = atob('#[tab-status.js]');
-    MIME_TYPE = MIME_JS;
-    GZIP = true;
+    } else if (params.r === "f" && params.ts) {
+      //f = force
+      _.s.fCmdTs = Number(params.ts);
+      _.s.chkTs = 0;
+      response.code = 204;
 
-  } else if (params.r === "tab-config.html") {
-    response.body = atob('#[tab-config.html]');
-    MIME_TYPE = MIME_HTML;
-    GZIP = true;
+    } else if (!params.r || params.r === "index.html") {
+      response.body = atob('#[index.html]');
+      MIME_TYPE = MIME_HTML;
+      GZIP = true;
 
-  } else if (params.r === "tab-config.js") {
-    response.body = atob('#[tab-config.js]');
-    MIME_TYPE = MIME_JS;
-    GZIP = true;
+    } else if (params.r === "s.js") {
+      response.body = atob('#[s.js]');
+      MIME_TYPE = MIME_JS;
+      GZIP = true;
 
-  } else {
-    response.code = 404;
-  }
+    } else if (params.r === "s.css") {
+      response.body = atob('#[s.css]');
+      MIME_TYPE = MIME_CSS;
+      GZIP = true;
 
-  response.headers = [["Content-Type", MIME_TYPE]];
+    } else if (params.r === "tab-status.html") {
+      response.body = atob('#[tab-status.html]');
+      MIME_TYPE = MIME_HTML;
+      GZIP = true;
 
-  //NOTE: Uncomment the next line for local development or remote API access (allows cors)
-  //response.headers.push(["Access-Control-Allow-Origin", "*"]);
+    } else if (params.r === "tab-status.js") {
+      response.body = atob('#[tab-status.js]');
+      MIME_TYPE = MIME_JS;
+      GZIP = true;
 
-  if (GZIP) {
-    response.headers.push(["Content-Encoding", "gzip"]);
+    } else if (params.r === "tab-config.html") {
+      response.body = atob('#[tab-config.html]');
+      MIME_TYPE = MIME_HTML;
+      GZIP = true;
+
+    } else if (params.r === "tab-config.js") {
+      response.body = atob('#[tab-config.js]');
+      MIME_TYPE = MIME_JS;
+      GZIP = true;
+
+    } else {
+      response.code = 404;
+    }
+
+    response.headers = [["Content-Type", MIME_TYPE]];
+
+    //NOTE: Uncomment the next line for local development or remote API access (allows cors)
+    //response.headers.push(["Access-Control-Allow-Origin", "*"]);
+
+    if (GZIP) {
+      response.headers.push(["Content-Encoding", "gzip"]);
+    }
+  } catch (err) {
+    log(err);
+    response.code = 500;
   }
   response.send();
 }
 
 //Startup
-log("main", "shelly-porssisahko (v." + _.s.v + ") started");
-let ip = Shelly.getComponentStatus("wifi") ? Shelly.getComponentStatus("wifi").sta_ip : "192.168.33.1";
-log("main", "URL is: http://" + ip + "/script/" + Shelly.getCurrentScriptId());
-ip = null;
+log("shelly-porssisahko v." + _.s.v);
+log("URL: http://" + (Shelly.getComponentStatus("wifi").sta_ip ?? "192.168.33.1") + "/script/" + Shelly.getCurrentScriptId());
 
 HTTPServer.registerEndpoint('', onServerRequest);
 Timer.set(10000, true, loop);

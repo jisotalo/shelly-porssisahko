@@ -31,9 +31,10 @@ let STATE_STR = [
   "Hinta ei halvimpia tällä ajanjaksolla", //4
   "Hinta halvimpia tällä ajanjaksolla", //5
   "Hinta alle aina päällä -rajan", //6
-  "Varmuustunti (ei hintatietoja, aika tiedossa)", //7
+  "Varmuustuntiohjaus (ei hintoja, aika tiedossa)", //7
   "Hätätilaohjaus (aika ei tiedossa)", //8
-  "Pakko-ohjaus (%s asti)" //9
+  "Pakko-ohjaus (%s asti)", //9
+  "Pakko-ohjattu tunti" //10
 ]
 
 /**
@@ -90,8 +91,8 @@ window.addEventListener("error", (e) => console.error("Error at line:", e.lineno
  * @param {*} str Loading text to show
  */
 const toggleLoading = (str) => {
-  qs("#loading").style.visibility = str !== undefined ? "visible" : "hidden";
-  qs("#loading-text").innerText = str;
+  qs("#ld").style.visibility = str ? "visible" : "hidden";
+  qs("#ldtxt").innerText = str;
 };
 
 /**
@@ -119,7 +120,7 @@ window.onload = async () => {
   openTab(window.location.hash.substring(window.location.hash.indexOf("#") + 1));
 };
 
-document.querySelectorAll(".tab-switch").forEach(e => e.addEventListener("change", (e) => {
+document.querySelectorAll(".ts").forEach(e => e.addEventListener("change", (e) => {
   openTab(e.target.id);
 }));
 
@@ -187,7 +188,7 @@ const getData = async (url, isJson = true) => {
       };
 
     } else {
-      console.error(`Failed to fetch ${url}: ${res.statusText} (${await res.text()})`);
+      console.error(`Failed to fetch ${url}: ${res.statusText}`);
 
       return {
         ok: false,

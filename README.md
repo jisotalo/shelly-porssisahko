@@ -94,6 +94,7 @@ Uutta versiota ei ole vielä pitkäaikaistestattu.
 | Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle [c/kWh]| päivä: `4` <br> yö: `3`
 | Varmuustunnit | Jos sähkön hintaa ei jostain syystä tiedetä, ohjataan lähtö näillä tunneilla päälle
 | Hätätilaohjaus | Jos Shelly ei jostain syystä tiedä kellonaikaa, ohjataan lähtö tähän tilaan
+| Pakko-ohjaukset | Valittuina tunteina ohjaus on aina päällä (oli hinta mikä tahansa)
 
 **KÄSIOHJAUS**
 
@@ -143,8 +144,11 @@ Lue lisää häiriösuojauksesta esimerkiksi [spot-hinta.fi -sivustolta](https:/
 ## Teknistä tietoa ja kehitysympäristö
 
 ### Lyhyesti
-  * Shellyyn asennattava skripti on "kääntöprosessin" tulos
-  * Tämä jotta skripti saadaan mahtumaan mahdollisimman pieneen tilaan
+  * Shellyyn asennattava skripti on "kääntöprosessin" tulos, jotta skripti saadaan mahtumaan mahdollisimman pieneen tilaan
+  * Koodissa on jonkin verran outoja ja rumia temppuja (mitä en tekisi muualla)
+    - Näiden syy on minimoida skriptin kokoa, joko suoraan tai helpottamalla minimointikirjastojen toimintaa
+    - Esim: `document.querySelector()` on korvattu `qs()` jolloin säästetään paljon muistia
+    - Esim: typerät mahdollisimman lyhyet muuttujanimet ja kentät
   * Staattiset web-serverin tiedostot (html, css, js) minimoidaan, pakataan gzip-muotoon ja base64-enkoodataan
     * Nämä tiedostot sisällytetään `shelly-porssisahko.js`-skriptiin
       * Esim `atob('#[tab-config.js]')` korvataan kyseisen tiedoston pakatulla sisällöllä, joten lopputulos on luokkaa `atob("H4sIAAAAAAAACo1...`
@@ -193,6 +197,14 @@ Käyttää Node.js -ympäristöä.
 * `npm run serve`
   * käyttöliittymän kehitystä varten
   * käynnistää paikallisen web-serverin ja tarjoaa `src/statics/` -kansion tiedostot portista 3000
+
+## FAQ
+**Miksi välillä tulee HTTP error 503?**
+
+Tällä hetkellä jos skripti hakee hintoja tai suorittaa ohjauslogiikkaa, vastataan kaikkiin HTTP-pyyntöihin 503 (Service Unavailable). Tämä ei pitäisi olla ongelma jos yhteys on kunnossa. Käyttöliittymä ei välitä tästä.
+
+Voi olla että muutan tätä myöhemmin. Syy on muistin säästäminen.
+
 ## In English
 
 This is a script to control relay by Nordpool electric spot prices for Shelly products (especially Shelly Plus 1PM) with web-based user interface.
