@@ -5,11 +5,9 @@
 
 *In English - see bottom of the page.*
 
-Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka venyttää laitteen rajoja. Kehitetty ja testattu käyttäen Shelly Plus 1PM -relekytkintä, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon). Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksensa Shellyn muistiin.
+Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka venyttää laitteen skriptien rajoja. Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksensa Shellyn muistiin.
 
-Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palveluita, niin tämä voi olla sinulle hyödyllinen. Oma käyttökohteeni on varaston sähköpatterin ohjaus halvimpien tuntien mukaan.
-
-Skripti käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole kolmannen osapuolen palveluita. Ei myöskään tarvitse rekisteröityä mihinkään vaan kaikki toimii suoraan.
+Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palveluita, niin tämä voi olla hyödyllinen. Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole kolmannen osapuolen palveluita. Ei myöskään tarvitse rekisteröityä mihinkään vaan kaikki toimii suoraan.
 
 ![porssisahko](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/7eb3e3c9-2fab-4de3-9023-472b32da0f4d)
 
@@ -28,10 +26,12 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboa
 * Todettu toimivaksi seuraavilla
   * Shelly Plus 1PM
   * Shelly Plus 1
+  * Shelly PRO1
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
 ## Sisällysluettelo
 - [Asennus](#asennus)
+- [Laitteisto ja sähköinen kytkentä](#laitteisto-ja-sähköinen-kytkentä)
 - [Asetukset](#asetukset)
   + [Yleiset](#yleiset)
   + [Ohjaustapa: Käsiohjaus](#ohjaustapa-käsiohjaus)
@@ -85,6 +85,21 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboa
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2d9fbb5f-e2c5-4f5c-a457-5606825184f3)
 
 12. Valmista. **Älä asenna muita skriptejä - muisti loppuu kesken**
+
+## Laitteisto ja sähköinen kytkentä
+
+Olen kehittänyt tämän Shelly Plus 1PM -relekytkimelle, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon) tai halvemmalla [monelta suomalaiselta jälleenmyyjältä](https://www.google.com/search?q=shelly+plus+1pm&lr=lang_fi). Se kestää speksien mukaan 16A kuorman, joten ainakin kevyttä sähköpatteria uskaltaa ohjata suoraan.
+
+Jos ohjaat kontaktoria, on suositeltavaa käyttää Shellyn sinisiä laitteita, jotka kestävät paremmin kelan aiheuttamia kytkentäpiikkejä. Näitä ovat esimerkiksi:
+
+* Shelly Plus 1
+* Shelly Plus 1 Mini
+* Shelly Pro 1
+* Shelly Pro 2
+
+Jos kuitenkin käytät esim. Shelly Plus 1PM -laitetta kontaktorin kanssa, [RC-suodatin](https://www.google.com/search?q=shelly+rc+snubber&lr=lang_fi) voi auttaa. Jännitepiikit ovat tunnetusti aiheuttaneet laitteen yllättävää uudelleenkäynnistystä.
+
+Lisää hyvää tietoa löytyy [Shelly tuki (suomeksi)](https://www.facebook.com/groups/shellytuki) -ryhmästä.
 
 ## Asetukset
 
