@@ -84,7 +84,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
 
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2d9fbb5f-e2c5-4f5c-a457-5606825184f3)
 
-12. Valmista. **Älä asenna muita skriptejä - muisti loppuu kesken**
+12. Valmis. Avaa käyttöliittymä selaimessa (**kohta 10**) ja säädä asetukset kohdilleen seuraavan kappaleen ohjeilla. **Älä asenna muita skriptejä - muisti loppuu kesken**
 
 ## Laitteisto ja sähköinen kytkentä
 
