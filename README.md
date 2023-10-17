@@ -26,7 +26,8 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
 * Todettu toimivaksi seuraavilla
   * Shelly Plus 1PM
   * Shelly Plus 1
-  * Shelly PRO1
+  * Shelly Pro 1
+  * Shelly Pro 2
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
 ## Sisällysluettelo
@@ -107,13 +108,13 @@ Lisää hyvää tietoa löytyy [Shelly tuki (suomeksi)](https://www.facebook.com
 
 Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/ea1071d7-98bb-461f-8266-f0a14ede4734)
-
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/c0ffc20d-04b5-4ff8-8ad8-fdb085152b53)
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
 | Ohjaustyyppi | Millä ohjaustavalla lähtöä ohjataan.<br><br>Selitykset taulukon alapuolella. | `jakson halvimmat tunnit`
 | Ohjattava lähtö | Shellyn ohjattavan lähdön numero.<br><br>Esim. Shelly Plus 1PM (ainoa) lähtö nro 0.| `0`
+| Käänteinen ohjaus | Jos ruksittu, ohjaus toimii käänteisesti normaaliin nähden. Tällöin lähtökohta on, että lähtö on päällä.<br><br>- **Varmuustunnit**: Lähtö ohjataan varmuustunneilla pois päältä<br>- **Hätätilaohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Pakko-ohjaukset**: Lähtö voidaan pakko-ohjata pois päältä<br>- **Käsiohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Hintaraja**: Jos hinta on alle rajan, lähtö asetetaan pois päältä<br>- **Jakson halvimmat tunnit**: Jos nykyinen tunti on halvimpia tunteja, lähtö asetetaan pois päältä
 | Sähkön ALV | Käytettävä ALV-% sähkön hinnalle. [%]| `24`
 | Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]| päivä: `4` <br> yö: `3`
 | Varmuustunnit | Jos sähkön hintaa ei jostain syystä tiedetä, ohjataan lähtö näillä tunneilla päälle.<br><br>Esim. ongelma hintojen haussa tai nettiyhteys katkeaa. | `01:00-07:00`

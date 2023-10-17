@@ -66,7 +66,9 @@ let C_DEF = {
   /** Output number to use */
   out: 0,
   /** Forced ON hours as binary */
-  fh: 0
+  fh: 0,
+  /** Invert output */
+  inv: 0
 };
 
 /** Log history */
@@ -77,7 +79,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.2.0",
+    v: "2.3.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -351,16 +353,16 @@ function logicRunNeeded() {
   let now = new Date();
   let chk = new Date(_.s.chkTs * 1000);
 
-  return (chk.getHours() !== now.getHours()
-    || chk.getFullYear() !== now.getFullYear())
-    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
-
   //for debugging:
   /*
   return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
   */
+  
+  return (chk.getHours() !== now.getHours()
+    || chk.getFullYear() !== now.getFullYear())
+    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
 }
 
 /**
@@ -620,13 +622,6 @@ function logic(isLoop) {
       if ((_.c.bk & binNow) == binNow) {
         cmd = true;
       }
-      /*
-      for (let i = 0; i < _.c.backups.length; i++) {
-        if (_.c.backups[i] === now.getHours()) {
-          cmd = true;
-          break;
-        }
-      }*/
       //log("hintatietoja ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
 
     } else {
@@ -646,17 +641,7 @@ function logic(isLoop) {
           _.s.st = 10;
         }
       }
-/*
-      if (_.c.fh.length > 0) {
-        for (let i = 0; i < _.c.fh.length; i++) {
-          if (_.c.fh[i] === now.getHours()) {
-            cmd = true;
-            _.s.st = 10;
-            break;
-          }
-        }
-      }
-*/
+
       //Manual force
       if (_.s.fCmdTs > 0) {
         if (_.s.fCmdTs - epoch(now) > 0) {
@@ -666,6 +651,11 @@ function logic(isLoop) {
           _.s.fCmdTs = 0;
         }
       }
+    }
+
+    //Invert
+    if (_.c.inv) {
+      cmd = !cmd;
     }
 
     //Setting relay command and after that starting background timer again

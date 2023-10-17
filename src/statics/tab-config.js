@@ -16,32 +16,33 @@
       }
       let c = state.c;
 
-      qs("#c-mode").innerHTML = MODE_STR.map((m, i) => `<option value="${i}">${m}</option>`)
+      qs("#mode").innerHTML = MODE_STR.map((m, i) => `<option value="${i}">${m}</option>`)
 
-      qs("#c-mode").value = c.mode;
-      qs("#c-out").value = c.out;
-      qs("#c-vat").value = c.vat;
-      qs("#c-day").value = c.day;
-      qs("#c-night").value = c.night;
+      qs("#mode").value = c.mode;
+      qs("#out").value = c.out;
+      qs("#inv").checked = c.inv ? "checked" : "";
+      qs("#vat").value = c.vat;
+      qs("#day").value = c.day;
+      qs("#night").value = c.night;
 
       let hours = "";
       for (let i = 0; i < 24; i++) {
-        hours += `<input type="checkbox" id="c-X${i}">${("" + i).padStart(2, "0")} `
+        hours += `<input type="checkbox" id="X${i}">${("" + i).padStart(2, "0")} `
       }
-      qs("#c-bk").innerHTML = hours.replaceAll("X", "b");
-      qs("#c-fh").innerHTML = hours.replaceAll("X", "f");
+      qs("#bk").innerHTML = hours.replaceAll("X", "b");
+      qs("#fh").innerHTML = hours.replaceAll("X", "f");
 
       for (let i = 0; i < 24; i++) {
-        qs(`#c-b${i}`).checked = (c.bk & (1 << i)) == (1 << i);
-        qs(`#c-f${i}`).checked = (c.fh & (1 << i)) == (1 << i);
+        qs(`#b${i}`).checked = (c.bk & (1 << i)) == (1 << i);
+        qs(`#f${i}`).checked = (c.fh & (1 << i)) == (1 << i);
       }
 
-      qs("#c-err").checked = c.err ? "checked" : "";
-      qs("#c-m0-cmd").checked = c.m0.cmd ? "checked" : "";
-      qs("#c-m1-lim").value = c.m1.lim;
-      qs("#c-m2-per").value = c.m2.per;
-      qs("#c-m2-cnt").value = c.m2.cnt;
-      qs("#c-m2-lim").value = c.m2.lim;
+      qs("#err").checked = c.err ? "checked" : "";
+      qs("#m0-cmd").checked = c.m0.cmd ? "checked" : "";
+      qs("#m1-lim").value = c.m1.lim;
+      qs("#m2-per").value = c.m2.per;
+      qs("#m2-cnt").value = c.m2.cnt;
+      qs("#m2-lim").value = c.m2.lim;
 
       configRead = true;
     } catch (err) {
@@ -57,29 +58,30 @@
       let c = state.c
       let n = (v) => Number(v);
 
-      c.mode = n(qs("#c-mode").value);
-      c.out = n(qs("#c-out").value);
-      c.vat = n(qs("#c-vat").value);
-      c.day = n(qs("#c-day").value);
-      c.night = n(qs("#c-night").value);
+      c.mode = n(qs("#mode").value);
+      c.out = n(qs("#out").value);
+      c.inv = qs("#inv").checked ? 1 : 0;
+      c.vat = n(qs("#vat").value);
+      c.day = n(qs("#day").value);
+      c.night = n(qs("#night").value);
 
       c.bk = 0;
       c.fh = 0;
       for (let i = 0; i < 24; i++) {
-        if (qs(`#c-b${i}`).checked) {
+        if (qs(`#b${i}`).checked) {
           c.bk = c.bk | (1 << i);
         }
-        if (qs(`#c-f${i}`).checked) {
+        if (qs(`#f${i}`).checked) {
           c.fh = c.fh | (1 << i);
         }
       }
 
-      c.err = qs("#c-err").checked ? 1 : 0;
-      c.m0.cmd = qs("#c-m0-cmd").checked ? 1 : 0;
-      c.m1.lim = n(qs("#c-m1-lim").value);
-      c.m2.per = n(qs("#c-m2-per").value);
-      c.m2.cnt = n(qs("#c-m2-cnt").value);
-      c.m2.lim = n(qs("#c-m2-lim").value);
+      c.err = qs("#err").checked ? 1 : 0;
+      c.m0.cmd = qs("#m0-cmd").checked ? 1 : 0;
+      c.m1.lim = n(qs("#m1-lim").value);
+      c.m2.per = n(qs("#m2-per").value);
+      c.m2.cnt = n(qs("#m2-cnt").value);
+      c.m2.lim = n(qs("#m2-lim").value);
 
       if (c.m2.cnt > c.m2.per) {
         throw new Error("Tuntimäärä > ajanjakso");
@@ -96,11 +98,11 @@
             configRead = false;
           })
           .catch(err => {
-            alert(`Asetukset tallennettu mutta päivitys epäonnistui: ${err})`);
+            alert(`Virhe: ${err})`);
           });
 
       } else {
-        alert(`Tallentaminen epäonnistui. Virhetiedot: ${res.txt})`);
+        alert(`Virhe: ${res.txt})`);
       }
     } catch (err) {
       alert("Virhe: " + err.message);
@@ -108,7 +110,7 @@
   };
 
   const force = async () => {
-    let data = prompt("Kuinka monta tuntia?");
+    let data = prompt("Tuntimäärä:");
     if (data !== null) {
       data = Number(data);
       data = data > 0 ? Math.floor(Date.now() / 1000 + data * 60 * 60) : 0;
@@ -122,7 +124,6 @@
 
   onUpdate();
   CBS.push(onUpdate);
-  qs("#c-save").addEventListener("click", save);
-  qs("#c-shelly").addEventListener("click", () => window.open("/"));
-  qs("#c-force").addEventListener("click", force);
+  qs("#save").addEventListener("click", save);
+  qs("#force").addEventListener("click", force);
 }

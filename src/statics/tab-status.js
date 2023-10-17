@@ -29,10 +29,13 @@
 
       qs("#s-mode").innerHTML = MODE_STR[c.mode];
       qs("#s-now").innerHTML = pricesOK ? `${s.p.now.toFixed(2)} c/kWh` : "";
-      qs("#s-st").innerHTML = s.st === 9 ? STATE_STR[s.st].replace("%s", formatDateTime(new Date(s.fCmdTs * 1000), false)) : STATE_STR[s.st];
+      qs("#s-st").innerHTML = (s.st === 9
+        ? STATE_STR[s.st].replace("%s", formatDateTime(new Date(s.fCmdTs * 1000), false))
+        : STATE_STR[s.st]) + (c.inv ? " (käänteinen)" : "");
+
       qs("#s-day").innerHTML = pricesOK ? `Keskiarvo: ${s.p.avg.toFixed(2)} c/kWh<br>Halvin: ${s.p.low.toFixed(2)} c/kWh<br>Kallein: ${s.p.high.toFixed(2)} c/kWh` : "";
       qs("#s-info").innerHTML = `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))} - ${s.p.ts > 0 ? `hinnat haettu ${formatTime(new Date(s.p.ts * 1000))}` : "hintatietoja haetaan..."}`;
-      qs("#s-version").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
+      qs("#s-v").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
 
       //Get cheapest hours
       //This is (and needs to be) 1:1 in both frontend and backend code
@@ -78,13 +81,18 @@
             || (c.mode === 2 && row[1] < c.m2.lim)
             || (c.fh & (1 << i)) == (1 << i);
 
+          //Invert
+          if (c.inv) {
+            cmd = !cmd;
+          }
+
           if (i >= per + c.m2.per) {
             //Period changed
             per += c.m2.per;
             bg = !bg;
           }
 
-          let data = `<tr style="${date.getHours() === new Date().getHours() ? `font-weight:bold;` : ``}${(bg ? "background-color:#ededed;" : "")}">`;
+          let data = `<tr style="${date.getHours() === new Date().getHours() ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">`;
           data += `<td class="fit">${formatTime(date, false)}</td>`;
           data += `<td>${row[1].toFixed(2)} c/kWh</td>`;
           data += `<td>${cmd ? "X" : ""}</td>`;
@@ -98,7 +106,7 @@
 
       //History
       d.h = d.h.sort((a, b) => b[0] - a[0]);
-      if (prevHistoryTs !== d.h[0][0]) {
+      if ( d.h.length > 0 && prevHistoryTs !== d.h[0][0]) {
         qs("#s-hist").innerHTML = "";
 
         for (let row of d.h) {
@@ -114,7 +122,7 @@
 
     } catch (err) {
       console.error(me(), `Error:`, err);
-      let c = (e) => qs(e).innerHTML = ""; 
+      let c = (e) => qs(e).innerHTML = "";
       qs("#s-cmd").innerHTML = "Tila ei tiedossa";
       qs("#s-cmd").style.color = "red";
       c("#s-mode");

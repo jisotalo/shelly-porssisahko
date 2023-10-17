@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.3.0] - 17.10.2023
+- Lisätty uusi asetus: käänteinen ohjaus
+  - Jos ruksittu, relelähtö on aina päinvastainen kuin normaalisti
+- Optimoitu muistin käyttöä
+
 ## [2.2.0] - 13.10.2023
 - Lisätty uusi ominaisuus: pakko-ohjatut tunnit
   - Voi pakottaa että ohjaus on päällä aina tiettyinä tunteina
@@ -32,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.3.0] - 17.10.2023
+- New setting: invert output
+- Optimized memory usage
+
 ## [2.2.0] - 13.10.2023
 - New feature: forced hoursLisätty uusi ominaisuus: pakko-ohjatut tunnit
   - Thanks for the idea petri1973 ([issue #4](https://github.com/jisotalo/shelly-porssisahko/issues/4))
