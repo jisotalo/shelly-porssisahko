@@ -26,7 +26,8 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
 * Todettu toimivaksi seuraavilla
   * Shelly Plus 1PM
   * Shelly Plus 1
-  * Shelly PRO1
+  * Shelly Pro 1
+  * Shelly Pro 2
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
 ## Sisällysluettelo
