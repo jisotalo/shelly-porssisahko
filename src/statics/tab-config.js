@@ -46,7 +46,7 @@
 
       configRead = true;
     } catch (err) {
-      console.error(me(), `Error:`, err);
+      console.error(err);
 
     }
   };
@@ -80,21 +80,17 @@
       c.m0.cmd = qs("#m0-cmd").checked ? 1 : 0;
       c.m1.lim = n(qs("#m1-lim").value);
       c.m2.per = n(qs("#m2-per").value);
-      c.m2.cnt = n(qs("#m2-cnt").value);
+      c.m2.cnt = Math.min(c.m2.per, n(qs("#m2-cnt").value));
       c.m2.lim = n(qs("#m2-lim").value);
-
-      if (c.m2.cnt > c.m2.per) {
-        throw new Error("Tuntimäärä > ajanjakso");
-      }
 
       DBG(me(), "Settings to save:", c);
 
       const res = await getData(`${URL}/rpc/KVS.Set?key="porssi-config"&value=${(JSON.stringify(c))}`);
 
-      if (res.ok) {
-        getData(`${URL_SCRIPT}?r=r`)
+      if (res.code == 200) {
+        getData(`${URLS}?r=r`)
           .then(res => {
-            alert(`Asetukset tallennettu!`);
+            alert(`Tallennettu!`);
             configRead = false;
           })
           .catch(err => {
@@ -115,10 +111,8 @@
       data = Number(data);
       data = data > 0 ? Math.floor(Date.now() / 1000 + data * 60 * 60) : 0;
 
-      let res = await getData(`${URL_SCRIPT}?r=f&ts=${data}`);
-      console.log(res);
-
-      alert(res.ok ? "OK!" : `Virhe: ${res.txt}`);
+      let res = await getData(`${URLS}?r=f&ts=${data}`);
+      alert(res.code == 200 ? "OK!" : `Virhe: ${res.txt}`);
     }
   }
 

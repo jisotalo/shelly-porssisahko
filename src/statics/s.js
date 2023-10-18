@@ -7,18 +7,18 @@
  * License: GNU Affero General Public License v3.0 
  */
 /** URL of the shelly (only if DEV active, otherwise it is same origin) */
-const URL = DEV ? "http://192.168.68.105" : "";
+let URL = "";
 
 /** URL of the logic script */
-const URL_SCRIPT = `${URL}/script/1`;
+let URLS = ``;
 
 /** Shortcut for querySelector() call */
-const qs = (s) => document.querySelector(s);
+let qs = (s) => document.querySelector(s);
 
 /**
  * debug function that is printing to console only when DEV is active
  */
-let DBG = DEV ? console.log.bind(window.console) : () => { };
+let DBG = () => { };
 
 /**
  * Enumeration of state
@@ -60,53 +60,20 @@ let CBS = [];
 /**
  * Helper that is used for DBG calls to add caller information
  */
-const me = () => {
-  let s = new Error().stack;
-  if (s) {
-    s = s.split(String.fromCharCode(10));
-  }
-  if (s.length > 0) {
-    let str = "";
-    if (s[4] && s[4].trim().split(" ")[1]) {
-      str += `/${s[4].trim().split(" ")[1]}`;
-    }
-    if (s[3] && s[3].trim().split(" ")[1]) {
-      str += `/${s[3].trim().split(" ")[1]}`;
-    }
-    if (s[2] && s[2].trim().split(" ")[1]) {
-      str += `/${s[2].trim().split(" ")[1]}`;
-    }
-    return `${str}:`;
-  }
-  return `?:`;
-};
-
-/**
- * Adding an error event listener so we will catch eval() script errors better
- */
-window.addEventListener("error", (e) => console.error("Error at line:", e.lineno), false);
-
-/**
- * Shows or hides loading text and spinner
- * @param {*} str Loading text to show
- */
-const toggleLoading = (str) => {
-  qs("#ld").style.visibility = str ? "visible" : "hidden";
-  qs("#ldtxt").innerText = str;
-};
+let me = () => "";
 
 /**
  * Opens tab with given id
  * @param {*} tab 
  * @returns 
  */
-const openTab = async (tab) => {
+let openTab = async (tab) => {
   if (tab === undefined || tab === "") {
     tab = "tab-status";
   }
   window.location.hash = tab;
 
-  const e = qs("#" + tab);
+  let e = qs("#" + tab);
   if (e) {
     e.checked = true;
   }
@@ -124,7 +91,7 @@ document.querySelectorAll(".ts").forEach(e => e.addEventListener("change", (e) =
   openTab(e.target.id);
 }));
 
-const evalContainerScriptTags = (elementId) => {
+let evalContainerScriptTags = (elementId) => {
   DBG(me(), "eval running for", elementId);
 
   var scripts = qs(elementId).querySelectorAll("script");
@@ -143,14 +110,14 @@ const evalContainerScriptTags = (elementId) => {
   }
 }
 
-const populateDynamicData = async (url, containerId) => {
+let populateDynamicData = async (url, containerId) => {
   try {
     if (!DEV) {
-      url = `/script/1/?r=${url}`
+      url = `${URLS}?r=${url.replace("tab-", "").replace(".html", "")}`
     }
     DBG(me(), "fetching", url, "for", containerId);
 
-    const res = await getData(url, false);
+    let res = await getData(url, false);
     if (res.ok) {
       qs(containerId).innerHTML = res.data;
       evalContainerScriptTags(containerId);
@@ -159,14 +126,15 @@ const populateDynamicData = async (url, containerId) => {
     }
     DBG(me(), "done for", containerId);
   } catch (err) {
-    console.error(`populateDynamicData(): Error happened: `, err);
+    DBG(me(), "error", err);
+    console.error(err);
   }
 }
 
 
-const getData = async (url, isJson = true) => {
+let getData = async (url, isJson = true) => {
   try {
-    const res = await fetch(url);
+    let res = await fetch(url);
 
     if (res.ok) {
       let data = null;
@@ -188,68 +156,50 @@ const getData = async (url, isJson = true) => {
       };
 
     } else {
-      console.error(`Failed to fetch ${url}: ${res.statusText}`);
+      console.error(`${url}: ${res.statusText}`);
 
       return {
         ok: false,
         code: res.status,
-        txt: `Failed to fetch ${url}: ${res.statusText} (${(await res.text())})`,
+        txt: `${url}: ${res.statusText} (${(await res.text())})`,
         data: null
       };
 
     }
   } catch (err) {
-    console.error(`Failed to fetch ${url}: (${JSON.stringify(err)})`);
+    console.error(`${url}: (${JSON.stringify(err)})`);
 
     return {
       ok: false,
       code: -1,
-      txt: `Failed to fetch ${url}: (${JSON.stringify(err)})`,
+      txt: `${url}: (${JSON.stringify(err)})`,
       data: null
     };
-  } finally {
-
   }
 }
 
-const formatDate = (value) => {
-  let date = null;
-
-  if (typeof value === "string") {
-    date = new Date(value);
-  } else {
-    date = value;
-  }
-
+let formatDate = (date) => {
   return `${(date.getDate().toString().padStart(2, "0"))}.${(date.getMonth() + 1).toString().padStart(2, "0")}.${date.getFullYear()}`;
 }
 
-const formatTime = (value, showSeconds = true, showMilliseconds = false) => {
-  let date = null;
-
-  if (typeof value === "string") {
-    date = new Date(value);
-  } else {
-    date = value;
-  }
-
+let formatTime = (date, showSeconds = true, showMilliseconds = false) => {
   return `${(date.getHours().toString().padStart(2, "0"))}:${date.getMinutes().toString().padStart(2, "0")}${(showSeconds ? `:${date.getSeconds().toString().padStart(2, "0")}` : "")}${(showMilliseconds ? `.${date.getMilliseconds().toString().padStart(3, "0")}` : "")}`;
 }
 
-const formatDateTime = (value, showSeconds = true, showMilliseconds = false) => {
-  return `${formatDate(value)} ${formatTime(value, showSeconds, showMilliseconds)}`;
+let formatDateTime = (date, showSeconds = true, showMilliseconds = false) => {
+  return `${formatDate(date)} ${formatTime(date, showSeconds, showMilliseconds)}`;
 }
 
-const updateLoop = async () => {
+let updateLoop = async () => {
   DBG(me(), "Updating");
   qs("#spin").style.visibility = "visible";
 
   try {
-    const res = await getData(`${URL_SCRIPT}?r=s`);
+    let res = await getData(`${URLS}?r=s`);
 
     if (res.ok) {
       state = res.data;
-      
+
       //If status 503 the shelly is just now busy running the logic -> do nothing
     } else if (res.code !== 503) {
       state = null;
@@ -258,7 +208,7 @@ const updateLoop = async () => {
     CBS.forEach(cb => cb());
 
   } catch (err) {
-    console.error(me(), `Error:`, err);
+    console.error(err);
     state = null;
 
   } finally {
@@ -267,6 +217,8 @@ const updateLoop = async () => {
   }
 }
 
-
-toggleLoading("Ladataan tilatietoja...");
-updateLoop().then(() => toggleLoading());
+if (DEV) {
+  reqJs("dev.js");
+} else {
+  updateLoop();
+}

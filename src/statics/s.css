@@ -65,22 +65,11 @@ body {
 }
 
 .tab-label {
-  position: relative;
   display: block;
   line-height: 2.75em;
-  height: 3em;
   padding: 0 1.618em;
-  background: #1abc9c;
-  border-right: 0.125rem solid #16a085;
-  color: #fff;
+  border-right: 2px solid #16a085;
   cursor: pointer;
-  top: 0;
-  transition: all 0.25s;
-}
-
-.tab-label:hover {
-  top: -0.25rem;
-  transition: top 0.25s;
 }
 
 .tab-content {
@@ -93,23 +82,16 @@ body {
   background: #fff;
   color: #2c3e50;
   opacity: 0;
-  transition: all 0.35s;
 }
 
 .ts:checked+.tab-label {
   background: #fff;
   color: #2c3e50;
-  border-bottom: 0;
-  border-right: 0.125rem solid #fff;
-  transition: all 0.35s;
-  z-index: 1;
-  top: -0.0625rem;
+  border:0;
 }
 
 .ts:checked+label+.tab-content {
-  z-index: 2;
   opacity: 1;
-  transition: all 0.35s;
 }
 
 .top {
@@ -117,35 +99,7 @@ body {
   grid-template-columns: 1fr auto 1fr;
 }
 
-#ld {
-  z-index: 1000;
-  position: fixed;
-  margin: auto;
-  top: 20vh;
-  left: 0;
-  right: 0;
-  width: 20em;
-  border: 5px solid #1abc9c;
-  background: #2c3e50;
-  padding: 0.5em;
-  text-align: center;
-}
-
 .spn {
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 5px;
-  pointer-events: none;
-  width: 2.5em;
-  height: 2.5em;
-  border: 0.4em solid transparent;
-  border-color: #1abc9c;
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spn 1s linear infinite;
-}
-
-.spn2 {
   pointer-events: none;
   width: 1.2rem;
   height: 1.2rem;
@@ -203,7 +157,7 @@ table {
   border-collapse: collapse;
   width: 100%;
 }
-
+ 
 td {
   border: 1px black solid;
   padding: 5px;

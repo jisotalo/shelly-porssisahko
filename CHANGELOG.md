@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.3.1] - 18.10.2023
+- Optimoitu paljon muistin käyttöä
+  - Lisää tilaa tuleville ominaisuuksille
+  - Poistettu animaatioita ja muita karkkeja käyttöliittymästä tilan aikaansaamiseksi
+
 ## [2.3.0] - 17.10.2023
 - Lisätty uusi asetus: käänteinen ohjaus
   - Jos ruksittu, relelähtö on aina päinvastainen kuin normaalisti
@@ -37,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.3.1] - 18.10.2023
+- Optimized memory usage
+
 ## [2.3.0] - 17.10.2023
 - New setting: invert output
 - Optimized memory usage

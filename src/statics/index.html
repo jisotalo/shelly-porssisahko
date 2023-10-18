@@ -20,13 +20,8 @@
 <body>
   <div class="top">
     <div id="title">Pörssisähkö</div>
-    <div id="spin" class="spn2"></div>
+    <div id="spin" class="spn"></div>
     <div id="copy">&copy; Jussi Isotalo (<a href="https://jisotalo.fi" target="_blank">jisotalo.fi</a>)</div>
-  </div>
-
-  <div id="ld">
-    <div class="spn"></div>
-    <div id="ldtxt">Ladataan skriptejä</div>
   </div>
 
   <div class="tabs">
@@ -54,7 +49,7 @@
      */
     let reqJs = (f) => {
       let script = createElement("script");
-      script.src = DEV ? f : `?r=${f}`;
+      script.src = DEV ? f : `?r=${f.replace("tab-", "")}`;
       appendChild(script);
     }
 
@@ -63,7 +58,7 @@
     css.rel = "stylesheet";
     css.href = DEV ? "s.css" : "?r=s.css";
     appendChild(css);
-  
+
     reqJs("s.js");
   </script>
 </body>

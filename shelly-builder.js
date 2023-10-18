@@ -221,13 +221,15 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
           "C_HIST",
           "C_ERRC",
           "C_ERRD",
-          "C_DEF"
+          "C_DEF",
         ]
       },
       compress: {
         pure_funcs: [
-          'DBG'
-        ]
+          'DBG',
+          'me'
+        ],
+        //unsafe: true
       },
     });
 

@@ -60,7 +60,7 @@ let C_DEF = {
   /** Night (22...07) transfer price c/kWh */
   night: 0,
   /** Backup hours as binary*/
-  bk : 0,
+  bk: 0,
   /** Relay output command if clock time is not known */
   err: 0,
   /** Output number to use */
@@ -79,7 +79,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.3.0",
+    v: "2.3.1",
     /** status as number */
     st: 0,
     /** active command */
@@ -260,7 +260,6 @@ function chkConfig(cb) {
 
 /**
  * Reads config from KVS
- * @param isLoop If true then loopRunning is set to false after finished
  */
 function getConfig(isLoop) {
   //let me = "getConfig()";
@@ -305,11 +304,11 @@ function loop() {
     getConfig(true);
 
   } else if (pricesNeeded()) {
-    getPrices(true);
+    getPrices();
 
   } else if (logicRunNeeded()) {
     //Hour has changed or we now know the time (=year has changed)
-    logic(true);
+    logic();
 
   } else {
     //Nothing to do
@@ -358,19 +357,18 @@ function logicRunNeeded() {
   return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
-  */
-  
+*/
+
   return (chk.getHours() !== now.getHours()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
+
 }
 
 /**
  * Gets prices for today and then runs the logic
- * 
- * @param isLoop If true then loopRunning is set to false after finished
  */
-function getPrices(isLoop) {
+function getPrices() {
   let now = new Date();
 
   try {
@@ -400,7 +398,7 @@ function getPrices(isLoop) {
 
     //log("URL:" + req.url, me);
 
-    Shelly.call("HTTP.GET", req, function (res, err, msg, isLoop) {
+    Shelly.call("HTTP.GET", req, function (res, err, msg) {
       req = null;
 
       try {
@@ -526,13 +524,13 @@ function getPrices(isLoop) {
       */
 
       //Run logic no matter what happened
-      logic(isLoop);
+      logic();
 
-    }, isLoop);
+    });
   } catch (err) {
     log(err);
     //Run logic no matter what happened
-    logic(isLoop);
+    logic();
   }
 }
 
@@ -573,10 +571,8 @@ function setRelay(cb) {
 
 /**
  * Runs the main logic
- * 
- * @param isLoop If true then loopRunning is set to false after finished
  */
-function logic(isLoop) {
+function logic() {
   //let me = "logic()";
   let now = new Date();
   cmd = false;
@@ -617,7 +613,7 @@ function logic(isLoop) {
     } else if (_.s.timeOK) {
       //We have time but no data for today
       _.s.st = 7;
-      
+
       let binNow = (1 << now.getHours());
       if ((_.c.bk & binNow) == binNow) {
         cmd = true;
@@ -664,18 +660,13 @@ function logic(isLoop) {
         _.s.chkTs = epoch();
       }
 
-      if (isLoop) {
-        loopRunning = false;
-      }
+      loopRunning = false;
     });
 
   } catch (err) {
     //log("virhe: " + JSON.stringify(err), me);
     log(err);
-
-    if (isLoop) {
-      loopRunning = false;
-    }
+    loopRunning = false;
   }
 }
 
@@ -789,8 +780,8 @@ function onServerRequest(request, response) {
 
     let MIME_TYPE = "application/json"; //default
     response.code = 200; //default
-    let GZIP = false; //default
-
+    let GZIP = true; //default
+    
     let MIME_HTML = "text/html";
     let MIME_JS = "text/javascript";
     let MIME_CSS = "text/css";
@@ -800,68 +791,62 @@ function onServerRequest(request, response) {
       updateState();
 
       //if k given, return only the key k
+      /*
       if (params.k) {
         response.body = JSON.stringify(_[params.k]);
-      } else {
-        response.body = JSON.stringify(_);
-      }
-
-    } else if (params.r === "l") {
-      //l = get log
-      response.body = JSON.stringify(log);
+      } else {*/
+      response.body = JSON.stringify(_);
+      GZIP = false;
+      //}
 
     } else if (params.r === "r") {
       //r = reload settings
       _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
-      getConfig();
+      getConfig(false);
       _.s.p.ts = 0; //get prices
-
-      response.body = JSON.stringify({ ok: true });
+      response.code = 204;
+      GZIP = false;
 
     } else if (params.r === "f" && params.ts) {
       //f = force
       _.s.fCmdTs = Number(params.ts);
       _.s.chkTs = 0;
       response.code = 204;
+      GZIP = false;
 
-    } else if (!params.r || params.r === "index.html") {
+    } else if (!params.r) {
       response.body = atob('#[index.html]');
       MIME_TYPE = MIME_HTML;
-      GZIP = true;
 
     } else if (params.r === "s.js") {
       response.body = atob('#[s.js]');
       MIME_TYPE = MIME_JS;
-      GZIP = true;
 
     } else if (params.r === "s.css") {
       response.body = atob('#[s.css]');
       MIME_TYPE = MIME_CSS;
-      GZIP = true;
 
-    } else if (params.r === "tab-status.html") {
+    } else if (params.r === "status") {
       response.body = atob('#[tab-status.html]');
       MIME_TYPE = MIME_HTML;
-      GZIP = true;
 
-    } else if (params.r === "tab-status.js") {
+    } else if (params.r === "status.js") {
       response.body = atob('#[tab-status.js]');
       MIME_TYPE = MIME_JS;
-      GZIP = true;
 
-    } else if (params.r === "tab-config.html") {
+    } else if (params.r === "config") {
       response.body = atob('#[tab-config.html]');
       MIME_TYPE = MIME_HTML;
-      GZIP = true;
 
-    } else if (params.r === "tab-config.js") {
+    } else if (params.r === "config.js") {
       response.body = atob('#[tab-config.js]');
       MIME_TYPE = MIME_JS;
-      GZIP = true;
 
     } else {
       response.code = 404;
     }
+
+    params = null;
 
     response.headers = [["Content-Type", MIME_TYPE]];
 

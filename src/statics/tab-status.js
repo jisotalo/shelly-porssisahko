@@ -46,7 +46,7 @@
           //Create array of indexes in selected period
           let order = [];
           for (let j = i; j < i + c.m2.per; j++) order.push(j);
-
+          
           //Sort indexes by price
           let j = 0;
           for (let k = 1; k < order.length; k++) {
@@ -76,9 +76,9 @@
           let date = new Date(row[0] * 1000);
           let cmd =
             (c.mode === 0 && c.m0.cmd)
-            || (c.mode === 1 && row[1] < c.m1.lim)
+            || (c.mode === 1 && row[1] <= c.m1.lim)
             || (c.mode === 2 && cheapest.includes(i))
-            || (c.mode === 2 && row[1] < c.m2.lim)
+            || (c.mode === 2 && row[1] <= c.m2.lim)
             || (c.fh & (1 << i)) == (1 << i);
 
           //Invert
@@ -106,7 +106,7 @@
 
       //History
       d.h = d.h.sort((a, b) => b[0] - a[0]);
-      if ( d.h.length > 0 && prevHistoryTs !== d.h[0][0]) {
+      if (d.h.length > 0 && prevHistoryTs !== d.h[0][0]) {
         qs("#s-hist").innerHTML = "";
 
         for (let row of d.h) {
@@ -121,7 +121,7 @@
       }
 
     } catch (err) {
-      console.error(me(), `Error:`, err);
+      console.error(err);
       let c = (e) => qs(e).innerHTML = "";
       qs("#s-cmd").innerHTML = "Tila ei tiedossa";
       qs("#s-cmd").style.color = "red";
@@ -130,8 +130,6 @@
       c("#s-info");
       c("#s-st");
 
-    } finally {
-      //setTimeout(loop, 5000);
     }
   };
 
