@@ -108,7 +108,7 @@ Lisää hyvää tietoa löytyy [Shelly tuki (suomeksi)](https://www.facebook.com
 
 Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/c0ffc20d-04b5-4ff8-8ad8-fdb085152b53)
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/21780f3e-78c9-4b89-ba13-cf05b9a7d200)
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
