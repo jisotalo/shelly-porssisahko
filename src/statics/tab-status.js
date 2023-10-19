@@ -46,22 +46,57 @@
           //Create array of indexes in selected period
           let order = [];
           for (let j = i; j < i + c.m2.per; j++) order.push(j);
-          
-          //Sort indexes by price
-          let j = 0;
-          for (let k = 1; k < order.length; k++) {
-            let temp = order[k];
 
-            for (j = k - 1; j >= 0 && d.p[temp][1] < d.p[order[j]][1]; j--) {
-              order[j + 1] = order[j];
+          if (c.m2.sq) {
+            //Find cheapest in a sequence
+            //Loop through each possible starting index and compare average prices
+            let avg = 999;
+            let startIndex = 0;
+
+            for (let j = 0; j <= order.length - c.m2.cnt; j++) {
+              let sum = 0;
+              //Calculate sum of these sequential hours
+              for (let k = j; k < j + c.m2.cnt; k++) {
+                sum += d.p[order[k]][1];
+              };
+
+              console.log("avg before:", avg);
+              console.log("this avg:", sum / c.m2.cnt);
+
+              //If average price of these sequential hours is lower -> it's better
+              if (sum / c.m2.cnt < avg) {
+                console.log("IS smaller, index:", j);
+                avg = sum / c.m2.cnt;
+                startIndex = j;
+              }
+
             }
-            order[j + 1] = temp;
+            
+            console.log("start index:", startIndex);
+            console.log("cheapest", cheapest);
+            for (let j = startIndex; j < startIndex + c.m2.cnt; j++) {
+              cheapest.push(order[j]);
+            }
+            console.log("cheapest", cheapest);
+
+          } else {
+            //Sort indexes by price
+            let j = 0;
+            for (let k = 1; k < order.length; k++) {
+              let temp = order[k];
+
+              for (j = k - 1; j >= 0 && d.p[temp][1] < d.p[order[j]][1]; j--) {
+                order[j + 1] = order[j];
+              }
+              order[j + 1] = temp;
+            }
+
+            //Select the cheapest ones
+            for (let j = 0; j < c.m2.cnt; j++) {
+              cheapest.push(order[j]);
+            }
           }
 
-          //Select the cheapest ones
-          for (let j = 0; j < c.m2.cnt; j++) {
-            cheapest.push(order[j]);
-          }
         }
       }
 
@@ -80,6 +115,8 @@
             || (c.mode === 2 && cheapest.includes(i))
             || (c.mode === 2 && row[1] <= c.m2.lim)
             || (c.fh & (1 << i)) == (1 << i);
+          
+          console.log(i, cmd)
 
           //Invert
           if (c.inv) {

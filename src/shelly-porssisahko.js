@@ -51,7 +51,9 @@ let C_DEF = {
     /** How many cheapest hours */
     cnt: 0,
     /** Always on price limit */
-    lim: -99
+    lim: -99,
+    /** Should the hours be sequential / in a row */
+    sq: 0
   },
   /** VAT added to spot price (%) */
   vat: 24,
@@ -79,7 +81,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.3.1",
+    v: "2.4.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -769,7 +771,7 @@ function onServerRequest(request, response) {
       request = null;
       response.code = 503;
       //NOTE: Uncomment the next line for local development or remote API access (allows cors)
-      //response.headers = [["Access-Control-Allow-Origin", "*"]];
+      response.headers = [["Access-Control-Allow-Origin", "*"]];
       response.send();
       return;
     }
@@ -851,7 +853,7 @@ function onServerRequest(request, response) {
     response.headers = [["Content-Type", MIME_TYPE]];
 
     //NOTE: Uncomment the next line for local development or remote API access (allows cors)
-    //response.headers.push(["Access-Control-Allow-Origin", "*"]);
+    response.headers.push(["Access-Control-Allow-Origin", "*"]);
 
     if (GZIP) {
       response.headers.push(["Content-Encoding", "gzip"]);
