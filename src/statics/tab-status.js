@@ -60,24 +60,16 @@
                 sum += d.p[order[k]][1];
               };
 
-              console.log("avg before:", avg);
-              console.log("this avg:", sum / c.m2.cnt);
-
               //If average price of these sequential hours is lower -> it's better
               if (sum / c.m2.cnt < avg) {
-                console.log("IS smaller, index:", j);
                 avg = sum / c.m2.cnt;
                 startIndex = j;
               }
-
             }
-            
-            console.log("start index:", startIndex);
-            console.log("cheapest", cheapest);
+
             for (let j = startIndex; j < startIndex + c.m2.cnt; j++) {
               cheapest.push(order[j]);
             }
-            console.log("cheapest", cheapest);
 
           } else {
             //Sort indexes by price
@@ -116,8 +108,6 @@
             || (c.mode === 2 && row[1] <= c.m2.lim)
             || (c.fh & (1 << i)) == (1 << i);
           
-          console.log(i, cmd)
-
           //Invert
           if (c.inv) {
             cmd = !cmd;

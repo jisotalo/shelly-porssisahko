@@ -17,7 +17,7 @@
  * Number of historical commands kept
  * NOTE: At the moment 12 (not 24) as Shelly memory limit is so low
  */
-let C_HIST = 12;
+let C_HIST = 24;
 
 /** How many errors during getting prices until we have a break */
 let C_ERRC = 3;
@@ -359,12 +359,11 @@ function logicRunNeeded() {
   return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
-*/
+  */
 
   return (chk.getHours() !== now.getHours()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
-
 }
 
 /**
@@ -674,32 +673,68 @@ function logic() {
 
 /**
  * Returns true if current hour is one of the cheapest
- * @returns 
+ * 
+ * NOTE: Variables are here outside function() as it caused memory issues
+ * (for loop i variable suddenly changed to something very odd)
+ * Perhaps the stack was getting too full or something because of multiple for() loops?
+ * This worked!
+ * 
  */
+let _perStart = 0; 
+let _ind = 0;
+let _ind2 = 0;
 function isCheapestHour() {
+  if (_.c.m2.cn == 0) {
+    return;
+  }
 
   //This is (and needs to be) 1:1 in both frontend and backend code
   let cheapest = [];
 
-  for (let i = 0; i < 24; i += _.c.m2.per) {
+  for (_perStart = 0; _perStart < 24; _perStart += _.c.m2.per) {
     //Create array of indexes in selected period
     let order = [];
-    for (let j = i; j < i + _.c.m2.per; j++) order.push(j);
+    for (ind = _perStart; ind < _perStart + _.c.m2.per; ind++) order.push(ind);
 
-    //Sort indexes by price
-    let j = 0;
-    for (let k = 1; k < order.length; k++) {
-      let temp = order[k];
+    if (_.c.m2.sq) {
+      //Find cheapest in a sequence
+      //Loop through each possible starting index and compare average prices
+      let avg = 999;
+      let startIndex = 0;
 
-      for (j = k - 1; j >= 0 && _.p[temp][1] < _.p[order[j]][1]; j--) {
-        order[j + 1] = order[j];
+      for (_ind = 0; _ind <= order.length - _.c.m2.cnt; _ind++) {
+        let sum = 0;
+        //Calculate sum of these sequential hours
+        for (_ind2 = _ind; _ind2 < _ind + _.c.m2.cnt; _ind2++) {
+          sum += _.p[order[_ind2]][1];
+        };
+
+        //If average price of these sequential hours is lower -> it's better
+        if (sum / _.c.m2.cnt < avg) {
+          avg = sum / _.c.m2.cnt;
+          startIndex = _ind;
+        }
       }
-      order[j + 1] = temp;
-    }
 
-    //Select the cheapest ones
-    for (let j = 0; j < _.c.m2.cnt; j++) {
-      cheapest.push(order[j]);
+      for (_ind = startIndex; _ind < startIndex + _.c.m2.cnt; _ind++) {
+        cheapest.push(order[_ind]);
+      }
+
+    } else {
+      //Sort indexes by price
+      for (_ind = 1; _ind < order.length; _ind++) {
+        let temp = order[_ind];
+
+        for (_ind2 = _ind - 1; _ind2 >= 0 && _.p[temp][1] < _.p[order[_ind2]][1]; _ind2--) {
+          order[_ind2 + 1] = order[_ind2];
+        }
+        order[_ind2 + 1] = temp;
+      }
+
+      //Select the cheapest ones
+      for (_ind = 0; _ind < _.c.m2.cnt; _ind++) {
+        cheapest.push(order[_ind]);
+      }
     }
   }
 
@@ -716,6 +751,10 @@ function isCheapestHour() {
       break;
     }
   }
+
+  _perStart = null;
+  _ind = null;
+  _ind2 = null;
 
   return res;
 }
@@ -771,7 +810,7 @@ function onServerRequest(request, response) {
       request = null;
       response.code = 503;
       //NOTE: Uncomment the next line for local development or remote API access (allows cors)
-      response.headers = [["Access-Control-Allow-Origin", "*"]];
+      //response.headers = [["Access-Control-Allow-Origin", "*"]];
       response.send();
       return;
     }
@@ -783,7 +822,7 @@ function onServerRequest(request, response) {
     let MIME_TYPE = "application/json"; //default
     response.code = 200; //default
     let GZIP = true; //default
-    
+
     let MIME_HTML = "text/html";
     let MIME_JS = "text/javascript";
     let MIME_CSS = "text/css";
@@ -853,7 +892,7 @@ function onServerRequest(request, response) {
     response.headers = [["Content-Type", MIME_TYPE]];
 
     //NOTE: Uncomment the next line for local development or remote API access (allows cors)
-    response.headers.push(["Access-Control-Allow-Origin", "*"]);
+    //response.headers.push(["Access-Control-Allow-Origin", "*"]);
 
     if (GZIP) {
       response.headers.push(["Content-Encoding", "gzip"]);

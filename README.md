@@ -9,7 +9,7 @@ Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka venyttää 
 
 Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palveluita, niin tämä voi olla hyödyllinen. Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole kolmannen osapuolen palveluita. Ei myöskään tarvitse rekisteröityä mihinkään vaan kaikki toimii suoraan.
 
-![porssisahko](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/7eb3e3c9-2fab-4de3-9023-472b32da0f4d)
+![porssisahko](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/9b5e8c3e-eb50-4cdb-982d-ae632703091b)
 
 
 ## Ominaisuudet
@@ -46,7 +46,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
   + [Kehitysympäristö](#kehitysympäristö)
 - [FAQ](#faq)
 - [In English](#in-english)
-- [Licenee](#license)
+- [License](#license)
 
 ## Asennus
 1. Ota Shelly käyttöön, yhdistä se wifi-verkkoon ja päivitä sen firmware (ainakin varmista että se on 1.0.0 tai uudempi)
@@ -108,13 +108,14 @@ Lisää hyvää tietoa löytyy [Shelly tuki (suomeksi)](https://www.facebook.com
 
 Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/21780f3e-78c9-4b89-ba13-cf05b9a7d200)
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/5e38e7f4-7124-4905-ac54-65cd7e1ccf52)
+
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
-| Ohjaustyyppi | Millä ohjaustavalla lähtöä ohjataan.<br><br>Selitykset taulukon alapuolella. | `jakson halvimmat tunnit`
+| Ohjaustapa | Millä ohjaustavalla lähtöä ohjataan.<br><br>Selitykset taulukon alapuolella. | `jakson halvimmat tunnit`
 | Ohjattava lähtö | Shellyn ohjattavan lähdön numero.<br><br>Esim. Shelly Plus 1PM (ainoa) lähtö nro 0.| `0`
-| Käänteinen ohjaus | Jos ruksittu, ohjaus toimii käänteisesti normaaliin nähden. Tällöin lähtökohta on, että lähtö on päällä.<br><br>- **Varmuustunnit**: Lähtö ohjataan varmuustunneilla pois päältä<br>- **Hätätilaohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Pakko-ohjaukset**: Lähtö voidaan pakko-ohjata pois päältä<br>- **Käsiohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Hintaraja**: Jos hinta on alle rajan, lähtö asetetaan pois päältä<br>- **Jakson halvimmat tunnit**: Jos nykyinen tunti on halvimpia tunteja, lähtö asetetaan pois päältä
+| Käänteinen ohjaus | Jos ruksittu, ohjaus toimii käänteisesti normaaliin nähden. Tällöin lähtökohta on, että lähtö on päällä.<br><br>- **Varmuustunnit**: Lähtö ohjataan varmuustunneilla pois päältä<br>- **Hätätilaohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Pakko-ohjaukset**: Lähtö voidaan pakko-ohjata pois päältä<br>- **Käsiohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Hintaraja**: Jos hinta on alle rajan, lähtö asetetaan pois päältä<br>- **Jakson halvimmat tunnit**: Jos nykyinen tunti on halvimpia tunteja, lähtö asetetaan pois päältä | `ei`
 | Sähkön ALV | Käytettävä ALV-% sähkön hinnalle. [%]| `24`
 | Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]| päivä: `4` <br> yö: `3`
 | Varmuustunnit | Jos sähkön hintaa ei jostain syystä tiedetä, ohjataan lähtö näillä tunneilla päälle.<br><br>Esim. ongelma hintojen haussa tai nettiyhteys katkeaa. | `01:00-07:00`
@@ -146,25 +147,44 @@ Hintarajaohjauksella lähtö asetetaan päälle jos sähkön hinta on alle mää
 
 Jakson halvimmat tunnit -ohjauksella vuorokausi jaetaan osiin. Lähtö ohjataan päälle jokaisen osan halvimmmilla tunneilla. Lisäksi voidaan määrittää raja jonka alla ohjaus on aina päällä.
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/95848eee-5b19-4fe3-9874-7b4cba2a1aaf)
+Versiosta 2.4.0 lähtien voidaan myös määrittää, että päälläolotuntien tulee olla perättäiset.
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/d174e08c-74e9-421d-9366-9dbb26396a60)
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
 | Ajanjakso | Minkä mittaisiin jaksoihin vuorokausi jaetaan. Jokaiselta jaksolta haetaan sitten halvimmat tunnit [h] | `6`
 | Tuntimäärä | Kuinka monta halvinta tuntia lähtö ohjataan päälle ajanjakson aikana.<br><br>Eli jos ajanjakso on 6h ja tuntimäärä 2, kello 00:00-06:00 lähtö ohjataan päälle kahtena halvimpana tuntina. Kuten myös kello 06:00-12:00 ja niin edelleen. | `2`
+| Peräkkäiset | Jos käytössä, valitaan jakson tunnit siten että ne ovat peräkkäin.<br><br>Näin yksittäisiä halvimpia tunteja ei välttämättä hyödynnetä, mutta halvin mahdollinen yhtenäinen jakso otetaan käyttöön. Katso esimerkki alta. | `ei`
 | Aina päällä -raja | Jos sähkö on tätä halvempaa (tai juuri tämän hintaista) niin lähtö on aina päällä [c/kWh] | `-0.5`
 
 Alla esimerkki miten ohjaukset menenivät 12.10.2023 hinnoilla ja yllä olevilla asetuksilla (6h, 2 halvinta tuntia, aina päällä -raja -0.5 c/kWh). Huomaa jaksojen korostus taustavärillä.
 
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/b095bac2-4b95-4f1f-810c-51ae2bba98d9)
 
+Alla on havainnollistettu **peräkkäiset**-asetuksen vaikutusta. Esimerkkikuvissa asetuksena on 4h ajanjakso ja tuntimäärä 3.
+
+**Ei käytössä (oletusarvo):**
+
+Valitaan kolme halvinta tuntia.
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/1d2b9eac-591b-4fa7-9b18-076483db1bc5)
+
+
+**Käytössä:**
+
+Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan keskiarvo on pienempi kuin kello 16-18.
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/cfb23821-496b-477e-b352-b5828f7c5525)
+
 ### Toiminnot
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/22d4ae76-b191-48f6-86f4-308cc3a3552a)
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/41d46697-028b-4294-8c62-88bc67c846c6)
 
 * **Pakko-ohjaus**
-  * Painamalla tätä voit asettaa lähdön päälle määritellyksi ajaksi (voi syöttää myös esim 0.5 = puoli tuntia)
-* **Avaa Shelly**
+  * Painamalla tätä voit asettaa lähdön päälle määritellyksi ajaksi
+  * Syötä kysyttäessä kuinka monta tuntia lähtö pidetään päällä (voit syöttää myös osatunteja, esim. `0.5` on puoli tuntia)
+* **Shelly**
   * Avaa uudessa välilehdessä Shellyn oman hallintasivun
 
 ## Teknistä tietoa ja kehitysympäristö
@@ -172,7 +192,7 @@ Alla esimerkki miten ohjaukset menenivät 12.10.2023 hinnoilla ja yllä olevilla
 ### Lyhyesti
   * Shellyyn asennattava skripti on "kääntöprosessin" tulos, jotta skripti saadaan mahtumaan mahdollisimman pieneen tilaan
   * Koodissa on jonkin verran outoja ja rumia temppuja (mitä en tekisi muualla)
-    - Näiden syy on minimoida skriptin kokoa, joko suoraan tai helpottamalla minimointikirjastojen toimintaa
+    - Näiden syy on usein minimoida skriptin kokoa, joko suoraan tai helpottamalla minimointikirjastojen toimintaa
     - Esim: `document.querySelector()` on korvattu `qs()` jolloin säästetään paljon muistia
     - Esim: typerät mahdollisimman lyhyet muuttujanimet ja kentät
   * Staattiset web-serverin tiedostot (html, css, js) minimoidaan, pakataan gzip-muotoon ja base64-enkoodataan
@@ -198,7 +218,7 @@ Alla esimerkki miten ohjaukset menenivät 12.10.2023 hinnoilla ja yllä olevilla
 
 ### Muistin käyttö
 
-Versio 2.2.0 vie enimmillään 24276 tavua muistia (Shellyn maksimi 25200). Eli pieni skripti saattaa mahtua rinnalle pyörimään.
+Versio 2.4.0 vie enimmillään 23926 tavua muistia (Shellyn maksimi 25200). Eli pieni skripti saattaa mahtua rinnalle pyörimään.
 
 ### Kehitysympäristö
 

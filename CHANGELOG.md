@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.4.0] - 19.10.2023
+- Lisätty uusi ominaisuus: Perättäiset tunnit
+  - Valitaan perättäiset tunnit siten että hinnan keskiarvo on mahdollisimman alhainen
+- Kasvatettu ohjaushistoria 12->24h
+- Bugikorjaus: Tilasivulta saattoi vahingossa pystyä painaan asetussivun painikkeita
+
 ## [2.3.1] - 18.10.2023
 - Optimoitu paljon muistin käyttöä
   - Lisää tilaa tuleville ominaisuuksille
@@ -42,6 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.4.0] - 19.10.2023
+- Added new feature: sequential hours
+- Inceased history 12h -> 24h
+- Bug fix: It was possible to click buttons of settings page when it was not shown
+
 ## [2.3.1] - 18.10.2023
 - Optimized memory usage
 
