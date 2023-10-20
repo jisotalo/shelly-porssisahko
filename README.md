@@ -25,6 +25,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
   * Hätätilaohjaus (jos ei internet-yhteyttä eikä tiedetä kellonaikaa)
 * Todettu toimivaksi seuraavilla
   * Shelly Plus 1PM
+  * Shelly Plus 2PM
   * Shelly Plus 1
   * Shelly Pro 1
   * Shelly Pro 2
