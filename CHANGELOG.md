@@ -5,8 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.5.0] - 21.10.2023
+- Lisätty uusi asetus: maksimihinta 
+  - Ohjaustapaan **jakson halvimmat tunnit**
+  - Jos hinta on yli asetetun rajan, lähtöä ei laiteta päälle (vaikka olisi halvimpia tunteja)
+- Asetettu minimi- ja maksimirajojen vakioarvot -999 ja 999 c/kWh
+  
 ## [2.4.0] - 19.10.2023
-- Lisätty uusi ominaisuus: Perättäiset tunnit
+- Lisätty uusi asetus: Perättäiset tunnit
   - Valitaan perättäiset tunnit siten että hinnan keskiarvo on mahdollisimman alhainen
 - Kasvatettu ohjaushistoria 12->24h
 - Bugikorjaus: Tilasivulta saattoi vahingossa pystyä painaan asetussivun painikkeita
@@ -48,8 +54,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.5.0] - 21.10.2023
+- Added new setting: maximum price
+
 ## [2.4.0] - 19.10.2023
-- Added new feature: sequential hours
+- Added setting: sequential hours
 - Inceased history 12h -> 24h
 - Bug fix: It was possible to click buttons of settings page when it was not shown
 

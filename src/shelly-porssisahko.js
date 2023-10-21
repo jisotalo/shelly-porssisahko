@@ -15,7 +15,6 @@
 
 /**
  * Number of historical commands kept
- * NOTE: At the moment 12 (not 24) as Shelly memory limit is so low
  */
 let C_HIST = 24;
 
@@ -51,9 +50,11 @@ let C_DEF = {
     /** How many cheapest hours */
     cnt: 0,
     /** Always on price limit */
-    lim: -99,
+    lim: -999,
     /** Should the hours be sequential / in a row */
-    sq: 0
+    sq: 0,
+    /** Maximum price limit */
+    m: 999
   },
   /** VAT added to spot price (%) */
   vat: 24,
@@ -81,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.4.0",
+    v: "2.5.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -606,6 +607,12 @@ function logic() {
         if (!cmd && _.s.p.now <= _.c.m2.lim) {
           cmd = true;
           _.s.st = 6;
+        }
+
+        //maximum price
+        if (cmd && _.s.p.now > _.c.m2.m) {
+          cmd = false;
+          _.s.st = 11;
         }
 
         //log("moodi on halvimmat tunnit, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);

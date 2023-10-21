@@ -7,9 +7,9 @@
 
 Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka venyttää laitteen skriptien rajoja. Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksensa Shellyn muistiin.
 
-Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palveluita, niin tämä voi olla hyödyllinen. Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole kolmannen osapuolen palveluita. Ei myöskään tarvitse rekisteröityä mihinkään vaan kaikki toimii suoraan.
+Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palveluita, niin tämä voi olla hyödyllinen. Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole kolmannen osapuolen palveluita. Skripti ei vaadi rekisteröitymistä mihinkään vaan se toimii "suoraan paketista".
 
-![porssisahko](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/9b5e8c3e-eb50-4cdb-982d-ae632703091b)
+![porssisahko](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/751cbd0c-1b7a-4086-9e32-b04b888c5425)
 
 
 ## Ominaisuudet
@@ -19,7 +19,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
 * Kolme ohjaustapaa: 
   * **käsiohjaus** - yksinkertaisesti ohjaus päälle/pois
   * **hintaraja** - jos hinta on alle rajan, laitetaan ohjaus päälle 
-  * **jakson halvimmat tunnit** - valitaan halutulta aikajaksolta x halvinta tuntia (tai aina päälle kun tarpeeksi halpaa)
+  * **jakson halvimmat tunnit** - valitaan halutulta aikajaksolta x halvinta tuntia
 * Vikasietoinen
   * Varmuustunnit (jos ei hintoja mutta tiedetään kellonaika)
   * Hätätilaohjaus (jos ei internet-yhteyttä eikä tiedetä kellonaikaa)
@@ -32,6 +32,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
 ## Sisällysluettelo
+- [Muutoshistoria](#muutoshistoria)
 - [Asennus](#asennus)
 - [Laitteisto ja sähköinen kytkentä](#laitteisto-ja-sähköinen-kytkentä)
 - [Asetukset](#asetukset)
@@ -48,6 +49,10 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
 - [FAQ](#faq)
 - [In English](#in-english)
 - [License](#license)
+
+## Muutoshistoria
+
+Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisotalo/shelly-porssisahko/blob/master/CHANGELOG.md).
 
 ## Asennus
 1. Ota Shelly käyttöön, yhdistä se wifi-verkkoon ja päivitä sen firmware (ainakin varmista että se on 1.0.0 tai uudempi)
@@ -86,7 +91,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
 
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2d9fbb5f-e2c5-4f5c-a457-5606825184f3)
 
-12. Valmis. Avaa käyttöliittymä selaimessa (**kohta 10**) ja säädä asetukset kohdilleen seuraavan kappaleen ohjeilla. **Älä asenna muita skriptejä - muisti loppuu kesken**
+12. Valmis. Avaa käyttöliittymä selaimessa (**kohta 10**) ja säädä asetukset kohdilleen [Asetukset](#asetukset)-kappaleen ohjeilla. **Älä asenna muita skriptejä - muisti loppuu kesken**
 
 ## Laitteisto ja sähköinen kytkentä
 
@@ -148,16 +153,18 @@ Hintarajaohjauksella lähtö asetetaan päälle jos sähkön hinta on alle mää
 
 Jakson halvimmat tunnit -ohjauksella vuorokausi jaetaan osiin. Lähtö ohjataan päälle jokaisen osan halvimmmilla tunneilla. Lisäksi voidaan määrittää raja jonka alla ohjaus on aina päällä.
 
-Versiosta 2.4.0 lähtien voidaan myös määrittää, että päälläolotuntien tulee olla perättäiset.
+Versiosta 2.4.0 lähtien voidaan myös määrittää, että päälläolotuntien tulee olla perättäiset. Versiosta 2.5.0 lähtien voidaan myös rajoittaa maksimihinta.
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/d174e08c-74e9-421d-9366-9dbb26396a60)
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/b021403e-0b88-4fdc-8335-0c8edc244bd1)
+
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
-| Ajanjakso | Minkä mittaisiin jaksoihin vuorokausi jaetaan. Jokaiselta jaksolta haetaan sitten halvimmat tunnit [h] | `6`
+| Ajanjakso | Minkä mittaisiin jaksoihin vuorokausi jaetaan. Jokaiselta jaksolta haetaan sitten halvimmat tunnit. [h] | `6`
 | Tuntimäärä | Kuinka monta halvinta tuntia lähtö ohjataan päälle ajanjakson aikana.<br><br>Eli jos ajanjakso on 6h ja tuntimäärä 2, kello 00:00-06:00 lähtö ohjataan päälle kahtena halvimpana tuntina. Kuten myös kello 06:00-12:00 ja niin edelleen. | `2`
 | Peräkkäiset | Jos käytössä, valitaan jakson tunnit siten että ne ovat peräkkäin.<br><br>Näin yksittäisiä halvimpia tunteja ei välttämättä hyödynnetä, mutta halvin mahdollinen yhtenäinen jakso otetaan käyttöön. Katso esimerkki alta. | `ei`
-| Aina päällä -raja | Jos sähkö on tätä halvempaa (tai juuri tämän hintaista) niin lähtö on aina päällä [c/kWh] | `-0.5`
+| Aina päällä -raja | Jos sähkö on tätä halvempaa (tai juuri tämän hintaista) niin lähtö on aina päällä. [c/kWh] | `-0.5`
+| Maksimihinta | Jos sähkön hinta on tätä korkeampi, lähtöä ei aseteta päälle vaikka tunti olisikin halvimpia tunteja. [c/kWh]<br><br>Tämän kanssa pitää olla tarkkana, jos tulee kalliita päiviä. | `30` 
 
 Alla esimerkki miten ohjaukset menenivät 12.10.2023 hinnoilla ja yllä olevilla asetuksilla (6h, 2 halvinta tuntia, aina päällä -raja -0.5 c/kWh). Huomaa jaksojen korostus taustavärillä.
 
@@ -219,7 +226,7 @@ Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan k
 
 ### Muistin käyttö
 
-Versio 2.4.0 vie enimmillään 23926 tavua muistia (Shellyn maksimi 25200). Eli pieni skripti saattaa mahtua rinnalle pyörimään.
+Versio 2.5.0 vie enimmillään 24276 tavua muistia (Shellyn maksimi 25200). Eli pieni skripti saattaa mahtua rinnalle pyörimään.
 
 ### Kehitysympäristö
 
@@ -255,6 +262,10 @@ Tällä hetkellä jos skripti hakee hintoja tai suorittaa ohjauslogiikkaa, vasta
 Jos hintojen hakeminen ei onnistu, voi tämä virhe tulla käyttöliittymää avatessa (hintojen haun aikakatkaisu on 5s --> pahimmillaan virhe voi tulla 5 sekunnin ajan). Yritä avata sivu uudelleen.
 
 Voi olla että muutan tätä myöhemmin, vaatii vielä testejä. Syy on jälleen muistin säästäminen.
+
+**Voinko ohjata ainoastaan yön halvimmilla tunneilla?**
+
+Aseta ohjaustavaksi `jakson halvimmat tunnit` ja päivän siirtohinnaksi 999 c/kWh. Näin kaikki päivätunnit ovat kalliita ja halvimmat tunnit valitaan sen johdosta yöajalta.
 
 ## In English
 

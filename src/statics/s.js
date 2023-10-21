@@ -34,7 +34,8 @@ let STATE_STR = [
   "Varmuustuntiohjaus (ei hintoja, aika tiedossa)", //7
   "Hätätilaohjaus (aika ei tiedossa)", //8
   "Pakko-ohjaus (%s asti)", //9
-  "Pakko-ohjattu tunti" //10
+  "Pakko-ohjattu tunti", //10
+  "Hinta yli maksimirajan" //11
 ]
 
 /**

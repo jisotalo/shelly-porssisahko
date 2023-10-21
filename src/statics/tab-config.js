@@ -43,6 +43,7 @@
       qs("#m2-per").value = c.m2.per;
       qs("#m2-cnt").value = c.m2.cnt;
       qs("#m2-sq").checked = c.m2.sq ? "checked" : "";
+      qs("#m2-m").value = c.m2.m;
       qs("#m2-lim").value = c.m2.lim;
 
       configRead = true;
@@ -84,6 +85,7 @@
       c.m2.cnt = Math.min(c.m2.per, n(qs("#m2-cnt").value));
       c.m2.sq = qs("#m2-sq").checked ? 1 : 0;
       c.m2.lim = n(qs("#m2-lim").value);
+      c.m2.m = n(qs("#m2-m").value);
 
       DBG(me(), "Settings to save:", c);
 
