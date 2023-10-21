@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.5.1] - 21.10.2023 (2)
+- Bugikorjaus: Jos asetti pakko-ohjauksen x tunniksi painikkeella, se kyllä toimi, mutta tuli virheilmoitus
+
 ## [2.5.0] - 21.10.2023
 - Lisätty uusi asetus: maksimihinta 
   - Ohjaustapaan **jakson halvimmat tunnit**
@@ -54,6 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.5.1] - 21.10.2023 (2)
+- Bugfix: Setting override hour using button caused an error (however it worked)
+
 ## [2.5.0] - 21.10.2023
 - Added new setting: maximum price
 

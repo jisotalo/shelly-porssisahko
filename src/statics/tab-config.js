@@ -116,7 +116,7 @@
       data = data > 0 ? Math.floor(Date.now() / 1000 + data * 60 * 60) : 0;
 
       let res = await getData(`${URLS}?r=f&ts=${data}`);
-      alert(res.code == 200 ? "OK!" : `Virhe: ${res.txt}`);
+      alert(res.code == 204 ? "OK!" : `Virhe: ${res.txt}`);
     }
   }
 

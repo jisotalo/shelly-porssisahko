@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.5.0",
+    v: "2.5.1",
     /** status as number */
     st: 0,
     /** active command */
