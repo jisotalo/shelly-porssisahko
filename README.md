@@ -37,6 +37,7 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
 ## Sisällysluettelo
 - [Muutoshistoria](#muutoshistoria)
 - [Asennus](#asennus)
+- [Skriptin päivitys](#skriptin-päivitys)
 - [Laitteisto ja sähköinen kytkentä](#laitteisto-ja-sähköinen-kytkentä)
 - [Asetukset](#asetukset)
   + [Yleiset](#yleiset)
@@ -95,6 +96,12 @@ Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisot
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2d9fbb5f-e2c5-4f5c-a457-5606825184f3)
 
 12. Valmis. Avaa käyttöliittymä selaimessa (**kohta 10**) ja säädä asetukset kohdilleen [Asetukset](#asetukset)-kappaleen ohjeilla. **Älä asenna muita skriptejä - muisti loppuu kesken**
+
+## Skriptin päivitys
+
+Jos haluat päivittää skriptin uusimaan versioon, poista nykyinen skripti ja tee asenna uusi **Library**-painikkeen kautta. Kaikki asetukset säilyvät.
+
+Huomaa, että tämän jälkeen skripti ei enää käynnisty automaattisesti. Päivitä **Scripts**-sivu (esim. painamalla F5 selaimessa) ja laita skripti käynnistymään automaattisesti uudelleen (kuten asennusohjeiden kohdassa 11).
 
 ## Laitteisto ja sähköinen kytkentä
 
