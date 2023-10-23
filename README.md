@@ -253,7 +253,12 @@ Versiosta 2.6.0 lähtien tämä onnistuu valitsemalla ohjaustavaksi `hintaraja` 
 
 ### Muistin käyttö
 
-Versio 2.6.0 vie enimmillään 24440 tavua muistia (Shellyn maksimi 25200). Eli pieni skripti saattaa mahtua rinnalle pyörimään.
+Versio 2.6.0:
+
+- Skripti vie enimmillään 24440 tavua RAM-muistia (Shellyn maksimi 25200)
+- Skriptin koko on 13431 tavua (Shellyn raja on 15kb)
+
+Tilaa ei juuri ole muille skripteille RAM-muistin takia.
 
 ### Kehitysympäristö
 
