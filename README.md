@@ -7,7 +7,9 @@
 
 Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka venyttää laitteen skriptien rajoja. Pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetuksensa Shellyn muistiin.
 
-Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palveluita, niin tämä voi olla hyödyllinen. Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole kolmannen osapuolen palveluita. Skripti ei vaadi rekisteröitymistä mihinkään vaan se toimii "suoraan paketista".
+Jos haluat ohjata Shellyn relekytkintä sähkön hinnan mukaan, ilman johonkin palveluun rekisteröitymistä, niin tämä voi olla hyödyllinen.
+
+Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole muita palveluita. Skripti ei vaadi rekisteröitymistä mihinkään vaan se toimii "suoraan paketista".
 
 ![porssisahko](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/751cbd0c-1b7a-4086-9e32-b04b888c5425)
 
@@ -15,7 +17,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
 ## Ominaisuudet
 * Oma web-serveri Shellyn sisällä ja siinä pyörivä käyttöliittymä
 * Valvonta ja konfigurointi selaimen avulla
-* Ei liityntöjä 3. osapuolen palveluihin
+* Ei tarvitse rekisteröityä mihinkään
 * Kolme ohjaustapaa: 
   * **käsiohjaus** - yksinkertaisesti ohjaus päälle/pois
   * **hintaraja** - jos hinta on alle rajan, laitetaan ohjaus päälle 
@@ -29,6 +31,7 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
   * Shelly Plus 1
   * Shelly Pro 1
   * Shelly Pro 2
+  * Shelly Plus Plug S
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
 ## Sisällysluettelo
@@ -41,12 +44,12 @@ Jos haluat ohjata relekytkintä sähkön hinnan mukaan, ilman ulkopuolisia palve
   + [Ohjaustapa: Hintaraja](#ohjaustapa-hintaraja)
   + [Ohjaustapa: Jakson halvimmat tunnit](#ohjaustapa-jakson-halvimmat-tunnit)
   + [Toiminnot](#toiminnot)
+- [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
 - [Teknistä tietoa ja kehitysympäristö](#teknistä-tietoa-ja-kehitysympäristö)
   + [Lyhyesti](#lyhyesti)
   + [Tiedostot ja kansiot](#tiedostot-ja-kansiot)
   + [Muistin käyttö](#muistin-käyttö)
   + [Kehitysympäristö](#kehitysympäristö)
-- [FAQ](#faq)
 - [In English](#in-english)
 - [License](#license)
 
@@ -147,7 +150,7 @@ Hintarajaohjauksella lähtö asetetaan päälle jos sähkön hinta on alle mää
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
-| Hintaraja | Hinta, jossa ja jonka alla lähtö asetetaan päälle. [c/kWh] | `4.25`
+| Hintaraja | Hinta, jossa ja jonka alla lähtö asetetaan päälle. [c/kWh]<br><br>Voit syöttää tähän myös arvon `avg`, jolloin käytetään päivän hinnan keskiarvoa. | `4.25`
 
 ### Ohjaustapa: Jakson halvimmat tunnit
 
@@ -163,8 +166,8 @@ Versiosta 2.4.0 lähtien voidaan myös määrittää, että päälläolotuntien 
 | Ajanjakso | Minkä mittaisiin jaksoihin vuorokausi jaetaan. Jokaiselta jaksolta haetaan sitten halvimmat tunnit. [h] | `6`
 | Tuntimäärä | Kuinka monta halvinta tuntia lähtö ohjataan päälle ajanjakson aikana.<br><br>Eli jos ajanjakso on 6h ja tuntimäärä 2, kello 00:00-06:00 lähtö ohjataan päälle kahtena halvimpana tuntina. Kuten myös kello 06:00-12:00 ja niin edelleen. | `2`
 | Peräkkäiset | Jos käytössä, valitaan jakson tunnit siten että ne ovat peräkkäin.<br><br>Näin yksittäisiä halvimpia tunteja ei välttämättä hyödynnetä, mutta halvin mahdollinen yhtenäinen jakso otetaan käyttöön. Katso esimerkki alta. | `ei`
-| Aina päällä -raja | Jos sähkö on tätä halvempaa (tai juuri tämän hintaista) niin lähtö on aina päällä. [c/kWh] | `-0.5`
-| Maksimihinta | Jos sähkön hinta on tätä korkeampi, lähtöä ei aseteta päälle vaikka tunti olisikin halvimpia tunteja. [c/kWh]<br><br>Tämän kanssa pitää olla tarkkana, jos tulee kalliita päiviä. | `30` 
+| Aina päällä -raja | Jos sähkö on tätä halvempaa (tai juuri tämän hintaista) niin lähtö on aina päällä. [c/kWh]<br><br>Voit syöttää tähän myös arvon `avg`, jolloin käytetään päivän hinnan keskiarvoa. | `-0.5`
+| Maksimihinta | Jos sähkön hinta on tätä korkeampi, lähtöä ei aseteta päälle vaikka tunti olisikin halvimpia tunteja. [c/kWh]<br><br>Voit syöttää tähän myös arvon `avg`, jolloin käytetään päivän hinnan keskiarvoa.<br><br>*Tämän kanssa pitää olla tarkkana, jos tulee kalliita päiviä.* | `30` 
 
 Alla esimerkki miten ohjaukset menenivät 12.10.2023 hinnoilla ja yllä olevilla asetuksilla (6h, 2 halvinta tuntia, aina päällä -raja -0.5 c/kWh). Huomaa jaksojen korostus taustavärillä.
 
@@ -194,6 +197,23 @@ Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan k
   * Syötä kysyttäessä kuinka monta tuntia lähtö pidetään päällä (voit syöttää myös osatunteja, esim. `0.5` on puoli tuntia)
 * **Shelly**
   * Avaa uudessa välilehdessä Shellyn oman hallintasivun
+
+## Kysymyksiä ja vastauksia
+### Miksi välillä tulee HTTP error 503?
+
+Tällä hetkellä jos skripti hakee hintoja tai suorittaa ohjauslogiikkaa, vastataan kaikkiin HTTP-pyyntöihin 503 (Service Unavailable). Käyttöliittymä osaa hallita tämän.
+
+Jos hintojen hakeminen ei onnistu, voi tämä virhe tulla käyttöliittymää avatessa (hintojen haun aikakatkaisu on 5s --> pahimmillaan virhe voi tulla 5 sekunnin ajan). Yritä avata sivu uudelleen.
+
+Voi olla että muutan tätä myöhemmin, vaatii vielä testejä. Syy on jälleen muistin säästäminen.
+
+### Miten ohjaan ainoastaan yön halvimmilla tunneilla?
+
+Aseta ohjaustavaksi `jakson halvimmat tunnit` ja päivän siirtohinnaksi `999` c/kWh. Näin kaikki päivätunnit ovat kalliita ja halvimmat tunnit valitaan sen johdosta yöajalta.
+
+### Miten saan lähdön päälle aina jos sähkön hinta on keskiarvon alapuolella?
+
+Versiosta 2.6.0 lähtien tämä onnistuu valitsemalla ohjaustavaksi `hintaraja` ja asettamalla hintarajaksi arvon `avg`.
 
 ## Teknistä tietoa ja kehitysympäristö
 
@@ -226,7 +246,7 @@ Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan k
 
 ### Muistin käyttö
 
-Versio 2.5.0 vie enimmillään 24276 tavua muistia (Shellyn maksimi 25200). Eli pieni skripti saattaa mahtua rinnalle pyörimään.
+Versio 2.6.0 vie enimmillään 24440 tavua muistia (Shellyn maksimi 25200). Eli pieni skripti saattaa mahtua rinnalle pyörimään.
 
 ### Kehitysympäristö
 
@@ -254,26 +274,13 @@ Käyttää Node.js -ympäristöä.
   * käyttöliittymän kehitystä varten
   * käynnistää paikallisen web-serverin ja tarjoaa `src/statics/` -kansion tiedostot portista 3000
 
-## FAQ
-**Miksi välillä tulee HTTP error 503?**
-
-Tällä hetkellä jos skripti hakee hintoja tai suorittaa ohjauslogiikkaa, vastataan kaikkiin HTTP-pyyntöihin 503 (Service Unavailable). Käyttöliittymä osaa hallita tämän.
-
-Jos hintojen hakeminen ei onnistu, voi tämä virhe tulla käyttöliittymää avatessa (hintojen haun aikakatkaisu on 5s --> pahimmillaan virhe voi tulla 5 sekunnin ajan). Yritä avata sivu uudelleen.
-
-Voi olla että muutan tätä myöhemmin, vaatii vielä testejä. Syy on jälleen muistin säästäminen.
-
-**Voinko ohjata ainoastaan yön halvimmilla tunneilla?**
-
-Aseta ohjaustavaksi `jakson halvimmat tunnit` ja päivän siirtohinnaksi 999 c/kWh. Näin kaikki päivätunnit ovat kalliita ja halvimmat tunnit valitaan sen johdosta yöajalta.
-
 ## In English
 
-This is a script to control relay by Nordpool electric spot prices for Shelly products (especially Shelly Plus 1PM) with web-based user interface.
+This is a script to control relay by Nordpool electric spot prices for Shelly products with web-based user interface.
 
 At the moment it's available only in Finnish and the spot price is queried for Finland. 
 
-There will soon be an English version (with country selection) available.
+There will be an English version (maybe with country selection) available later when I have an insipiration to work on it.
 
 ## License
 

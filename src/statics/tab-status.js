@@ -103,9 +103,9 @@
           let date = new Date(row[0] * 1000);
           let cmd =
             (c.mode === 0 && c.m0.cmd)
-            || (c.mode === 1 && row[1] <= c.m1.lim)
-            || (c.mode === 2 && cheapest.includes(i) && row[1] <= c.m2.m)
-            || (c.mode === 2 && row[1] <= c.m2.lim)
+            || (c.mode === 1 && row[1] <= (c.m1.lim == "avg" ? s.p.avg : c.m1.lim))
+            || (c.mode === 2 && cheapest.includes(i) && row[1] <= (c.m2.m == "avg" ? s.p.avg : c.m2.m))
+            || (c.mode === 2 && row[1] <= (c.m2.lim == "avg" ? s.p.avg : c.m2.lim))
             || (c.fh & (1 << i)) == (1 << i);
           
           //Invert

@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.5.1",
+    v: "2.6.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -578,7 +578,7 @@ function logic() {
   //let me = "logic()";
   let now = new Date();
   cmd = false;
-
+  
   try {
     if (_.s.timeOK && (_.s.p.ts > 0 && getDate(new Date(_.s.p.ts * 1000)) === getDate(now))) {
       //We have time and we have price data for today
@@ -594,7 +594,7 @@ function logic() {
 
       } else if (_.c.mode === 1) {
         //Price limit
-        cmd = _.s.p.now <= _.c.m1.lim;
+        cmd = _.s.p.now <= (_.c.m1.lim == "avg" ? _.s.p.avg : _.c.m1.lim);
         //log("moodi on hintaraja (" + _.c.m1.priceLimit + "), ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
         _.s.st = cmd ? 2 : 3;
 
@@ -604,13 +604,13 @@ function logic() {
         _.s.st = cmd ? 5 : 4;
 
         //always on price limit
-        if (!cmd && _.s.p.now <= _.c.m2.lim) {
+        if (!cmd && _.s.p.now <= (_.c.m2.lim == "avg" ? _.s.p.avg : _.c.m2.lim)) {
           cmd = true;
           _.s.st = 6;
         }
 
         //maximum price
-        if (cmd && _.s.p.now > _.c.m2.m) {
+        if (cmd && _.s.p.now > (_.c.m2.m == "avg" ? _.s.p.avg : _.c.m2.m)) {
           cmd = false;
           _.s.st = 11;
         }

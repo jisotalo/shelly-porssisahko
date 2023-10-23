@@ -59,6 +59,7 @@
     try {
       let c = state.c
       let n = (v) => Number(v);
+      let avgn = (e) => qs(e).value == "avg" ? "avg" : n(qs(e).value);
 
       c.mode = n(qs("#mode").value);
       c.out = n(qs("#out").value);
@@ -80,12 +81,12 @@
 
       c.err = qs("#err").checked ? 1 : 0;
       c.m0.cmd = qs("#m0-cmd").checked ? 1 : 0;
-      c.m1.lim = n(qs("#m1-lim").value);
+      c.m1.lim = avgn("#m1-lim");
       c.m2.per = n(qs("#m2-per").value);
       c.m2.cnt = Math.min(c.m2.per, n(qs("#m2-cnt").value));
       c.m2.sq = qs("#m2-sq").checked ? 1 : 0;
-      c.m2.lim = n(qs("#m2-lim").value);
-      c.m2.m = n(qs("#m2-m").value);
+      c.m2.lim = avgn("#m2-lim");
+      c.m2.m = avgn("#m2-m");
 
       DBG(me(), "Settings to save:", c);
 
