@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.6.0",
+    v: "2.6.1",
     /** status as number */
     st: 0,
     /** active command */
@@ -383,7 +383,7 @@ function getPrices() {
       + "-"
       + padStart(getDate(now), 2, "0")
       + "T00:00:00"
-      + "%2b03:00";
+      + "%2b02:00";
 
     let end = start.replace("T00:00:00", "T23:59:59");
 

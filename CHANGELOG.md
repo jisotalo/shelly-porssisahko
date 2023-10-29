@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.6.1] - 29.10.2023
+- Bugikorjaus: Pikainen paikkaus jotta toimii kellojen siirron jälkeen
+  - Koodiin on valitettavasti unohtunut kiinteä aikavyöhyke
+  - Muutettu kiinteä aikavyöhyke +03:00 -> +02:00 väliaikaisesti
+  - Parempi ratkaisu työn alla (joka hoitaa tämän automaattisesti)
+
 ## [2.6.0] - 23.10.2023
 - Lisätty uusi ominaisuus: päivän keskiarvon käyttö hintarajana
   - Jos syöttää mihin tahansa seuraavista kentistä arvon `avg`, käytetään päivän keskiarvoa kiinteän arvon sijaan
@@ -63,8 +69,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.6.1] - 29.10.2023
+- Bugfix: Quick patch to fix problem with DST
+  - Better fix under development
+
 ## [2.6.0] - 23.10.2023
 - Added new feature: using day average price instead of static price limit (by setting value to `avg`)
+
 ## [2.5.1] - 21.10.2023 (2)
 - Bugfix: Setting override hour using button caused an error (however it worked)
 
