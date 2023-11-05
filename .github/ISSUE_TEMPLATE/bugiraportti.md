@@ -8,5 +8,6 @@ assignees: ''
 ---
 
 ## Tarkastuslista
+- [x] Laita raksi ruutuun tähän tapaan
 - [ ] Shellyn firmware on 1.0.7 tai uudempi
 - [ ] Uusin skriptiversio käytössä
