@@ -5,7 +5,7 @@
     "description": "Pörssisähköohjaus Shellyyn (uusin versio - firmware 1.0.7 tai uudempi). Klikaa Insert code -painiketta skriptin asentamiseksi. Github-sivu: https://github.com/jisotalo/shelly-porssisahko"
   },
   {
-    "fname": "https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/v.2.6.1/dist/shelly-porssisahko.js",
+    "fname": "old/shelly-porssisahko-v.2.6.1.js",
     "title": "Pörssisähköohjaus v. 2.6.1 (shelly-porssisahko.js)",
     "description": "VANHA VERSIO 2.6.1. Tukee firmwareja 1.0.0-1.0.6."
   }
