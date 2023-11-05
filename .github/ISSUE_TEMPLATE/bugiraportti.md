@@ -1,6 +1,6 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Bugiraportti
+about: Jos joku ei toimi vaikka pitäisi toimia.
 title: ''
 labels: ''
 assignees: ''
