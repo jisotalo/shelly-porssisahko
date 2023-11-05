@@ -229,7 +229,7 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
           'DBG',
           'me'
         ],
-        //unsafe: true
+        unsafe: true
       },
     });
 

@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.6.1",
+    v: "2.7.0",
     /** status as number */
     st: 0,
     /** active command */
@@ -101,6 +101,8 @@ let _ = {
     configOK: 0,
     /** If forced manually to ON, then this is the timestamp until cmd shall be on */
     fCmdTs: 0,
+    /** Active time zone as string (URL encoded - such as %2b02:00 = +02:00)*/
+    tz: "%2b02:00",
     /** current price info */
     p: {
       /** time when prices were read */
@@ -174,6 +176,46 @@ function padStart(num, targetLength, padString) {
  */
 function getDate(dt) {
   return dt.getDate();
+}
+
+/**
+ * Updates current timezone to state as hh:mm string format (url encoded)
+ * For example if UTC time is 04:55 and local time is 06:55, tz is %2b02:00 
+ * 
+ * NOTE: Technically incorrect, only handles timezones with full hour offsets
+ * 
+ * @param {Date} now Current time
+ * @returns 
+ */
+function updateTz(now) {
+  //Get UTC time as string (e.g. Sun, 29 Oct 2023 04:55:00 GMT)
+  let utc = now.toUTCString();
+
+  //Extract time from UTC time string (e.g. "04:55:00 GMT")
+  utc = utc.substring(utc.indexOf("" + now.getFullYear()) + 5);
+
+  //Extract hours (e.g. "04")
+  utc = Number(utc.substring(0, utc.indexOf(":")));
+
+  //Calculate time difference
+  let diff = now.getHours() - utc;
+
+  let tz = padStart(Math.abs(diff), 2, "0") + ":00";
+
+  if (diff < 0) {
+    tz = "-" + tz;
+  } else if (diff > 0) {
+    tz = "%2b" + tz;
+  } else {
+    tz = "Z";
+  }
+
+  if (tz !== _.s.tz) {
+    //Timezone has changed -> we should get prices
+    _.s.p.ts = 0;
+  }
+
+  _.s.tz = tz;
 }
 
 /**
@@ -372,6 +414,7 @@ function logicRunNeeded() {
  */
 function getPrices() {
   let now = new Date();
+  updateTz(now);
 
   try {
     //let me = "getPrices()";
@@ -383,7 +426,7 @@ function getPrices() {
       + "-"
       + padStart(getDate(now), 2, "0")
       + "T00:00:00"
-      + "%2b02:00";
+      + _.s.tz;
 
     let end = start.replace("T00:00:00", "T23:59:59");
 
@@ -399,7 +442,6 @@ function getPrices() {
     end = null;
 
     //log("URL:" + req.url, me);
-
     Shelly.call("HTTP.GET", req, function (res, err, msg) {
       req = null;
 
@@ -529,12 +571,14 @@ function getPrices() {
       logic();
 
     });
+
   } catch (err) {
     log(err);
     //Run logic no matter what happened
     logic();
   }
 }
+
 
 /**
  * Sets relay output to cmd
@@ -577,8 +621,9 @@ function setRelay(cb) {
 function logic() {
   //let me = "logic()";
   let now = new Date();
+  updateTz(now);
   cmd = false;
-  
+
   try {
     if (_.s.timeOK && (_.s.p.ts > 0 && getDate(new Date(_.s.p.ts * 1000)) === getDate(now))) {
       //We have time and we have price data for today
@@ -687,7 +732,7 @@ function logic() {
  * This worked!
  * 
  */
-let _perStart = 0; 
+let _perStart = 0;
 let _ind = 0;
 let _ind2 = 0;
 function isCheapestHour() {

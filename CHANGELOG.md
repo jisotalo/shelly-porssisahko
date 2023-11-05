@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.7.0] - 05.11.2023
+- Uusi ominaisuus: automaattinen aikavyöhyke (eli myös autom. kesä/talviaika)
+  - Shelly laskee aikaeron UTC-ajan ja paikallisen ajan välillä -> Käytetään aina oikeaa aikavyöhykettä hintojen haussa
+  - Jos aikaero muuttuu, haetaan hinnat uusiksi (esim. kun kesä/talviaika vaihtuu)
+  - Lisätiedot: [Issue #7](https://github.com/jisotalo/shelly-porssisahko/issues/7)
+- Firmware-vaatimus on 1.0.7. Vanhemmille ei luvata tukea.
+  - Tässä firmisversiossa parannettiin skriptien muistinhallintaa
+
 ## [2.6.1] - 29.10.2023
 - Bugikorjaus: Pikainen paikkaus jotta toimii kellojen siirron jälkeen
   - Koodiin on valitettavasti unohtunut kiinteä aikavyöhyke
@@ -69,6 +77,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.7.0] - 05.11.2023
+- New feature: automatic timezone detection (also automatic DST)
+  - Calculating time difference between UTC and local time -> if time difference changes, prices are updated
+  - Handles changing of DST automatically
+- Firmware requirement: 1.0.7 or newer
+
 ## [2.6.1] - 29.10.2023
 - Bugfix: Quick patch to fix problem with DST
   - Better fix under development
