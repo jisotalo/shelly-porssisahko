@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.7.0",
+    v: "2.7.1",
     /** status as number */
     st: 0,
     /** active command */
@@ -394,6 +394,10 @@ function pricesNeeded() {
  * Returns true if we should run the logic now
  */
 function logicRunNeeded() {
+  if (_.s.chkTs == 0) {
+    return true;
+  }
+
   let now = new Date();
   let chk = new Date(_.s.chkTs * 1000);
 
@@ -403,7 +407,6 @@ function logicRunNeeded() {
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
   */
-
   return (chk.getHours() !== now.getHours()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
@@ -622,22 +625,22 @@ function logic() {
   //let me = "logic()";
   let now = new Date();
   updateTz(now);
+
   cmd = false;
 
   try {
-    if (_.s.timeOK && (_.s.p.ts > 0 && getDate(new Date(_.s.p.ts * 1000)) === getDate(now))) {
+    if (_.c.mode === 0) {
+      //Manual mode
+      cmd = _.c.m0.cmd === 1;
+      //log("moodi on käsiohjaus, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
+      _.s.st = 1;
+
+    } else if (_.s.timeOK && (_.s.p.ts > 0 && getDate(new Date(_.s.p.ts * 1000)) === getDate(now))) {
       //We have time and we have price data for today
       _.s.p.now = getPriceNow();
 
       //log("tämän tunnin hinta: " + _.s.p.now + " c/kWh", me);
-
-      if (_.c.mode === 0) {
-        //Manual mode
-        cmd = _.c.m0.cmd === 1;
-        //log("moodi on käsiohjaus, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
-        _.s.st = 1;
-
-      } else if (_.c.mode === 1) {
+      if (_.c.mode === 1) {
         //Price limit
         cmd = _.s.p.now <= (_.c.m1.lim == "avg" ? _.s.p.avg : _.c.m1.lim);
         //log("moodi on hintaraja (" + _.c.m1.priceLimit + "), ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
