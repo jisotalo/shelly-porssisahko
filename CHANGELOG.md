@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.7.2] - 10.11.2023
+- Bugikorjaus: Hintojen haku ei toiminut klo 00-02 välillä
+  - Aikavyöhykkeen selvityksen toteutus muutettu järkevämmäksi
+- Bugikorjaus: Jos aikavyöhykevalinnasta johtuen hintoja ei saatu koko vuorokaudeksi (alle 24 tuntia), skripti ei toiminut oikein
+  - Todennäköisesti ei vaikutusta, sillä kaikki toimi Suomen/Viron aikavyöhykkeillä
+
 ## [2.7.1] - 09.11.2023
 - Muutos/korjaus: Jos käsiohjaus, ei välitetä onko hintatiedot tai kellonaika OK - totellaan vain käsiohjausta
 - Bugikorjaus: Jos kellonaika ei ollut tiedossa skriptin käynnistyessä, ohjaus ei toiminut heti (vaan vasta kun kellonaika saatiin tai tunti vaihtui)
@@ -81,6 +87,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.7.2] - 10.11.2023
+- Bug fix: Fetching prices failed between 00:00-02:00 AM
+  - Time zone detection updated to a better solution
+- Bug fix: If timezone was selected so that prices weren't received for the whole 24h period, the script didn't operate correctly
+  - However worked fine for Finland/Estonia timezones
+
 ## [2.7.1] - 09.11.2023
 - Change/fix: If manual mode, the script works even when we have no prices nor time - just follows the manual command
 - Bugfix: If time wasn't known and script started, the control didn't work until time was acquired or hour was changed

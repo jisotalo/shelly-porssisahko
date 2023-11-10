@@ -258,10 +258,7 @@ Versiosta 2.6.0 lähtien tämä onnistuu valitsemalla ohjaustavaksi `hintaraja` 
 
 ### Muistin käyttö
 
-Versio 2.7.1:
-
-- Skripti vie enimmillään 12740 tavua RAM-muistia (Shellyn maksimi 25200)
-- Skriptin koko on 13689 tavua
+Skripti v.2.7.2 vie enimmillään ~11256 tavua RAM-muistia (Shellyn maksimi 25200)
 
 Shellyn firmware-versiosta 1.0.7 eteenpäin tilaa on myös muille skripteille.
 

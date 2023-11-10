@@ -42,10 +42,17 @@
       let cheapest = [];
 
       if (c.mode === 2 && pricesOK) {
-        for (let i = 0; i < 24; i += c.m2.per) {
+        for (let i = 0; i < d.p.length; i += c.m2.per) {
           //Create array of indexes in selected period
           let order = [];
-          for (let j = i; j < i + c.m2.per; j++) order.push(j);
+
+          for (let j = i; j < i + c.m2.per; j++) {
+            //If we have less hours than 24 then skip the rest from the end
+            if (j > d.p.length - 1)
+              break;
+
+            order.push(j);
+          }
 
           if (c.m2.sq) {
             //Find cheapest in a sequence
@@ -107,7 +114,7 @@
             || (c.mode === 2 && cheapest.includes(i) && row[1] <= (c.m2.m == "avg" ? s.p.avg : c.m2.m))
             || (c.mode === 2 && row[1] <= (c.m2.lim == "avg" ? s.p.avg : c.m2.lim))
             || (c.fh & (1 << i)) == (1 << i);
-          
+
           //Invert
           if (c.inv) {
             cmd = !cmd;

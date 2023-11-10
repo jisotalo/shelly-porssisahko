@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.7.1",
+    v: "2.7.2",
     /** status as number */
     st: 0,
     /** active command */
@@ -102,7 +102,7 @@ let _ = {
     /** If forced manually to ON, then this is the timestamp until cmd shall be on */
     fCmdTs: 0,
     /** Active time zone as string (URL encoded - such as %2b02:00 = +02:00)*/
-    tz: "%2b02:00",
+    tz: "+02:00",
     /** current price info */
     p: {
       /** time when prices were read */
@@ -179,38 +179,30 @@ function getDate(dt) {
 }
 
 /**
- * Updates current timezone to state as hh:mm string format (url encoded)
- * For example if UTC time is 04:55 and local time is 06:55, tz is %2b02:00 
+ * Updates current timezone to state
  * 
- * NOTE: Technically incorrect, only handles timezones with full hour offsets
+ *  - If timezone is UTC -> result is "Z"
+ *  - Otherwise the result is in format similar to -0200 or +0200
  * 
  * @param {Date} now Current time
- * @returns 
  */
 function updateTz(now) {
-  //Get UTC time as string (e.g. Sun, 29 Oct 2023 04:55:00 GMT)
-  let utc = now.toUTCString();
+  //Get date as string: Fri Nov 10 2023 00:02:29 GMT+0200
+  let tz = now.toString();
 
-  //Extract time from UTC time string (e.g. "04:55:00 GMT")
-  utc = utc.substring(utc.indexOf("" + now.getFullYear()) + 5);
+  //Get timezone part: +0200
+  tz = tz.substring(tz.indexOf("GMT") + 3);
 
-  //Extract hours (e.g. "04")
-  utc = Number(utc.substring(0, utc.indexOf(":")));
-
-  //Calculate time difference
-  let diff = now.getHours() - utc;
-
-  let tz = padStart(Math.abs(diff), 2, "0") + ":00";
-
-  if (diff < 0) {
-    tz = "-" + tz;
-  } else if (diff > 0) {
-    tz = "%2b" + tz;
-  } else {
+  //If timezone is UTC, we need to use Z
+  if (tz == "+0000") {
     tz = "Z";
+
+  } else {
+    //tz is now similar to -0100 or +0200 -> add : between hours and minutes
+    tz = tz.substring(0, 3) + ":" + tz.substring(3);
   }
 
-  if (tz !== _.s.tz) {
+  if (tz != _.s.tz) {
     //Timezone has changed -> we should get prices
     _.s.p.ts = 0;
   }
@@ -429,7 +421,7 @@ function getPrices() {
       + "-"
       + padStart(getDate(now), 2, "0")
       + "T00:00:00"
-      + _.s.tz;
+      + _.s.tz.replace("+", "%2b"); //URL encode the + character
 
     let end = start.replace("T00:00:00", "T23:59:59");
 
@@ -746,10 +738,16 @@ function isCheapestHour() {
   //This is (and needs to be) 1:1 in both frontend and backend code
   let cheapest = [];
 
-  for (_perStart = 0; _perStart < 24; _perStart += _.c.m2.per) {
+  for (_perStart = 0; _perStart < _.p.length; _perStart += _.c.m2.per) {
     //Create array of indexes in selected period
     let order = [];
-    for (ind = _perStart; ind < _perStart + _.c.m2.per; ind++) order.push(ind);
+    for (ind = _perStart; ind < _perStart + _.c.m2.per; ind++) {
+      //If we have less hours than 24 then skip the rest from the end
+      if (ind > _.p.length - 1)
+        break;
+
+      order.push(ind);
+    }
 
     if (_.c.m2.sq) {
       //Find cheapest in a sequence
@@ -830,9 +828,13 @@ function getPriceNow() {
     }
   }
 
-  //This should happen
+  //If no price found it might be error OR because of timezone we don't have prices yet
+  //If number of hours is less than 24 -> get prices again
+  if (_.p.length < 24) {
+    _.s.p.ts = 0;
+  }
   //log("tämän tunnin hintaa ei löytynyt", me);
-  throw new Error("no price");
+  throw new Error("no price for this hour");
 }
 
 /**
