@@ -33,6 +33,7 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
   * Shelly Plus 1
   * Shelly Pro 1
   * Shelly Pro 2
+  * Shelly Pro 3
   * Shelly Plus Plug S
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
@@ -116,8 +117,7 @@ Jos ohjaat kontaktoria, on suositeltavaa käyttää Shellyn sinisiä laitteita, 
 
 * Shelly Plus 1
 * Shelly Plus 1 Mini
-* Shelly Pro 1
-* Shelly Pro 2
+* Shelly Pro 1, 2 ja 3
 
 Jos kuitenkin käytät esim. Shelly Plus 1PM -laitetta kontaktorin kanssa, [RC-suodatin](https://www.google.com/search?q=shelly+rc+snubber&lr=lang_fi) voi auttaa. Jännitepiikit ovat tunnetusti aiheuttaneet laitteen yllättävää uudelleenkäynnistystä.
 
