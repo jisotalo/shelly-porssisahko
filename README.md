@@ -41,7 +41,6 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
 ## Sisällysluettelo
 - [Muutoshistoria](#muutoshistoria)
 - [Asennus](#asennus)
-- [Asennus käsin](#asennus-käsin)
 - [Skriptin päivitys](#skriptin-päivitys)
 - [Laitteisto ja sähköinen kytkentä](#laitteisto-ja-sähköinen-kytkentä)
 - [Asetukset](#asetukset)
