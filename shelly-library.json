@@ -6,12 +6,12 @@
   },
   {
     "fname": "dist/shelly-porssisahko-user-config.js",
-    "title": "Pörssisähköohjaus ja asetukset skriptissä",
+    "title": "ESIMERKKI: Pörssisähköohjaus ja asetukset skriptissä",
     "description": "Sisältää esimerkkikoodin, miten asetukset voidaan määrittää skriptissä (lue README ennen kuin teet mitään)"
   },
   {
     "fname": "dist/shelly-porssisahko-user-override.js",
-    "title": "Pörssisähköohjaus ja lämpötilamittaus",
+    "title": "ESIMERKKI: Pörssisähköohjaus ja lämpötilamittaus",
     "description": "Sisältää esimerkkikoodin, miten lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
   }
 ]
