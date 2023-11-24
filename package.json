@@ -5,8 +5,8 @@
   "main": "shelly-builder.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node shelly-builder.js --build && npm run after-build",
-    "upload": "node shelly-builder.js --upload",
+    "build": "node shelly-builder.js --build shelly-porssisahko.js && npm run after-build",
+    "upload": "node shelly-builder.js --upload shelly-porssisahko.js",
     "start": "npm run build && npm run upload",
     "serve": "serve ./src/statics",
     "debug": "node shelly-builder.js --debug",

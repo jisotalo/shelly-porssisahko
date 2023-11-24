@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.8.1] - 24.11.2023 (2)
+- Jos laittelle ei ole annettu nimeä, näytetään nimen tilalla "Ei asetettu"
+- Päivitetty kääntämisprosessia
+
 ## [2.8.0] - 24.11.2023
 - Uusi ominaisuus: Laitteen nimi näytetään tilasivulla
   - Asetetaan Shellyn omista asetuksista
@@ -16,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Skriptin asetukset voidaan määrittää ilman web-käyttöliittymää skriptistä
   - Käyttäjä voi lisätä oman funktion `USER_CONFIG`, joka muuttaa asetukset
   - Mahdollistaa asetukset muuttamisen esim. Shellyn pilvipalvelun kautta (skriptiä editoimalla)
-  - Katso esimerkki: [https://github.com/jisotalo/shelly-porssisahko/#asetukset-suoraan-skriptiin-ilman-käyttöliittymää](https://github.com/jisotalo/shelly-porssisahko/#asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
+  - Katso esimerkki: [https://github.com/jisotalo/shelly-porssisahko/#esimerkki-asetukset-suoraan-skriptiin-ilman-käyttöliittymää](https://github.com/jisotalo/shelly-porssisahko/#esimerkki-asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
 
 ## [2.7.2] - 10.11.2023
 - Bugikorjaus: Hintojen haku ei toiminut klo 00-02 välillä
@@ -100,12 +104,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.8.1] - 24.11.2023 (2)
+- If device has no name, a description about it is shown
+
 ## [2.8.0] - 24.11.2023
 - New feature: Device name is shown in status page
 - New feature: User can add scripts to change the output command
   - See examples: [https://github.com/jisotalo/shelly-porssisahko/#lisätoiminnot-ja-omat-skriptit](https://github.com/jisotalo/shelly-porssisahko/#lisätoiminnot-ja-omat-skriptit)
 - New feature: user can add settings to the script instead of UI
-  - See example: [https://github.com/jisotalo/shelly-porssisahko/#asetukset-suoraan-skriptiin-ilman-käyttöliittymää](https://github.com/jisotalo/shelly-porssisahko/#asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
+  - See example: [https://github.com/jisotalo/shelly-porssisahko/#esimerkki-asetukset-suoraan-skriptiin-ilman-käyttöliittymää](https://github.com/jisotalo/shelly-porssisahko/#esimerkki-asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
 
 
 ## [2.7.2] - 10.11.2023

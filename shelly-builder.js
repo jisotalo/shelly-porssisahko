@@ -266,16 +266,16 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
 
     let trimmedData = minified.replace(/[\n\r]/g, '');
     trimmedData = trimmedData.replace(/\s+/g, " ");
-/*
-    if (filePath.endsWith(".css")) {
-      trimmedData = trimmedData.replaceAll("{ ", "{");
-      trimmedData = trimmedData.replaceAll(" {", "{");
-      trimmedData = trimmedData.replaceAll(" }", "}");
-      trimmedData = trimmedData.replaceAll("} ", "}");
-      trimmedData = trimmedData.replaceAll(": ", ":");
-      trimmedData = trimmedData.replaceAll("; ", ";");
-    }
-*/
+    /*
+        if (filePath.endsWith(".css")) {
+          trimmedData = trimmedData.replaceAll("{ ", "{");
+          trimmedData = trimmedData.replaceAll(" {", "{");
+          trimmedData = trimmedData.replaceAll(" }", "}");
+          trimmedData = trimmedData.replaceAll("} ", "}");
+          trimmedData = trimmedData.replaceAll(": ", ":");
+          trimmedData = trimmedData.replaceAll("; ", ";");
+        }
+    */
     outputBuffer = Buffer.from(trimmedData, 'utf8');
 
     if (GZIP) {
@@ -301,11 +301,13 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
 }
 
 /**
- * Uploads all script files from ./src to the Shelly
+ * Uploads script file/s() from ./dist to the Shelly
  * Orders by name
  */
-const uploadAll = async () => {
-  let files = await fs.readdir('./dist', { recursive: false });
+const upload = async (files = []) => {
+  if (!files || files.length === 0) {
+    files = await fs.readdir('./dist', { recursive: false });
+  }
 
   for (let file of files.sort()) {
     const distPath = path.join('./dist', file);
@@ -327,16 +329,17 @@ const uploadAll = async () => {
 }
 
 /**
- * Builds and creates ./dist files
+ * Builds and creates ./dist files from all ./src files
  */
-const buildAll = async () => {
+const build = async (files = []) => {
   await fs.rm('./dist', { recursive: true, force: true });
   await fs.mkdir('./dist');
   await fs.mkdir('./dist/statics');
 
-  let files = await fs.readdir('./src/statics', { recursive: false });
+  //Static files (build all)
+  let staticFiles = await fs.readdir('./src/statics', { recursive: false });
 
-  for (let file of files.sort()) {
+  for (let file of staticFiles.sort()) {
     const filePath = path.join('./src/statics', file);
     const distPath = path.join('./dist/statics', file);
 
@@ -349,7 +352,10 @@ const buildAll = async () => {
   }
 
 
-  files = await fs.readdir('./src', { recursive: false });
+  //Shelly files (build all or provided ones)
+  if (!files || files.length === 0) {
+    files = await fs.readdir('./src', { recursive: false });
+  }
 
   for (let file of files.sort()) {
     const filePath = path.join('./src', file);
@@ -425,7 +431,7 @@ const uploadAndBuildAll = async () => {
 }
 
 const listenUdp = async () => {
-  fs.unlink("./log.txt").catch(err => {});
+  fs.unlink("./log.txt").catch(err => { });
 
   const socket = dgram.createSocket('udp4');
 
@@ -455,12 +461,20 @@ const listenUdp = async () => {
 const args = process.argv.splice(2);
 
 switch (args[0]) {
+  case '--buildAll':
+    build();
+    break;
+
   case '--build':
-    buildAll();
+    build([args[1]]);
+    break;
+
+  case '--uploadAll':
+    upload();
     break;
 
   case '--upload':
-    uploadAll();
+    upload([args[1]]);
     break;
 
   case '--debug':

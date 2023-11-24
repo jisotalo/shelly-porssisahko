@@ -20,6 +20,7 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
 * Oma web-serveri Shellyn sisällä ja siinä pyörivä käyttöliittymä
 * Valvonta ja konfigurointi selaimen avulla
 * Ei tarvitse rekisteröityä mihinkään
+* Konfiguroitavuus ja hienosäätö mahdollisesta skripteillä
 * Kolme ohjaustapaa: 
   * **käsiohjaus** - yksinkertaisesti ohjaus päälle/pois
   * **hintaraja** - jos hinta on alle rajan, laitetaan ohjaus päälle 
@@ -50,10 +51,10 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
   + [Ohjaustapa: Jakson halvimmat tunnit](#ohjaustapa-jakson-halvimmat-tunnit)
   + [Toiminnot](#toiminnot)
 - [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
-  + [Hinnan ja keskiarvon hyödyntäminen](#hinnan-ja-keskiarvon-hyödyntäminen)
-  + [Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)](#lämpötilaohjaus-shelly-plus-add-on-ja-ds18b20)
-  + [Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen](#ulkolämpötilan-hakeminen-sääpalvelusta-ja-sen-hyödyntäminen)
-  + [Asetukset suoraan skriptiin (ilman käyttöliittymää)](#asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
+  + [Esimerkki: Hinnan ja keskiarvon hyödyntäminen](#esimerkki-hinnan-ja-keskiarvon-hyödyntäminen)
+  + [Esimerkki: Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)](#esimerkki-lämpötilaohjaus-shelly-plus-add-on-ja-ds18b20)
+  + [Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-sääpalvelusta-ja-sen-hyödyntäminen)
+  + [Esimerkki: Asetukset suoraan skriptiin (ilman käyttöliittymää)](#esimerkki-asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
 - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
 - [Teknistä tietoa ja kehitysympäristö](#teknistä-tietoa-ja-kehitysympäristö)
   + [Lyhyesti](#lyhyesti)
@@ -223,25 +224,42 @@ Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan k
 
 ## Lisätoiminnot ja omat skriptit
 
-Versiosta 2.8.0 lähtien voi skriptiin lisätä omaa toiminnallisuutta helposti. Jos päivität skriptin library-painikkeen kautta, omat lisäykset luonnollisesti poistuvat.
+Versiosta 2.8.0 lähtien on mahdollista lisätä omaa toiminnallisuutta pörssisähköohjuksen rinnalle. Tämä tapahtuu lisäämällä omaa koodia skriptin perään, kuten alla olevassa kuvassa.
 
-Kun skripti on todennut ohjauksen tilan, kutsuu se funktiota `USER_OVERRIDE`, mikäli se on määritelty.
+**Library**-painikkeen alta löytyy myös näitä esimerkkejä.
 
-`USER_OVERRIDE(cmd, state, callback)`
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/52837e3c-5b06-4929-8571-4676898d6dc1)
+
+**Ohjauksen muutokset (USER_OVERRIDE)**
+
+Kun skripti on todennut ohjauksen tilan, kutsuu se funktiota `USER_OVERRIDE`, mikäli se on määritelty. Tässä funktiossa voidaan vielä tehdä viime hetken muutoksia skriptin ohjaukseen.
+
+`USER_OVERRIDE(cmd: boolean, state: object, callback: function(boolean)) => void`
 
 | parametri | tyyppi | selite |
 | --- | --- | --- |
 | `cmd` | `boolean` | Skriptin määrittämä lopullinen komento (ennen mahdollista käänteistä ohjausta)
 | `state` | `object` | Skriptin tila. Selitykset koodissa: https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L82 (esim `state.s.p.now`)
 | `callback` | `function(boolean)` | Takaisinkutsufunktio, jota **täytyy** kutsua lopullisella komennolla, esim: `callback(true)`
+| *`paluuarvo`* | `void` | Ei paluuarvoa
 
-Koodi siis lisätään pörssisähköskriptin perään, kuten alla kuvassa:
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/52837e3c-5b06-4929-8571-4676898d6dc1)
+**Asetusten muuttaminen skriptistä (USER_CONFIG)**
 
-### Hinnan ja keskiarvon hyödyntäminen
+Kun skripti on hakenut asetukset muistista, kutsuu se funktiota `USER_CONFIG`, mikäli se on määritelty. Tässä funktiossa voidaan ylikirjoittaa yksittäisiä tai kaikki asetukset. Näin asetukset voidaan määrittää skriptissä ilman käyttöliittymää (esim. Shellyn pilvipalvelun kautta).
 
-*Huomaa: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus toimii silti.*
+`USER_CONFIG(config: object) => object`
+
+| parametri | tyyppi | selite |
+| --- | --- | --- |
+| `config` | `object` | Skriptin tämänhetkiset asetukset
+| *`paluuarvo`* | `object` | Lopulliset asetukset, joita halutaan käyttää
+
+### Esimerkki: Hinnan ja keskiarvon hyödyntäminen
+
+Tämä esimerkki näyttää kuinka voi hyödyntää hintatietoja ohjauksen hienosäätöön.
+
+*Huom: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus ei lakkaa toimimasta*
 
 ```js
 function USER_OVERRIDE(cmd, state, callback) {
@@ -263,16 +281,16 @@ function USER_OVERRIDE(cmd, state, callback) {
 }
 ```
 
-### Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)
+### Esimerkki: Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)
 
-Voit myös asentaa esimerkin **Library**-painikkeen takaa (kuten itse skriptin).
-
-*Huomaa: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus toimii silti.*
+Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen hienosäädössä. Tämän voit myös asentaa esimerkin **Library**-painikkeen takaa (kuten itse skriptin).
 
 Käyttää lämpötila-anturia, jonka id on 100.
-*  Jos lämpötila on yli 15 astetta, asetetaan lähtö aina pois
+* Jos lämpötila on yli 15 astetta, asetetaan lähtö aina pois
 * Jos lämpötila on alle 5 astetta, asetetaan se aina päälle
 * Muuten annetaan ohjata pörssisähköohjauksen mukaan
+
+*Huom: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus toimii silti.*
 
 ```js
 function USER_OVERRIDE(cmd, state, callback) {
@@ -281,7 +299,7 @@ function USER_OVERRIDE(cmd, state, callback) {
 
     let temp = Shelly.getComponentStatus("temperature:100");
 
-    if (temp == undefined) {
+    if (!temp) {
       throw new Error("Kyseistä lämpötila-anturia ei löytynyt");
     }
 
@@ -304,11 +322,11 @@ function USER_OVERRIDE(cmd, state, callback) {
 }
 ```
 
-### Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen
+### Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen
 
 Tulossa.
 
-### Asetukset suoraan skriptiin (ilman käyttöliittymää)
+### Esimerkki: Asetukset suoraan skriptiin (ilman käyttöliittymää)
 
 Jos et halua käyttää tai pysty käyttämään selainpohjaista käyttöliittymää, voidaan asetukset määrittää myös skriptissä (versiosta 2.8.0 alkaen). Tämä tapahtuu lisäämällä skriptin perään uusi funktio `USER_CONFIG`. 
 
@@ -318,7 +336,7 @@ Tämä myös mahdollistaa asetusten muuttamisen esimerkiksi etänä Shellyn pilv
 
 Lisää seuraava koodi skriptin perään ylläolevan kuvan mukaisesti ja muokkaa asetukset kohdilleen. Voit myös asentaa esimerkin **Library**-painikkeen takaa (kuten itse skriptin).
 
-Huomaa, että käyttöliittymän asetusmuutokset eivät tämän jälkeen vaikuta.
+Huomaa, että käyttöliittymästä tehdyt asetusmuutokset ylikirjoitetaan.
 
 ```js
 function USER_CONFIG(config) {
@@ -406,6 +424,13 @@ Aseta ohjaustavaksi `jakson halvimmat tunnit` ja päivän siirtohinnaksi `999` c
 ### Miten saan lähdön päälle aina jos sähkön hinta on keskiarvon alapuolella?
 
 Versiosta 2.6.0 lähtien tämä onnistuu valitsemalla ohjaustavaksi `hintaraja` ja asettamalla hintarajaksi arvon `avg`.
+
+### Miksi laitteen nimen kohdalla lukee "Ei asetettu"?
+
+Et ole asettanut laitteelle nimeä Shellyn hallinnasta. Nimen voit asettaa `Settings` -> `Device name` alta. 
+
+Huomaa, että tehdasasetuksena nimen kohdalla lukee lukee laitteen malli. Tämä näkyy silti pörssisähköskriptille tyhjänä.
+
 
 ## Teknistä tietoa ja kehitysympäristö
 

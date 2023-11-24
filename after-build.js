@@ -13,7 +13,7 @@ function USER_OVERRIDE(cmd, state, callback) {
 
     let temp = Shelly.getComponentStatus("temperature:100");
 
-    if (temp == undefined) {
+    if (!temp) {
       throw new Error("Kyseistä lämpötila-anturia ei löytynyt");
     }
 
