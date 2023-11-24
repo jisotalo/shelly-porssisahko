@@ -40,6 +40,7 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
 ## Sisällysluettelo
 - [Muutoshistoria](#muutoshistoria)
 - [Asennus](#asennus)
+- [Asennus käsin](#asennus-käsin)
 - [Skriptin päivitys](#skriptin-päivitys)
 - [Laitteisto ja sähköinen kytkentä](#laitteisto-ja-sähköinen-kytkentä)
 - [Asetukset](#asetukset)
@@ -48,6 +49,11 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
   + [Ohjaustapa: Hintaraja](#ohjaustapa-hintaraja)
   + [Ohjaustapa: Jakson halvimmat tunnit](#ohjaustapa-jakson-halvimmat-tunnit)
   + [Toiminnot](#toiminnot)
+- [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
+  + [Hinnan ja keskiarvon hyödyntäminen](#hinnan-ja-keskiarvon-hyödyntäminen)
+  + [Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)](#lämpötilaohjaus-shelly-plus-add-on-ja-ds18b20)
+  + [Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen](#ulkolämpötilan-hakeminen-sääpalvelusta-ja-sen-hyödyntäminen)
+  + [Asetukset suoraan skriptiin (ilman käyttöliittymää)](#asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
 - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
 - [Teknistä tietoa ja kehitysympäristö](#teknistä-tietoa-ja-kehitysympäristö)
   + [Lyhyesti](#lyhyesti)
@@ -62,6 +68,11 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
 Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisotalo/shelly-porssisahko/blob/master/CHANGELOG.md).
 
 ## Asennus
+
+**Seuraa alla olevia ohjeita asentaaksesi skriptin.**
+
+*Jos haluat asentaa käsin ilman library-toimintoa, appia käyttäen tai control.shelly.cloud -pilvipalvelun kautta, löydät skriptin osoitteesta [https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js](https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js)*
+
 1. Ota Shelly käyttöön, yhdistä se wifi-verkkoon ja päivitä sen firmware. 
 
     **HUOMIO: Firmware 1.0.7 tai uudempi vaaditaan versiosta 2.7.0 eteenpäin.**
@@ -101,11 +112,11 @@ Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisot
 
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2d9fbb5f-e2c5-4f5c-a457-5606825184f3)
 
-12. Valmis. Avaa käyttöliittymä selaimessa (**kohta 10**) ja säädä asetukset kohdilleen [Asetukset](#asetukset)-kappaleen ohjeilla. **Älä asenna muita skriptejä - muisti loppuu kesken**
+12. Valmis. Avaa käyttöliittymä selaimessa (**kohta 10**) ja säädä asetukset kohdilleen [Asetukset](#asetukset)-kappaleen ohjeilla.
 
 ## Skriptin päivitys
 
-Jos haluat päivittää skriptin uusimaan versioon, poista nykyinen skripti ja tee asenna uusi **Library**-painikkeen kautta. Kaikki asetukset säilyvät.
+Jos haluat päivittää skriptin uusimaan versioon, poista nykyinen skripti ja tee asenna uusi **Library**-painikkeen kautta. Kaikki asetukset säilyvät. Voit myös päivittää sen käsin (katso [Asennus käsin](#asennus-käsin)).
 
 Huomaa, että tämän jälkeen skripti ei enää käynnisty automaattisesti. Päivitä **Scripts**-sivu (esim. painamalla F5 selaimessa) ja laita skripti käynnistymään automaattisesti uudelleen (kuten asennusohjeiden kohdassa 11).
 
@@ -209,6 +220,175 @@ Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan k
   * Syötä kysyttäessä kuinka monta tuntia lähtö pidetään päällä (voit syöttää myös osatunteja, esim. `0.5` on puoli tuntia)
 * **Shelly**
   * Avaa uudessa välilehdessä Shellyn oman hallintasivun
+
+## Lisätoiminnot ja omat skriptit
+
+Versiosta 2.8.0 lähtien voi skriptiin lisätä omaa toiminnallisuutta helposti. Jos päivität skriptin library-painikkeen kautta, omat lisäykset luonnollisesti poistuvat.
+
+Kun skripti on todennut ohjauksen tilan, kutsuu se funktiota `USER_OVERRIDE`, mikäli se on määritelty.
+
+`USER_OVERRIDE(cmd, state, callback)`
+
+| parametri | tyyppi | selite |
+| --- | --- | --- |
+| `cmd` | `boolean` | Skriptin määrittämä lopullinen komento (ennen mahdollista käänteistä ohjausta)
+| `state` | `object` | Skriptin tila. Selitykset koodissa: https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L82 (esim `state.s.p.now`)
+| `callback` | `function(boolean)` | Takaisinkutsufunktio, jota **täytyy** kutsua lopullisella komennolla, esim: `callback(true)`
+
+Koodi siis lisätään pörssisähköskriptin perään, kuten alla kuvassa:
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/52837e3c-5b06-4929-8571-4676898d6dc1)
+
+### Hinnan ja keskiarvon hyödyntäminen
+
+*Huomaa: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus toimii silti.*
+
+```js
+function USER_OVERRIDE(cmd, state, callback) {
+  try {
+    console.log("Suoritetaan USER_OVERRIDE. Ohjauksen tila ennen: ", cmd);
+
+    if (cmd && state.s.p.now > 0.8 * state.s.p.avg) {
+      console.log("Hinta > 80% keskiarvosta, asetetaan ohjaus pois");
+      cmd = false;
+    }
+
+    console.log("USER_OVERRIDE suoritettu. Ohjauksen tila nyt: ", cmd);
+    callback(cmd);
+
+  } catch (err) {
+    console.log("Virhe tapahtui USER_OVERRIDE-funktiossa. Virhe:", err);
+    callback(cmd);
+  }
+}
+```
+
+### Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)
+
+Voit myös asentaa esimerkin **Library**-painikkeen takaa (kuten itse skriptin).
+
+*Huomaa: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus toimii silti.*
+
+Käyttää lämpötila-anturia, jonka id on 100.
+*  Jos lämpötila on yli 15 astetta, asetetaan lähtö aina pois
+* Jos lämpötila on alle 5 astetta, asetetaan se aina päälle
+* Muuten annetaan ohjata pörssisähköohjauksen mukaan
+
+```js
+function USER_OVERRIDE(cmd, state, callback) {
+  try {
+    console.log("Suoritetaan USER_OVERRIDE. Ohjauksen tila ennen: ", cmd);
+
+    let temp = Shelly.getComponentStatus("temperature:100");
+
+    if (temp == undefined) {
+      throw new Error("Kyseistä lämpötila-anturia ei löytynyt");
+    }
+
+    if (cmd && temp.tC > 15) {
+      console.log("Lämpötila on yli 15 astetta, asetetaan ohjaus pois. Lämpötila nyt:", temp.tC);
+      cmd = false;
+
+    } else if (!cmd && temp.tC < 5) {
+      console.log("Lämpötila on alle 5 astetta, asetetaan ohjaus päälle. Lämpötila nyt:", temp.tC);
+      cmd = true;
+    }
+    
+    console.log("USER_OVERRIDE suoritettu. Ohjauksen tila nyt: ", cmd);
+    callback(cmd);
+
+  } catch (err) {
+    console.log("Virhe tapahtui USER_OVERRIDE-funktiossa. Virhe:", err);
+    callback(cmd);
+  }
+}
+```
+
+### Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen
+
+Tulossa.
+
+### Asetukset suoraan skriptiin (ilman käyttöliittymää)
+
+Jos et halua käyttää tai pysty käyttämään selainpohjaista käyttöliittymää, voidaan asetukset määrittää myös skriptissä (versiosta 2.8.0 alkaen). Tämä tapahtuu lisäämällä skriptin perään uusi funktio `USER_CONFIG`. 
+
+Tämä myös mahdollistaa asetusten muuttamisen esimerkiksi etänä Shellyn pilvipalvelusta käsin skriptiä muokkaamalla.
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/20bafc38-10cb-4ea2-9711-5acb339c7fe6)
+
+Lisää seuraava koodi skriptin perään ylläolevan kuvan mukaisesti ja muokkaa asetukset kohdilleen. Voit myös asentaa esimerkin **Library**-painikkeen takaa (kuten itse skriptin).
+
+Huomaa, että käyttöliittymän asetusmuutokset eivät tämän jälkeen vaikuta.
+
+```js
+function USER_CONFIG(config) {
+  config = {
+    /**  
+     * Active mode
+     * 0: manual mode (on/off toggle)
+     * 1: price limit
+     * 2: cheapest hours 
+    */
+    mode: 0,
+    /** Settings for mode 0 (manual) */
+    m0: {
+      /** Manual relay output command [0/1] */
+      cmd: 0
+    },
+    /** Settings for mode 1 (price limit) */
+    m1: {
+      /** Price limit limit - if price <= relay output command is set on [c/kWh] */
+      lim: 0
+    },
+    /** Settings for mode 2 (cheapest hours) */
+    m2: {
+      /** Period length [h] (example: 24 -> cheapest hours during 24h) */
+      per: 24,
+      /** How many cheapest hours */
+      cnt: 0,
+      /** Always on price limit [c/kWh] */
+      lim: -999,
+      /** Should the hours be sequential / in a row [0/1] */
+      sq: 0,
+      /** Maximum price limit [c/kWh] */
+      m: 999
+    },
+    /** VAT added to spot price [%] */
+    vat: 24,
+    /** Day (07...22) transfer price [c/kWh] */
+    day: 0,
+    /** Night (22...07) transfer price [c/kWh] */
+    night: 0,
+    /** Backup hours [binary] (example: 0b111111 = 00, 01, 02, 03, 04, 05) */
+    bk: 0b0,
+    /** Relay output command if clock time is not known [0/1] */
+    err: 0,
+    /** Output number to use [0..n] */
+    out: 0,
+    /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
+    fh: 0b0,
+    /** Invert output [0/1] */
+    inv: 0
+  };
+
+  return config;
+}
+```
+
+Voit myös halutessasi hyödyntää nykyisiä asetuksia ja vain muokata jotain niistä, sillä funktion parametri `config` sisältää tallennetut asetukset. 
+
+Esimerkki: Olet laittanut asetukset kuntoon kotona, mutta huomaat reissun päällä että halvimpia tunteja pitäisikin olla neljän sijaan viisi. Voit tehdä muutoksen etänä pilvipalvelusta lisäämällä alla olevan koodin skriptin perään: 
+
+```js
+function USER_CONFIG(config) {
+  //Muutetaan vain "halvimmat tunnit" -ohjauksen tuntimäärä arvoon 5
+  //Muuten asetukset pysyy samana
+  config.m2.cnt = 5;
+  
+  return config;
+}
+
+```
 
 ## Kysymyksiä ja vastauksia
 ### Miksi välillä tulee HTTP error 503?

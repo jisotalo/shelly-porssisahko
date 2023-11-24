@@ -33,44 +33,44 @@ let C_DEF = {
    * 2: cheapest hours 
   */
   mode: 0,
-  /** Settings for mode 0 */
+  /** Settings for mode 0 (manual) */
   m0: {
-    /** Manual relay output command */
+    /** Manual relay output command [0/1] */
     cmd: 0
   },
-  /** Settings for mode 1 */
+  /** Settings for mode 1 (price limit) */
   m1: {
-    /** Price limit (€ cents/kWh) limit - if price <= relay output command is set on */
+    /** Price limit limit - if price <= relay output command is set on [c/kWh] */
     lim: 0
   },
-  /** Settings for mode 2 */
+  /** Settings for mode 2 (cheapest hours) */
   m2: {
-    /** Period length (24 -> cheapest hours during 24h) */
+    /** Period length [h] (example: 24 -> cheapest hours during 24h) */
     per: 24,
     /** How many cheapest hours */
     cnt: 0,
-    /** Always on price limit */
+    /** Always on price limit [c/kWh] */
     lim: -999,
-    /** Should the hours be sequential / in a row */
+    /** Should the hours be sequential / in a row [0/1] */
     sq: 0,
-    /** Maximum price limit */
+    /** Maximum price limit [c/kWh] */
     m: 999
   },
-  /** VAT added to spot price (%) */
+  /** VAT added to spot price [%] */
   vat: 24,
-  /** Day (07...22) transfer price c/kWh */
+  /** Day (07...22) transfer price [c/kWh] */
   day: 0,
-  /** Night (22...07) transfer price c/kWh */
+  /** Night (22...07) transfer price [c/kWh] */
   night: 0,
-  /** Backup hours as binary*/
-  bk: 0,
-  /** Relay output command if clock time is not known */
+  /** Backup hours [binary] (example: 0b111111 = 00, 01, 02, 03, 04, 05) */
+  bk: 0b0,
+  /** Relay output command if clock time is not known [0/1] */
   err: 0,
-  /** Output number to use */
+  /** Output number to use [0..n] */
   out: 0,
-  /** Forced ON hours as binary */
-  fh: 0,
-  /** Invert output */
+  /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
+  fh: 0b0,
+  /** Invert output [0/1] */
   inv: 0
 };
 
@@ -82,7 +82,9 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.7.2",
+    v: "2.8.0",
+    /** Device name */
+    dn: '',
     /** status as number */
     st: 0,
     /** active command */
@@ -234,6 +236,7 @@ function log(data, me) {
 function updateState() {
   let now = new Date();
   _.s.timeOK = now.getFullYear() > 2000 ? 1 : 0;
+  _.s.dn = Shelly.getComponentConfig("sys").device.name;
 
   if (!_.s.upTs && _.s.timeOK) {
     _.s.upTs = epoch(now);
@@ -310,6 +313,10 @@ function getConfig(isLoop) {
 
     } else {
       _.c = res.value;
+    }
+
+    if (typeof USER_CONFIG == 'function') {
+      _.c = USER_CONFIG(_.c);
     }
 
     chkConfig(function (ok) {
@@ -581,6 +588,11 @@ function getPrices() {
  * @param {*} cb callback (optional)
  */
 function setRelay(cb) {
+  //Invert?
+  if (_.c.inv) {
+    cmd = !cmd;
+  }
+
   //let me = "setRelay()";
   let prm = "{id:" + _.c.out + ",on:" + (cmd ? "true" : "false") + "}";
 
@@ -697,19 +709,30 @@ function logic() {
       }
     }
 
-    //Invert
-    if (_.c.inv) {
-      cmd = !cmd;
-    }
-
-    //Setting relay command and after that starting background timer again
-    setRelay(function (ok) {
-      if (ok) {
-        _.s.chkTs = epoch();
+    function logicFinalize(finalCmd) {
+      //Normally cmd == finalCmd, but user script could change it
+      if (cmd != finalCmd) {
+        _.s.st = 12;
+        log("Note: command edited by user script");
       }
 
-      loopRunning = false;
-    });
+      cmd = finalCmd;
+
+      setRelay(function (ok) {
+        if (ok) {
+          _.s.chkTs = epoch();
+        }
+
+        loopRunning = false;
+      });
+    }
+
+    //User script
+    if (typeof USER_OVERRIDE == 'function') {
+      USER_OVERRIDE(cmd, _, logicFinalize);
+    } else {
+      logicFinalize(cmd);
+    }
 
   } catch (err) {
     //log("virhe: " + JSON.stringify(err), me);

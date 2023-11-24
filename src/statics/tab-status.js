@@ -28,6 +28,7 @@
       qs("#s-cmd").style.color = s.cmd ? "green" : "red";
 
       qs("#s-mode").innerHTML = MODE_STR[c.mode];
+      qs("#s-dn").innerHTML = s.dn;
       qs("#s-now").innerHTML = pricesOK ? `${s.p.now.toFixed(2)} c/kWh` : "";
       qs("#s-st").innerHTML = (s.st === 9
         ? STATE_STR[s.st].replace("%s", formatDateTime(new Date(s.fCmdTs * 1000), false))
@@ -159,6 +160,8 @@
       let c = (e) => qs(e).innerHTML = "";
       qs("#s-cmd").innerHTML = "Tila ei tiedossa";
       qs("#s-cmd").style.color = "red";
+      c("#s-dn");
+      c("#s-now");
       c("#s-mode");
       c("#s-p");
       c("#s-info");

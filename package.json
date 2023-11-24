@@ -5,11 +5,12 @@
   "main": "shelly-builder.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node shelly-builder.js --build",
+    "build": "node shelly-builder.js --build && npm run after-build",
     "upload": "node shelly-builder.js --upload",
     "start": "npm run build && npm run upload",
     "serve": "serve ./src/statics",
-    "debug": "node shelly-builder.js --debug"
+    "debug": "node shelly-builder.js --debug",
+    "after-build": "node after-build.js"
   },
   "keywords": [],
   "author": "",
