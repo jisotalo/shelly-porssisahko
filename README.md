@@ -35,6 +35,7 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
   * Shelly Pro 1
   * Shelly Pro 2
   * Shelly Pro 3
+  * Shelly Pro 4PM
   * Shelly Plus Plug S
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
