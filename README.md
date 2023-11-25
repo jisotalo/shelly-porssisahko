@@ -71,7 +71,7 @@ Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisot
 
 **Seuraa alla olevia ohjeita asentaaksesi skriptin.**
 
-*Jos haluat asentaa skriptin käsin, Shelly Smart Controll -sovelluksella tai [control.shelly.cloud](https://control.shelly.cloud) -pilvipalvelun kautta, löydät skriptin osoitteesta [https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js](https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js)*
+*Jos haluat asentaa skriptin käsin, Shelly Smart Control -sovelluksella tai [control.shelly.cloud](https://control.shelly.cloud) -pilvipalvelun kautta, löydät skriptin osoitteesta [https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js](https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js)*
 
 1. Ota Shelly käyttöön, yhdistä se wifi-verkkoon ja päivitä sen firmware. 
 
