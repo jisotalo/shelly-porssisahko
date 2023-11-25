@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.8.2] - 25.11.2023
+- Lisätty laitteen nimi myös sivun otsikkoon (selaimen otsikkopalkkiin)
+- Parannettu checkboxien käytettävyyttä (voi klikata myös tekstejä, nyt kun on vapaata muistia)
+
 ## [2.8.1] - 24.11.2023 (2)
 - Jos laittelle ei ole annettu nimeä, näytetään nimen tilalla "Ei asetettu"
 - Päivitetty kääntämisprosessia
@@ -104,6 +108,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.8.2] - 25.11.2023
+- Device name is also displayed in browser title
+- Checkbox user experience is updated
+
 ## [2.8.1] - 24.11.2023 (2)
 - If device has no name, a description about it is shown
 

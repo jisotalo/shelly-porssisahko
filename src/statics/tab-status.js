@@ -23,6 +23,7 @@
       let s = d.s;
       let c = d.c;
       let pricesOK = d.p.length > 0;
+      document.title = `${(s.dn ? `${s.dn} - ` : '')}Pörssisähkö`;
 
       qs("#s-cmd").innerHTML = s.cmd ? "PÄÄLLÄ" : "POIS";
       qs("#s-cmd").style.color = s.cmd ? "green" : "red";

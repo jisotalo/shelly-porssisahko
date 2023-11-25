@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.8.1",
+    v: "2.8.2",
     /** Device name */
     dn: '',
     /** status as number */

@@ -27,7 +27,7 @@
 
       let hours = "";
       for (let i = 0; i < 24; i++) {
-        hours += `<input type="checkbox" id="X${i}">${("" + i).padStart(2, "0")} `
+        hours += `<input type="checkbox" id="X${i}"><label for="X${i}">${("" + i).padStart(2, "0")}</label> `
       }
       qs("#bk").innerHTML = hours.replaceAll("X", "b");
       qs("#fh").innerHTML = hours.replaceAll("X", "f");

@@ -71,7 +71,7 @@ Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisot
 
 **Seuraa alla olevia ohjeita asentaaksesi skriptin.**
 
-*Jos haluat asentaa käsin ilman library-toimintoa, appia käyttäen tai control.shelly.cloud -pilvipalvelun kautta, löydät skriptin osoitteesta [https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js](https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js)*
+*Jos haluat asentaa skriptin käsin, Shelly Smart Controll -sovelluksella tai [control.shelly.cloud](https://control.shelly.cloud) -pilvipalvelun kautta, löydät skriptin osoitteesta [https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js](https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/master/dist/shelly-porssisahko.js)*
 
 1. Ota Shelly käyttöön, yhdistä se wifi-verkkoon ja päivitä sen firmware. 
 
@@ -430,7 +430,6 @@ Et ole asettanut laitteelle nimeä Shellyn hallinnasta. Nimen voit asettaa `Sett
 
 Huomaa, että tehdasasetuksena nimen kohdalla lukee lukee laitteen malli. Tämä näkyy silti pörssisähköskriptille tyhjänä.
 
-
 ## Teknistä tietoa ja kehitysympäristö
 
 ### Lyhyesti
@@ -504,3 +503,4 @@ There will be an English version (maybe with country selection) available later 
 
 GNU Affero General Public License v3.0 - [LICENSE.txt](https://github.com/jisotalo/shelly-porssisahko/blob/master/LICENSE.txt)
 
+Huomaathan, että projekti on täysin harrasteena tehty, eikä siinä ole lisenssin mukaisesti mitään takuuta. Näin ollen tekijä ei ole vastuussa jos sen käytön kanssa on ongelmia.
