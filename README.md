@@ -431,6 +431,17 @@ Et ole asettanut laitteelle nimeä Shellyn hallinnasta. Nimen voit asettaa `Sett
 
 Huomaa, että tehdasasetuksena nimen kohdalla lukee lukee laitteen malli. Tämä näkyy silti pörssisähköskriptille tyhjänä.
 
+### Kuinka saa skriptin toimimaan Switch Add-Onin kanssa?
+
+Testattu Shelly Pro3EM + Switch Add-on.
+
+Kun olet asentanut add-onin, näet lähdön numeron Shellyn hallinnassa. Alla olevassa esimerkissä lähdön numero on `100`.
+
+![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/81babe94-1999-4890-ab80-c2f9ffbd54e0)
+
+
+Muuta skriptin asetuksista `ohjattava lähtö` kyseiseen arvoon, jolloin ohjaus toimii.
+
 ## Teknistä tietoa ja kehitysympäristö
 
 ### Lyhyesti
