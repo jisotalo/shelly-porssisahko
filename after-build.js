@@ -82,8 +82,8 @@ function USER_CONFIG(config) {
     bk: 0b0,
     /** Relay output command if clock time is not known [0/1] */
     err: 0,
-    /** Output number to use [0..n] */
-    out: 0,
+    /** Outputs IDs to use (array of numbers) */
+    outs: [0],
     /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
     fh: 0b0,
     /** Invert output [0/1] */

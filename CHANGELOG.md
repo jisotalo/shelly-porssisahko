@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.9.0] - 16.12.2023
+- Uusi ominaisuus: Useamman lähdön ohjaaminen samaan aikaan
+  - Ohjattavat lähdöt -kenttään voi asettaa useamman lähdön pilkuilla erotettuna, esim `0,100` asettaa skriptin ohjaamaan lähtöjä 0 ja 100.
+  - HUOM: Erilliset asetukset eri lähdöille eivät ole mahdollisia, tämän kehitys on suunnitelmissa. [Katso issue #16](https://github.com/jisotalo/shelly-porssisahko/issues/16)
+
 ## [2.8.2] - 25.11.2023
 - Lisätty laitteen nimi myös sivun otsikkoon (selaimen otsikkopalkkiin)
 - Parannettu checkboxien käytettävyyttä (voi klikata myös tekstejä, nyt kun on vapaata muistia)
@@ -108,6 +113,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.9.0] - 16.12.2023
+- New feature: Controlling multiple outputs
+  - Multiple output IDs can be configured by separating with commans. For example `0,100` -> script controls outputs 0 and 100
+  - NOTE: Separate price settings for outputs aren't possible, it's in backlog. [See issue #16](https://github.com/jisotalo/shelly-porssisahko/issues/16)
+
 ## [2.8.2] - 25.11.2023
 - Device name is also displayed in browser title
 - Checkbox user experience is updated

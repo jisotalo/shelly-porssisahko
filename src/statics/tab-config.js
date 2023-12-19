@@ -19,7 +19,7 @@
       qs("#mode").innerHTML = MODE_STR.map((m, i) => `<option value="${i}">${m}</option>`)
 
       qs("#mode").value = c.mode;
-      qs("#out").value = c.out;
+      qs("#outs").value = c.outs.join(",");
       qs("#inv").checked = c.inv ? "checked" : "";
       qs("#vat").value = c.vat;
       qs("#day").value = c.day;
@@ -62,7 +62,7 @@
       let avgn = (e) => qs(e).value == "avg" ? "avg" : n(qs(e).value);
 
       c.mode = n(qs("#mode").value);
-      c.out = n(qs("#out").value);
+      c.outs = qs("#outs").value.split(",").map(v => n(v));
       c.inv = qs("#inv").checked ? 1 : 0;
       c.vat = n(qs("#vat").value);
       c.day = n(qs("#day").value);

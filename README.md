@@ -37,6 +37,7 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
   * Shelly Pro 3
   * Shelly Pro 4PM
   * Shelly Plus Plug S
+  * Shelly Pro3EM + Switch Add-on
   * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
 
 ## Sisällysluettelo
@@ -147,7 +148,7 @@ Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
 | Ohjaustapa | Millä ohjaustavalla lähtöä ohjataan.<br><br>Selitykset taulukon alapuolella. | `jakson halvimmat tunnit`
-| Ohjattava lähtö | Shellyn ohjattavan lähdön numero.<br><br>Esim. Shelly Plus 1PM (ainoa) lähtö nro 0.| `0`
+| Ohjattavat lähdöt | Shellyn ohjattavien lähtöjen ID-numerot.<br><br>Jos useampi lähtö, erota pilkulla (max. 4 kpl). <br><br>- Yksi lähtö  (mm. Shelly Plus 1) --> `0`.<br>- Useampi (esim 0, 1 ja 100) --> `0,1,100` | `0` 
 | Käänteinen ohjaus | Jos ruksittu, ohjaus toimii käänteisesti normaaliin nähden. Tällöin lähtökohta on, että lähtö on päällä.<br><br>- **Varmuustunnit**: Lähtö ohjataan varmuustunneilla pois päältä<br>- **Hätätilaohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Pakko-ohjaukset**: Lähtö voidaan pakko-ohjata pois päältä<br>- **Käsiohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Hintaraja**: Jos hinta on alle rajan, lähtö asetetaan pois päältä<br>- **Jakson halvimmat tunnit**: Jos nykyinen tunti on halvimpia tunteja, lähtö asetetaan pois päältä | `ei`
 | Sähkön ALV | Käytettävä ALV-% sähkön hinnalle. [%]| `24`
 | Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]| päivä: `4` <br> yö: `3`
@@ -381,8 +382,8 @@ function USER_CONFIG(config) {
     bk: 0b0,
     /** Relay output command if clock time is not known [0/1] */
     err: 0,
-    /** Output number to use [0..n] */
-    out: 0,
+    /** Outputs IDs to use (array of numbers) */
+    outs: [0],
     /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
     fh: 0b0,
     /** Invert output [0/1] */
@@ -440,7 +441,7 @@ Kun olet asentanut add-onin, näet lähdön numeron Shellyn hallinnassa. Alla ol
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/81babe94-1999-4890-ab80-c2f9ffbd54e0)
 
 
-Muuta skriptin asetuksista `ohjattava lähtö` kyseiseen arvoon, jolloin ohjaus toimii.
+Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjaus toimii.
 
 ## Teknistä tietoa ja kehitysympäristö
 

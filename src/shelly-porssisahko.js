@@ -66,8 +66,8 @@ let C_DEF = {
   bk: 0b0,
   /** Relay output command if clock time is not known [0/1] */
   err: 0,
-  /** Output number to use [0..n] */
-  out: 0,
+  /** Outputs IDs to use (array of numbers) */
+  outs: [0],
   /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
   fh: 0b0,
   /** Invert output [0/1] */
@@ -82,7 +82,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.8.2",
+    v: "2.9.0",
     /** Device name */
     dn: '',
     /** status as number */
@@ -274,6 +274,13 @@ function chkConfig(cb) {
         }
       }
     }
+  }
+
+  //Config update: v.2.9.0 added support to multiple outputs
+  if (_.c.out !== undefined) {
+    _.c.outs = [_.c.out];
+
+    _.c.out = undefined;
   }
 
   //Deleting default config after 1st check to save memory...
@@ -581,44 +588,62 @@ function getPrices() {
   }
 }
 
+/**
+ * Sets outputs to cmd
+ * If callback given, its called with success status, like cb(true)
+ * @param {*} cb callback (optional)
+ */
+function setOutputs(cb) {
+  //Invert?
+  if (_.c.inv) {
+    cmd = !cmd;
+  }
+
+  let cnt = 0;
+  let success = 0;
+
+  for (let i = 0; i < _.c.outs.length; i++) {
+
+    setRelay(_.c.outs[i], function (res) {
+      cnt++;
+
+      if (res) {
+        success++;
+      }
+
+      if (cnt == _.c.outs.length) {
+        //All done
+        if (success == cnt) {
+          while (_.h.length >= C_HIST) {
+            _.h.splice(0, 1);
+          }
+          _.h.push([epoch(), cmd ? 1 : 0]);
+
+          _.s.cmd = cmd ? 1 : 0;
+          cb(true)
+        } else {
+          cb(false);
+        }
+      }
+    });
+  }
+}
 
 /**
  * Sets relay output to cmd
  * If callback given, its called with success status, like cb(true)
  * @param {*} cb callback (optional)
  */
-function setRelay(cb) {
-  //Invert?
-  if (_.c.inv) {
-    cmd = !cmd;
-  }
-
-  //let me = "setRelay()";
-  let prm = "{id:" + _.c.out + ",on:" + (cmd ? "true" : "false") + "}";
+function setRelay(output, cb) {
+  let prm = "{id:" + output + ",on:" + (cmd ? "true" : "false") + "}";
 
   Shelly.call("Switch.Set", prm, function (res, err, msg, cb) {
-    if (err === 0) {
-      //log("lähtö asetettu " + (cmd ? "PÄÄLLE" : "POIS"), me);
-      _.s.cmd = cmd ? 1 : 0;
-
-      while (_.h.length >= C_HIST) {
-        _.h.splice(0, 1);
-      }
-      _.h.push([epoch(), cmd ? 1 : 0]);
-
-      //Call callback (if any)
-      if (cb) {
-        cb(true);
-      }
-
-    } else {
-      //log("virhe asettaessa lähtöä " + (cmd ? "PÄÄLLE" : "POIS") + ": " + err + " - " + msg, me);
-
-      //Call callback (if any)
-      if (cb) {
-        cb(false);
-      }
+    if (err != 0) {
+      log("error setting output " + output + " " + (cmd ? "ON" : "OFF") + ": " + err + " - " + msg);
     }
+
+    cb(err == 0);
+
   }, cb);
 }
 
@@ -718,7 +743,7 @@ function logic() {
 
       cmd = finalCmd;
 
-      setRelay(function (ok) {
+      setOutputs(function (ok) {
         if (ok) {
           _.s.chkTs = epoch();
         }
