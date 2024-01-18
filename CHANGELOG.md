@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.10.0] - 19.01.2024
+- Pakko-ohjauspainikkeella voi valita, haluaako pakko-ohjata ohjauksen päälle vai pois
+- Tuntikohtaisissa pakko-ohjauksissa voi valita, haluaako pakko-ohjata ohjauksen päälle vai pois
+- Uusi asetus: Ohjausminuutit
+  - Voidaan määritellä montako tunnin ensimmäistä minuuttia ohjaus on päällä (mahdollistaa esim. 30 minuutin ohjaukset)
+  - Vakiona 60 min, eli koko tunti (kuten ennenkin)
+
 ## [2.9.0] - 16.12.2023
 - Uusi ominaisuus: Useamman lähdön ohjaaminen samaan aikaan
   - Ohjattavat lähdöt -kenttään voi asettaa useamman lähdön pilkuilla erotettuna, esim `0,100` asettaa skriptin ohjaamaan lähtöjä 0 ja 100.
@@ -113,6 +120,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.10.0] - 19.01.2024
+- Possible to manualyl force both on and off
+- Forced hours commands can be selected both on and off
+- New setting: how many minutes of the hour to command output 
+
 ## [2.9.0] - 16.12.2023
 - New feature: Controlling multiple outputs
   - Multiple output IDs can be configured by separating with commans. For example `0,100` -> script controls outputs 0 and 100

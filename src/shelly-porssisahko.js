@@ -68,10 +68,14 @@ let C_DEF = {
   err: 0,
   /** Outputs IDs to use (array of numbers) */
   outs: [0],
-  /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
+  /** Forced hours [binary] (example: 0b110000000000001100001 = 00, 05, 06, 19, 20) */
   fh: 0b0,
+  /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example) */
+  fhCmd: 0b0,
   /** Invert output [0/1] */
-  inv: 0
+  inv: 0,
+  /** How many first minutes of the hour the output should be on [min]*/
+  min: 60
 };
 
 /** Log history */
@@ -82,7 +86,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.9.0",
+    v: "2.10.0",
     /** Device name */
     dn: '',
     /** status as number */
@@ -101,8 +105,10 @@ let _ = {
     timeOK: 0,
     /** 1 if config is checked */
     configOK: 0,
-    /** If forced manually to ON, then this is the timestamp until cmd shall be on */
+    /** If forced manually, then this is the timestamp until the force is removed */
     fCmdTs: 0,
+    /** If forced manually, then this is the command */
+    fCmd: 0,
     /** Active time zone as string (URL encoded - such as %2b02:00 = +02:00)*/
     tz: "+02:00",
     /** current price info */
@@ -258,6 +264,11 @@ function chkConfig(cb) {
     return;
   }
 
+  //Config update: v.2.10.0 added support to selecting forced hours commands
+  if (_.c.fhCmd == undefined && _.c.fh != undefined) {
+    _.c.fhCmd = _.c.fh;
+  }
+
   //Todo: Change to recursive, now hard-coded to max 2 levels
   for (let prop in C_DEF) {
     if (typeof _.c[prop] === "undefined") {
@@ -282,7 +293,6 @@ function chkConfig(cb) {
 
     _.c.out = undefined;
   }
-
   //Deleting default config after 1st check to save memory...
   C_DEF = null;
 
@@ -358,7 +368,6 @@ function loop() {
     getPrices();
 
   } else if (logicRunNeeded()) {
-    //Hour has changed or we now know the time (=year has changed)
     logic();
 
   } else {
@@ -411,11 +420,22 @@ function logicRunNeeded() {
   /*
   return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
-    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
+    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0)
+    || (_.c.min > 0 && _.c.min < 60 && now.getMinutes() > _.c.min)
+    || (_.s.fCmdTs == 0 && _.c.min < 60 && now.getMinutes() >= _.c.min && (_.s.cmd + _.c.inv) == 1);
+  */
+
+  /*
+    Logic should be run if
+    - hour has changed
+    - year has changed (= time has been received)
+    - manually forced command is active and time has passed
+    - user wants the output to be commanded only for x first minutes of the hour which has passed (and command is not yet reset)
   */
   return (chk.getHours() !== now.getHours()
     || chk.getFullYear() !== now.getFullYear())
-    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0);
+    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0)
+    || (_.s.fCmdTs == 0 && _.c.min < 60 && now.getMinutes() >= _.c.min && (_.s.cmd + _.c.inv) == 1);
 }
 
 /**
@@ -712,27 +732,32 @@ function logic() {
       //log("kellonaikaa ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
     }
 
-    //Forcing automatically or manually
-    if (_.s.timeOK) {
-      //Forced hours
-      if (_.c.fh > 0) {
-        let binNow = (1 << now.getHours());
-        if ((_.c.fh & binNow) == binNow) {
-          cmd = true;
-          _.s.st = 10;
-        }
-      }
-
-      //Manual force
-      if (_.s.fCmdTs > 0) {
-        if (_.s.fCmdTs - epoch(now) > 0) {
-          cmd = true;
-          _.s.st = 9;
-        } else {
-          _.s.fCmdTs = 0;
-        }
+    //Forced hours
+    if (_.s.timeOK && _.c.fh > 0) {
+      let binNow = (1 << now.getHours());
+      if ((_.c.fh & binNow) == binNow) {
+        cmd = (_.c.fhCmd & binNow) == binNow;
+        _.s.st = 10;
       }
     }
+
+    //Final check - if use wants to set command only for first x minutes
+    //Manual force is only thing that overrides
+    if (cmd && _.s.timeOK && now.getMinutes() >= _.c.min) {
+      _.s.st = 13;
+      cmd = false;
+    }
+
+    //Manual force
+    if (_.s.timeOK && _.s.fCmdTs > 0) {
+      if (_.s.fCmdTs - epoch(now) > 0) {
+        cmd = _.s.fCmd == 1;
+        _.s.st = 9;
+      } else {
+        _.s.fCmdTs = 0;
+      }
+    }
+
 
     function logicFinalize(finalCmd) {
       //Normally cmd == finalCmd, but user script could change it
@@ -956,6 +981,7 @@ function onServerRequest(request, response) {
     } else if (params.r === "f" && params.ts) {
       //f = force
       _.s.fCmdTs = Number(params.ts);
+      _.s.fCmd = Number(params.c);
       _.s.chkTs = 0;
       response.code = 204;
       GZIP = false;

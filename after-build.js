@@ -84,10 +84,14 @@ function USER_CONFIG(config) {
     err: 0,
     /** Outputs IDs to use (array of numbers) */
     outs: [0],
-    /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
+    /** Forced hours [binary] (example: 0b110000000000001100001 = 00, 05, 06, 19, 20) */
     fh: 0b0,
+    /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example) */
+    fhCmd: 0b0,
     /** Invert output [0/1] */
-    inv: 0
+    inv: 0,
+    /** How many first minutes of the hour the output should be on [min]*/
+    min: 60
   };
 
   return config;

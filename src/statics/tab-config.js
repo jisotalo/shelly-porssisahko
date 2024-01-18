@@ -9,6 +9,12 @@
 {
   let configRead = false;
 
+  const setRadio = (name, value) => {
+    document.querySelectorAll(`[name=${name}]`).forEach(e => e.checked = e.value == value);
+  }
+
+  const radioRow = (name, value) => `<td><input type="radio" name="${name}" value="${value}"></td>`;
+
   const onUpdate = async () => {
     try {
       if (state === undefined || configRead || !state) {
@@ -30,12 +36,19 @@
         hours += `<input type="checkbox" id="X${i}"><label for="X${i}">${("" + i).padStart(2, "0")}</label> `
       }
       qs("#bk").innerHTML = hours.replaceAll("X", "b");
-      qs("#fh").innerHTML = hours.replaceAll("X", "f");
+
+      //Forced hours
+      let fh = `<tr><td>Tunti</td><td>OFF</td><td>-</td><td>ON</td></tr>`;
+      for (let i = 0; i < 24; i++) {
+        fh += `<tr><td>${("" + i).padStart(2, "0")}</td>${radioRow(`X${i}`, 0)}${radioRow(`X${i}`, -1)}${radioRow(`X${i}`, 1)}</tr>`;
+      }
+      qs("#fh").innerHTML = fh.replaceAll("X", "f");
 
       for (let i = 0; i < 24; i++) {
         qs(`#b${i}`).checked = (c.bk & (1 << i)) == (1 << i);
-        qs(`#f${i}`).checked = (c.fh & (1 << i)) == (1 << i);
+        setRadio(`f${i}`, (c.fh & (1 << i)) == (1 << i) ? (c.fhCmd & (1 << i)) == (1 << i) ? 1 : 0 : -1);
       }
+      qs("#min").value = c.min;
 
       qs("#err").checked = c.err ? "checked" : "";
       qs("#m0-cmd").checked = c.m0.cmd ? "checked" : "";
@@ -70,16 +83,23 @@
 
       c.bk = 0;
       c.fh = 0;
+      c.fhCmd = 0;
       for (let i = 0; i < 24; i++) {
         if (qs(`#b${i}`).checked) {
           c.bk = c.bk | (1 << i);
         }
-        if (qs(`#f${i}`).checked) {
+        
+        let val = qs(`[name=f${i}]:checked`).value;
+
+        if (val != -1) {
           c.fh = c.fh | (1 << i);
+          c.fhCmd = c.fhCmd | (val << i);
         }
       }
-
       c.err = qs("#err").checked ? 1 : 0;
+      c.min = n(qs("#min").value);
+      c.min = Math.max(0, Math.min(60, c.min));
+
       c.m0.cmd = qs("#m0-cmd").checked ? 1 : 0;
       c.m1.lim = avgn("#m1-lim");
       c.m2.per = n(qs("#m2-per").value);
@@ -111,12 +131,15 @@
   };
 
   const force = async () => {
-    let data = prompt("Tuntimäärä:");
-    if (data !== null) {
-      data = Number(data);
-      data = data > 0 ? Math.floor(Date.now() / 1000 + data * 60 * 60) : 0;
 
-      let res = await getData(`${URLS}?r=f&ts=${data}`);
+    let hours = Number(prompt("Pakko-ohjauksen kesto tunteina? (0 = peru nykyinen)"));
+    if (!isNaN(hours)) {
+      let cmd = hours > 0 ? parseInt(prompt("Pakko-ohjataanko ohjaus päälle (1) vai pois (0)?", "1")) : 0;
+      if (isNaN(cmd)) {
+        return;
+      }
+
+      let res = await getData(`${URLS}?r=f&ts=${hours > 0 ? Math.floor(Date.now() / 1000 + hours * 60 * 60) : 0}&c=${cmd}`);
       alert(res.code == 204 ? "OK!" : `Virhe: ${res.txt}`);
     }
   }

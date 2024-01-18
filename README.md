@@ -142,7 +142,7 @@ Lisää hyvää tietoa löytyy [Shelly tuki (suomeksi)](https://www.facebook.com
 
 Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 
- ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/3714ae4e-fc1e-48b7-8992-6e6640f74e2f)
+ ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/1e770799-25d6-442b-a04b-eb8f77de63f5)
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
@@ -150,11 +150,11 @@ Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 | Ohjattavat lähdöt | Shellyn ohjattavien lähtöjen ID-numerot.<br><br>Jos useampi lähtö, erota pilkulla (max. 4 kpl). <br><br>- Yksi lähtö  (mm. Shelly Plus 1) --> `0`.<br>- Useampi (esim 0, 1 ja 100) --> `0,1,100` | `0` 
 | Käänteinen ohjaus | Jos ruksittu, ohjaus toimii käänteisesti normaaliin nähden. Tällöin lähtökohta on, että lähtö on päällä.<br><br>- **Varmuustunnit**: Lähtö ohjataan varmuustunneilla pois päältä<br>- **Hätätilaohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Pakko-ohjaukset**: Lähtö voidaan pakko-ohjata pois päältä<br>- **Käsiohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Hintaraja**: Jos hinta on alle rajan, lähtö asetetaan pois päältä<br>- **Jakson halvimmat tunnit**: Jos nykyinen tunti on halvimpia tunteja, lähtö asetetaan pois päältä | `ei`
 | Sähkön ALV | Käytettävä ALV-% sähkön hinnalle. [%]| `24`
-| Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]| päivä: `4` <br> yö: `3`
+| Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]<br><br>Esim. jos haluat ottaa erisuuruiset siirtomaksut huomioon tuntien valinnassa. | päivä: `4` <br> yö: `3`
 | Varmuustunnit | Jos sähkön hintaa ei jostain syystä tiedetä, ohjataan lähtö näillä tunneilla päälle.<br><br>Esim. ongelma hintojen haussa tai nettiyhteys katkeaa. | `01:00-07:00`
 | Hätätilaohjaus | Jos Shelly ei jostain syystä tiedä kellonaikaa, ohjataan lähtö tähän tilaan varmuuden vuoksi.<br><br>Esim. jos sähkökatkon jälkeen nettiyhteys ei palaudu (ei hintoja eikä kellonaikaa). | `ON`
-| Pakko-ohjaukset | Valittuina tunteina ohjaus on aina päällä - oli hinta mikä hyvänsä.<br><br>Esim. jos haluat lämmittää varajaa joka aamu. | `05:00-07:00` ja `19:00-20:00`
-
+| Pakko-ohjaukset | Voidaan määrittää tunnit, jolloin ohjaus asetetaan joko päälle tai pois riippumatta sähkön hinnasta ja muista ohjauksista (pl. pakko-ohjaus käsin).<br><br>Esim. jos haluat lämmittää varajaa joka aamu tai estää ohjauksen tiettynä osana vuorokaudesta. | `05:00-07:00` ja `19:00-21:00` päällä<br><br>`01:00-02:00` pois
+| Ohjausminuutit | Määrittää kuinka monta minuuttia tunnista ohjaus on päällä. Jos tunti on turhan pitkä aika pitää lähtöä päällä, voidaan aika muuttaa lyhyemmäksi. Asetus vaikuttaa kaikkiin ohjauksiin pois lukien pakko-ohjaukseen käsin. [min]<br><br>Esim. 30 minuuttia riittää aina varaajan lämmittämiseen, joten pidetään vain tunnin ensimmäiset 30 minuuttia ohjausta päällä. | `60`
 ### Ohjaustapa: Käsiohjaus
 
 Käsiohjauksella lähtö ohjataan käyttöliittymältä asetettuun tilaan.
@@ -217,8 +217,8 @@ Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan k
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/41d46697-028b-4294-8c62-88bc67c846c6)
 
 * **Pakko-ohjaus**
-  * Painamalla tätä voit asettaa lähdön päälle määritellyksi ajaksi
-  * Syötä kysyttäessä kuinka monta tuntia lähtö pidetään päällä (voit syöttää myös osatunteja, esim. `0.5` on puoli tuntia)
+  * Painamalla tätä voit asettaa lähdön päälle tai pois määritellyksi ajaksi
+  * Syötä kysyttäessä kuinka monta tuntia lähtö pidetään päällä (voit syöttää myös osatunteja, esim. `0.5` on puoli tuntia) sekä haluttu lähdön tila
 * **Shelly**
   * Avaa uudessa välilehdessä Shellyn oman hallintasivun
 
@@ -383,10 +383,14 @@ function USER_CONFIG(config) {
     err: 0,
     /** Outputs IDs to use (array of numbers) */
     outs: [0],
-    /** Forced ON hours [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20) */
+    /** Forced hours [binary] (example: 0b110000000000001100001 = 00, 05, 06, 19, 20) */
     fh: 0b0,
+    /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example) */
+    fhCmd: 0b0,
     /** Invert output [0/1] */
-    inv: 0
+    inv: 0,
+    /** How many first minutes of the hour the output should be on [min]*/
+    min: 60
   };
 
   return config;
