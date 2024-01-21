@@ -399,12 +399,12 @@ Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjau
 
 Skripti vie enimillään hetkellisesti noin 12kt RAM-muistia (Shellyn maksimi 25200).
 ```json
-script:1: {
-  id: 1,
-  running: true,
-  mem_used: 6482,
-  mem_peak: 11788,
-  mem_free: 18718
+"script:1": {
+  "id": 1,
+  "running": true,
+  "mem_used": 6482,
+  "mem_peak": 11788,
+  "mem_free": 18718
 },
 ```
 
