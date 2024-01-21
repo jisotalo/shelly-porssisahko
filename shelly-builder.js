@@ -214,6 +214,9 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
   if (filePath.endsWith(".js")) {
     const minified = UglifyJS.minify(data, {
       toplevel: true,
+      output: {
+        comments: "some" //leaving @license comment
+      },
       mangle: {
         reserved: [
           //Some issues atm. with global constants -> setting so that names will not be mangled
@@ -222,6 +225,7 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
           "C_ERRC",
           "C_ERRD",
           "C_DEF",
+          "_" //Keeping state variable name as _ for user scripts
         ]
       },
       compress: {

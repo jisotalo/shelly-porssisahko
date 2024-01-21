@@ -5,13 +5,23 @@
     "description": "Pörssisähköohjaus Shellyyn. Klikaa Insert code -painiketta skriptin asentamiseksi. Github-sivu: https://github.com/jisotalo/shelly-porssisahko"
   },
   {
-    "fname": "dist/shelly-porssisahko-user-config.js",
-    "title": "ESIMERKKI: Pörssisähköohjaus ja asetukset skriptissä",
-    "description": "Sisältää esimerkkikoodin, miten asetukset voidaan määrittää skriptissä (lue README ennen kuin teet mitään)"
+    "fname": "dist/shelly-porssisahko-user-override-avg-price.js",
+    "title": "ESIMERKKI: Ohjauksen hienosäätö keskiarvon avulla",
+    "description": "Sisältää esimerkkikoodin, miten Add-Onin lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
   },
   {
-    "fname": "dist/shelly-porssisahko-user-override.js",
-    "title": "ESIMERKKI: Pörssisähköohjaus ja lämpötilamittaus",
+    "fname": "dist/shelly-porssisahko-shelly-addon-temperature.js",
+    "title": "ESIMERKKI: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)",
     "description": "Sisältää esimerkkikoodin, miten lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
+  },
+  {
+    "fname": "dist/shelly-porssisahko-ht-sensor-temperature.js",
+    "title": "ESIMERKKI: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla",
+    "description": "Sisältää esimerkkikoodin, miten Shelly H&T:n lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
+  },
+  {
+    "fname": "dist/shelly-porssisahko-user-config.js",
+    "title": "ESIMERKKI: Asetusten määrittäminen skriptissä",
+    "description": "Sisältää esimerkkikoodin, miten asetukset voidaan määrittää suoraan skriptissä (lue README ennen kuin teet mitään)"
   }
 ]

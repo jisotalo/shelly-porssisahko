@@ -5,12 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
-## [2.10.0] - 19.01.2024
+## [2.10.1] - 21.01.2024
 - Pakko-ohjauspainikkeella voi valita, haluaako pakko-ohjata ohjauksen päälle vai pois
 - Tuntikohtaisissa pakko-ohjauksissa voi valita, haluaako pakko-ohjata ohjauksen päälle vai pois
 - Uusi asetus: Ohjausminuutit
   - Voidaan määritellä montako tunnin ensimmäistä minuuttia ohjaus on päällä (mahdollistaa esim. 30 minuutin ohjaukset)
   - Vakiona 60 min, eli koko tunti (kuten ennenkin)
+- Lisätty parametreja `USER_CONFIG`-kutsuun
+- Mahdollista näyttää lisätietoa käyttöliittyällä käyttäjäskriptin/hienosäätöskriptin tilasta, päivitetty esimerkit sen mukaiseksi
+- Lisätty esimerkki kuinka Shelly H&T lämpötilaa voi hyödyntää ohjauksessa
 
 ## [2.9.0] - 16.12.2023
 - Uusi ominaisuus: Useamman lähdön ohjaaminen samaan aikaan
@@ -120,10 +123,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
-## [2.10.0] - 19.01.2024
+## [2.10.1] - 21.01.2024
 - Possible to manualyl force both on and off
 - Forced hours commands can be selected both on and off
-- New setting: how many minutes of the hour to command output 
+- New setting: how many first minutes of the hour to command output 
+- Added more parameters to `USER_CONFIG` call
+- Possible to show status of additional script / user script at UI. Updated examples.
+- Added example how to use Shelly H&T temperature to fine adjust control
 
 ## [2.9.0] - 16.12.2023
 - New feature: Controlling multiple outputs

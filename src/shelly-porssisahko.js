@@ -1,4 +1,6 @@
 /**
+ * @license
+ * 
  * shelly-porssisahko
  * 
  * (c) Jussi isotalo - http://jisotalo.fi
@@ -70,7 +72,7 @@ let C_DEF = {
   outs: [0],
   /** Forced hours [binary] (example: 0b110000000000001100001 = 00, 05, 06, 19, 20) */
   fh: 0b0,
-  /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example) */
+  /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example "fh" setting) */
   fhCmd: 0b0,
   /** Invert output [0/1] */
   inv: 0,
@@ -86,11 +88,13 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.10.0",
+    v: "2.10.1",
     /** Device name */
     dn: '',
     /** status as number */
     st: 0,
+    /** Additional status string (only meant to be used by user override scripts) */
+    str: '',
     /** active command */
     cmd: 0,
     /** epoch when last check was done (logic was run) */
@@ -333,7 +337,7 @@ function getConfig(isLoop) {
     }
 
     if (typeof USER_CONFIG == 'function') {
-      _.c = USER_CONFIG(_.c);
+      _.c = USER_CONFIG(_.c, _, true);
     }
 
     chkConfig(function (ok) {
@@ -417,8 +421,7 @@ function logicRunNeeded() {
   let chk = new Date(_.s.chkTs * 1000);
 
   //for debugging:
-  /*
-  return (chk.getMinutes() !== now.getMinutes()
+  /*return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0)
     || (_.c.min > 0 && _.c.min < 60 && now.getMinutes() > _.c.min)
@@ -671,6 +674,12 @@ function setRelay(output, cb) {
  * Runs the main logic
  */
 function logic() {
+
+  //This is a good time to update config if any overrides exist
+  if (typeof USER_CONFIG == 'function') {
+    _.c = USER_CONFIG(_.c, _, false);
+  }
+
   //let me = "logic()";
   let now = new Date();
   updateTz(now);
@@ -763,7 +772,7 @@ function logic() {
       //Normally cmd == finalCmd, but user script could change it
       if (cmd != finalCmd) {
         _.s.st = 12;
-        log("Note: command edited by user script");
+        log("HUOMIO: ohjaus muuttunut käyttäjän skriptin toimesta");
       }
 
       cmd = finalCmd;

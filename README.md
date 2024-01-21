@@ -13,18 +13,20 @@ Jos haluat ohjata Shellyn relekytkintä sähkön hinnan mukaan, ilman johonkin p
 
 Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole muita palveluita. Skripti ei vaadi rekisteröitymistä mihinkään vaan se toimii "suoraan paketista".
 
-![porssisahko](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/751cbd0c-1b7a-4086-9e32-b04b888c5425)
-
+<img style="width:100%;max-width:450px;" src="https://github.com/jisotalo/shelly-porssisahko/assets/13457157/44da4ece-2e7b-4420-9906-31a644ebcddd" alt="shelly-porssisahko">
 
 ## Ominaisuudet
 * Oma web-serveri Shellyn sisällä ja siinä pyörivä käyttöliittymä
 * Valvonta ja konfigurointi selaimen avulla
 * Ei tarvitse rekisteröityä mihinkään
-* Konfiguroitavuus ja hienosäätö mahdollisesta skripteillä
+* Konfiguroitavuus ja hienosäätö mahdollisesta omilla skripteillä
+  * Esim. ulkolämpötilan hyödyntäminen ohjauksessa
 * Kolme ohjaustapaa: 
   * **käsiohjaus** - yksinkertaisesti ohjaus päälle/pois
   * **hintaraja** - jos hinta on alle rajan, laitetaan ohjaus päälle 
   * **jakson halvimmat tunnit** - valitaan halutulta aikajaksolta x halvinta tuntia
+* Mahdollisuus ohjata osatunteja
+* Pakko-ohjaus väliaikaisesti tai aina tietyille tunneille (ohjaus päälle tai pois)
 * Vikasietoinen
   * Varmuustunnit (jos ei hintoja mutta tiedetään kellonaika)
   * Hätätilaohjaus (jos ei internet-yhteyttä eikä tiedetä kellonaikaa)
@@ -52,10 +54,11 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
   + [Ohjaustapa: Jakson halvimmat tunnit](#ohjaustapa-jakson-halvimmat-tunnit)
   + [Toiminnot](#toiminnot)
 - [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
-  + [Esimerkki: Hinnan ja keskiarvon hyödyntäminen](#esimerkki-hinnan-ja-keskiarvon-hyödyntäminen)
-  + [Esimerkki: Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)](#esimerkki-lämpötilaohjaus-shelly-plus-add-on-ja-ds18b20)
+  + [Esimerkki: Ohjauksen hienosäätö keskiarvon avulla](#esimerkki-ohjauksen-hienosäätö-keskiarvon-avulla)
+  + [Esimerkki: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjauksen-hienosäätö-lämpötilan-avulla-shelly-plus-add-on-ja-ds18b20)
+  + [Esimerkki: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla](#esimerkki-ohjauksen-hienosäätö-shelly-htn-lämpötilamittauksen-avulla)
   + [Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-sääpalvelusta-ja-sen-hyödyntäminen)
-  + [Esimerkki: Asetukset suoraan skriptiin (ilman käyttöliittymää)](#esimerkki-asetukset-suoraan-skriptiin-ilman-käyttöliittymää)
+  + [Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)](#esimerkki-asetusten-määrittäminen-skriptissä-ilman-käyttöliittymää)
 - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
 - [Teknistä tietoa ja kehitysympäristö](#teknistä-tietoa-ja-kehitysympäristö)
   + [Lyhyesti](#lyhyesti)
@@ -224,11 +227,15 @@ Valitaan kolme perättäistä tuntia. Valitaan kello 17-19 koska niiden hinnan k
 
 ## Lisätoiminnot ja omat skriptit
 
-Versiosta 2.8.0 lähtien on mahdollista lisätä omaa toiminnallisuutta pörssisähköohjuksen rinnalle. Tämä tapahtuu lisäämällä omaa koodia skriptin perään, kuten alla olevassa kuvassa.
+Versiosta 2.8.0 lähtien on mahdollista lisätä omaa toiminnallisuutta pörssisähköohjuksen rinnalle. Tämä tapahtuu lisäämällä omaa koodia skriptin perään. Idea on, että pörssisähköohjauksen asetuksia tai ohjausta voidaan hienosäätää tarpeen mukaan, esimerkiksi lämpötilan perusteella. Alla oleva esimerkit voi asentaa **Library**-painikkeen takaa.
 
-**Library**-painikkeen alta löytyy myös näitä esimerkkejä.
+Alla esimerkki, kuinka käyttöliittymä näyttää [Shelly H&T:n lämpötilaa hyödyntävän ohjauksen](#esimerkki-ohjauksen-hienosäätö-shelly-htn-lämpötilamittauksen-avulla) tilan:
+<img alt="image" src="https://github.com/jisotalo/shelly-porssisahko/assets/13457157/76449d42-d2bb-4300-9786-fcf2cf23498c">
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/52837e3c-5b06-4929-8571-4676898d6dc1)
+**Globaalit muuttujat**
+
+Skriptissä on saatavilla globaali muuttuja `_`, joka sisältää skriptin tilan. Sen kuvaus löytyy koodista: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L88>
+
 
 **Ohjauksen muutokset (USER_OVERRIDE)**
 
@@ -239,163 +246,70 @@ Kun skripti on todennut ohjauksen tilan, kutsuu se funktiota `USER_OVERRIDE`, mi
 | parametri | tyyppi | selite |
 | --- | --- | --- |
 | `cmd` | `boolean` | Skriptin määrittämä lopullinen komento (ennen mahdollista käänteistä ohjausta)
-| `state` | `object` | Skriptin tila. Selitykset koodissa: https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L82 (esim `state.s.p.now`)
+| `state` | `object` | Skriptin tila, sama kuin globaali muuttuja `_`.<br><br>Selitykset koodissa: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L88> (esim `state.s.p.now`)
 | `callback` | `function(boolean)` | Takaisinkutsufunktio, jota **täytyy** kutsua lopullisella komennolla, esim: `callback(true)`
 | *`paluuarvo`* | `void` | Ei paluuarvoa
 
 
-**Asetusten muuttaminen skriptistä (USER_CONFIG)**
+**Asetusten muutokset (USER_CONFIG)**
 
-Kun skripti on hakenut asetukset muistista, kutsuu se funktiota `USER_CONFIG`, mikäli se on määritelty. Tässä funktiossa voidaan ylikirjoittaa yksittäisiä tai kaikki asetukset. Näin asetukset voidaan määrittää skriptissä ilman käyttöliittymää (esim. Shellyn pilvipalvelun kautta).
+Kun skripti on hakenut asetukset muistista tai kun pörssisähköohjauksen logiikan suoritus alkaa, kutsuu se funktiota `USER_CONFIG`, mikäli se on määritelty. Tässä funktiossa voidaan ylikirjoittaa yksittäisiä tai kaikki asetukset. Näin asetukset voidaan määrittää skriptissä ilman käyttöliittymää (esim. Shellyn pilvipalvelun kautta) tai niitä voidaan muuttaa lennossa esimerkiksi lämpötilaan perustuen.
 
-`USER_CONFIG(config: object) => object`
+`USER_CONFIG(config: object, state: object, initialized: boolean) => object`
 
 | parametri | tyyppi | selite |
 | --- | --- | --- |
 | `config` | `object` | Skriptin tämänhetkiset asetukset
+| `state` | `object` | Skriptin tila, sama kuin globaali muuttuja `_`.<br><br>Selitykset koodissa: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L88> (esim `state.s.p.now`)
+| `initialized` | `boolean` | `true` jos funktiota kutsutaan asetusten muistista hakemisen jälkeen, `false` jos kyseessä on logiikan suoritus. Tämän avulla tietää, onko aktiiviset asetukset tallennetut (`true`) vai mahdollisesti ylikirjoitetut. Näin esim. alkuperäiset käyttöliittymältä tallennetut asetukset voidaan ottaa talteen.
 | *`paluuarvo`* | `object` | Lopulliset asetukset, joita halutaan käyttää
 
-### Esimerkki: Hinnan ja keskiarvon hyödyntäminen
+### Esimerkki: Ohjauksen hienosäätö keskiarvon avulla
 
-Tämä esimerkki näyttää kuinka voi hyödyntää hintatietoja ohjauksen hienosäätöön.
+Tämä esimerkki näyttää kuinka voi hyödyntää hintatietoja ohjauksen hienosäätöön. Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö keskiarvon avulla** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
-*Huom: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus ei lakkaa toimimasta*
+Skripti asettaa ohjauksen pois, mikäli tuntihinta on yli 80% päivän keskiarvosta. Muuten mennään pörssisähköohjauksen mukaan.
 
-```js
-function USER_OVERRIDE(cmd, state, callback) {
-  try {
-    console.log("Suoritetaan USER_OVERRIDE. Ohjauksen tila ennen: ", cmd);
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-user-override-avg-price.js>
 
-    if (cmd && state.s.p.now > 0.8 * state.s.p.avg) {
-      console.log("Hinta > 80% keskiarvosta, asetetaan ohjaus pois");
-      cmd = false;
-    }
+### Esimerkki: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)
 
-    console.log("USER_OVERRIDE suoritettu. Ohjauksen tila nyt: ", cmd);
-    callback(cmd);
-
-  } catch (err) {
-    console.log("Virhe tapahtui USER_OVERRIDE-funktiossa. Virhe:", err);
-    callback(cmd);
-  }
-}
-```
-
-### Esimerkki: Lämpötilaohjaus (Shelly Plus Add-On ja DS18B20)
-
-Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen hienosäädössä. Tämän voit myös asentaa esimerkin **Library**-painikkeen takaa (kuten itse skriptin).
+Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen hienosäädössä. Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 Käyttää lämpötila-anturia, jonka id on 100.
 * Jos lämpötila on yli 15 astetta, asetetaan lähtö aina pois
 * Jos lämpötila on alle 5 astetta, asetetaan se aina päälle
 * Muuten annetaan ohjata pörssisähköohjauksen mukaan
 
-*Huom: try..catch on tärkeä, jotta mahdollisen bugin sattuessa ohjaus toimii silti.*
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-shelly-addon-temperature.js>
 
-```js
-function USER_OVERRIDE(cmd, state, callback) {
-  try {
-    console.log("Suoritetaan USER_OVERRIDE. Ohjauksen tila ennen: ", cmd);
+### Esimerkki: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla
 
-    let temp = Shelly.getComponentStatus("temperature:100");
+Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjauksen hienosäädössä. Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
-    if (!temp) {
-      throw new Error("Kyseistä lämpötila-anturia ei löytynyt");
-    }
+HUOM: Tämä vaatii, että Shelly H&T asetetaan `actions -> sensor reports` alle osoite `http://ip-osoite/script/1/update-temp`, missä IP-osoite on pörssisähköskriptiä pyörittävän Shellyn osoite. Lisäksi `sensor reports` pitää ruksia käyttöön. Näin kyseinen laite lähettää lämpötilan tähän osoitteeseen.
 
-    if (cmd && temp.tC > 15) {
-      console.log("Lämpötila on yli 15 astetta, asetetaan ohjaus pois. Lämpötila nyt:", temp.tC);
-      cmd = false;
+Esimerkin toiminta
+* Jos lämpötila on alle -15°C, laitetaan halvimpien tuntien määräksi 8h ja ohjausminuuteksi 60min
+* Jos lämpötila on alle -10°C, laitetaan halvimpien tuntien määräksi 7h ja ohjausminuuteksi 45min
+* Jos lämpötila on alle -5°C, laitetaan halvimpien tuntien määräksi 6h ja ohjausminuuteksi 45min
+* Muuten annetaan ohjata pörssisähköohjauksen asetusten mukaan
 
-    } else if (!cmd && temp.tC < 5) {
-      console.log("Lämpötila on alle 5 astetta, asetetaan ohjaus päälle. Lämpötila nyt:", temp.tC);
-      cmd = true;
-    }
-    
-    console.log("USER_OVERRIDE suoritettu. Ohjauksen tila nyt: ", cmd);
-    callback(cmd);
-
-  } catch (err) {
-    console.log("Virhe tapahtui USER_OVERRIDE-funktiossa. Virhe:", err);
-    callback(cmd);
-  }
-}
-```
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temperature.js>
 
 ### Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen
 
 Tulossa.
 
-### Esimerkki: Asetukset suoraan skriptiin (ilman käyttöliittymää)
+### Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)
 
 Jos et halua käyttää tai pysty käyttämään selainpohjaista käyttöliittymää, voidaan asetukset määrittää myös skriptissä (versiosta 2.8.0 alkaen). Tämä tapahtuu lisäämällä skriptin perään uusi funktio `USER_CONFIG`. 
 
-Tämä myös mahdollistaa asetusten muuttamisen esimerkiksi etänä Shellyn pilvipalvelusta käsin skriptiä muokkaamalla.
+Tämä myös mahdollistaa asetusten muuttamisen esimerkiksi etänä Shellyn pilvipalvelusta käsin skriptiä muokkaamalla. Huomaa, että käyttöliittymästä tehdyt asetusmuutokset ylikirjoitetaan.
 
-![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/20bafc38-10cb-4ea2-9711-5acb339c7fe6)
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Asetusten määrittäminen skriptissä** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
-Lisää seuraava koodi skriptin perään ylläolevan kuvan mukaisesti ja muokkaa asetukset kohdilleen. Voit myös asentaa esimerkin **Library**-painikkeen takaa (kuten itse skriptin).
-
-Huomaa, että käyttöliittymästä tehdyt asetusmuutokset ylikirjoitetaan.
-
-```js
-function USER_CONFIG(config) {
-  config = {
-    /**  
-     * Active mode
-     * 0: manual mode (on/off toggle)
-     * 1: price limit
-     * 2: cheapest hours 
-    */
-    mode: 0,
-    /** Settings for mode 0 (manual) */
-    m0: {
-      /** Manual relay output command [0/1] */
-      cmd: 0
-    },
-    /** Settings for mode 1 (price limit) */
-    m1: {
-      /** Price limit limit - if price <= relay output command is set on [c/kWh] */
-      lim: 0
-    },
-    /** Settings for mode 2 (cheapest hours) */
-    m2: {
-      /** Period length [h] (example: 24 -> cheapest hours during 24h) */
-      per: 24,
-      /** How many cheapest hours */
-      cnt: 0,
-      /** Always on price limit [c/kWh] */
-      lim: -999,
-      /** Should the hours be sequential / in a row [0/1] */
-      sq: 0,
-      /** Maximum price limit [c/kWh] */
-      m: 999
-    },
-    /** VAT added to spot price [%] */
-    vat: 24,
-    /** Day (07...22) transfer price [c/kWh] */
-    day: 0,
-    /** Night (22...07) transfer price [c/kWh] */
-    night: 0,
-    /** Backup hours [binary] (example: 0b111111 = 00, 01, 02, 03, 04, 05) */
-    bk: 0b0,
-    /** Relay output command if clock time is not known [0/1] */
-    err: 0,
-    /** Outputs IDs to use (array of numbers) */
-    outs: [0],
-    /** Forced hours [binary] (example: 0b110000000000001100001 = 00, 05, 06, 19, 20) */
-    fh: 0b0,
-    /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example) */
-    fhCmd: 0b0,
-    /** Invert output [0/1] */
-    inv: 0,
-    /** How many first minutes of the hour the output should be on [min]*/
-    min: 60
-  };
-
-  return config;
-}
-```
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-user-config.js>
 
 Voit myös halutessasi hyödyntää nykyisiä asetuksia ja vain muokata jotain niistä, sillä funktion parametri `config` sisältää tallennetut asetukset. 
 
@@ -448,7 +362,8 @@ Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjau
 
 ## Teknistä tietoa ja kehitysympäristö
 
-### Lyhyesti
+### Lyhyesti 
+  * Skriptin tekemisen alkuvaiheessa Shellyn firmware ei hallinnut muistia kunnolla -> muistista oli kokoajan pulaa. Tämän takia monet asiat on optimoitu äärimilleen, vaikka enää ei ehkä tarvitsisi
   * Shellyyn asennattava skripti on "kääntöprosessin" tulos, jotta skripti saadaan mahtumaan mahdollisimman pieneen tilaan
   * Koodissa on jonkin verran outoja ja rumia temppuja (mitä en tekisi muualla)
     - Näiden syy on usein minimoida skriptin kokoa, joko suoraan tai helpottamalla minimointikirjastojen toimintaa
@@ -465,10 +380,15 @@ Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjau
 ### Tiedostot ja kansiot
 * `src/shelly-porssisahko.js`
   * Itse skripti, ei kuitenkaan ajettavissa Shellyssä (vaatii "kääntämisen")
+* `src/after-build-examples/`
+  * Esimerkkiskriptit, jotka yhdistetään shelly-porssisahko.js kanssa käännön lopussa
 * `src/statics/`
   * Staattiset html, js ja css -tiedostot
 * `dist/shelly-porssisahko.js`
   * **"Käänetty" valmis skripti joka voidaan laittaa ajoon**
+  * Minimoitu ja sisältää myös staattiset tiedostot
+* `dist/*.js`
+  * Muut käännetyt esimerkkiskriptit
   * Minimoitu ja sisältää myös staattiset tiedostot
 * `dist/statics/`
   * Staattiset tiedostot, jotka muodostuvat kääntöprosessin aikana, debuggausta varten
@@ -477,9 +397,16 @@ Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjau
 
 ### Muistin käyttö
 
-Skripti v.2.7.2 vie enimmillään ~11256 tavua RAM-muistia (Shellyn maksimi 25200)
-
-Shellyn firmware-versiosta 1.0.7 eteenpäin tilaa on myös muille skripteille.
+Skripti vie enimillään hetkellisesti noin 12kt RAM-muistia (Shellyn maksimi 25200).
+```json
+script:1: {
+  id: 1,
+  running: true,
+  mem_used: 6482,
+  mem_peak: 11788,
+  mem_free: 18718
+},
+```
 
 ### Kehitysympäristö
 

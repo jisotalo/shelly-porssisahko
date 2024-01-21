@@ -27,13 +27,16 @@
 
       qs("#s-cmd").innerHTML = s.cmd ? "PÄÄLLÄ" : "POIS";
       qs("#s-cmd").style.color = s.cmd ? "green" : "red";
-
       qs("#s-mode").innerHTML = MODE_STR[c.mode];
       qs("#s-dn").innerHTML = s.dn ? s.dn : '<i>Ei asetettu</i>';
       qs("#s-now").innerHTML = pricesOK ? `${s.p.now.toFixed(2)} c/kWh` : "";
       qs("#s-st").innerHTML = (s.st === 9
         ? STATE_STR[s.st].replace("%s", formatDateTime(new Date(s.fCmdTs * 1000), false))
         : STATE_STR[s.st]) + (c.inv ? " (käänteinen)" : "");
+    
+      if (s.str != "") {
+        qs("#s-st").innerHTML += `<br><br>${s.str}`;
+      }
 
       qs("#s-day").innerHTML = pricesOK ? `Keskiarvo: ${s.p.avg.toFixed(2)} c/kWh<br>Halvin: ${s.p.low.toFixed(2)} c/kWh<br>Kallein: ${s.p.high.toFixed(2)} c/kWh` : "";
       qs("#s-info").innerHTML = `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))} - ${s.p.ts > 0 ? `hinnat haettu ${formatTime(new Date(s.p.ts * 1000))}` : "hintatietoja haetaan..."}`;
