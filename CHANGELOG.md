@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.10.2] - 21.01.2024(2)
+- Lisätty koodin tarkistus että halvimpien tuntien lukumäärä <= jakson pituus
+  - Havaittu ongelma kun H&T skriptissä oli isompi tuntimäärä (koska käyttäjän skriptin muutoksia ei tarkisteta)
+
 ## [2.10.1] - 21.01.2024
 - Pakko-ohjauspainikkeella voi valita, haluaako pakko-ohjata ohjauksen päälle vai pois
 - Tuntikohtaisissa pakko-ohjauksissa voi valita, haluaako pakko-ohjata ohjauksen päälle vai pois
@@ -123,6 +127,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.10.2] - 21.01.2024(2)
+- Added a safety check that period hours <= period length
+
 ## [2.10.1] - 21.01.2024
 - Possible to manualyl force both on and off
 - Forced hours commands can be selected both on and off

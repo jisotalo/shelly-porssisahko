@@ -270,7 +270,7 @@ Tämä esimerkki näyttää kuinka voi hyödyntää hintatietoja ohjauksen hieno
 
 Skripti asettaa ohjauksen pois, mikäli tuntihinta on yli 80% päivän keskiarvosta. Muuten mennään pörssisähköohjauksen mukaan.
 
-**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-user-override-avg-price.js>
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-override-avg-price.js>
 
 ### Esimerkki: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)
 
@@ -281,7 +281,7 @@ Käyttää lämpötila-anturia, jonka id on 100.
 * Jos lämpötila on alle 5 astetta, asetetaan se aina päälle
 * Muuten annetaan ohjata pörssisähköohjauksen mukaan
 
-**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-shelly-addon-temperature.js>
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js>
 
 ### Esimerkki: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla
 
@@ -295,7 +295,7 @@ Esimerkin toiminta
 * Jos lämpötila on alle -5°C, laitetaan halvimpien tuntien määräksi 6h ja ohjausminuuteksi 45min
 * Muuten annetaan ohjata pörssisähköohjauksen asetusten mukaan
 
-**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temperature.js>
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temp.js>
 
 ### Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen
 

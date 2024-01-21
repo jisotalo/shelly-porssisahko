@@ -88,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.10.1",
+    v: "2.10.2",
     /** Device name */
     dn: '',
     /** status as number */
@@ -816,6 +816,9 @@ function isCheapestHour() {
   if (_.c.m2.cn == 0) {
     return;
   }
+
+  //Safety check
+  _.c.m2.cnt = Math.min(_.c.m2.cnt, _.c.m2.per);
 
   //This is (and needs to be) 1:1 in both frontend and backend code
   let cheapest = [];
