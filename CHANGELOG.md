@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Suomeksi
 ## [2.11.0] - xx.01.2024
 - Seuraavan päivän hintojen haku ja niiden sekä ohjausten näyttö etusivulla
+- Uusi asetus: Lähdön ohjaus
+  - Voi asettaa niin että lähtö asetetaan vain tila muuttuessa
+  - Näin ohjauksen ylikirjoitus toimii kätevämmin Shellyn sovelluksesta tai hallinnasta
 - Ohjaushistorialle oma sivu
 - Pieniä parannuksia ja optimointeja 
 

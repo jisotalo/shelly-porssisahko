@@ -69,7 +69,9 @@ let C_DEF = {
   /** Invert output [0/1] */
   inv: 0,
   /** How many first minutes of the hour the output should be on [min]*/
-  min: 60
+  min: 60,
+  /** Output config - when to set output (0 = always after running logic, 1 = only when output changes)*/
+  oc: 0
 };
 
 /** Main state of app */
@@ -84,7 +86,7 @@ let _ = {
     /** Additional status string (only meant to be used by user override scripts) */
     str: '',
     /** active command */
-    cmd: 0,
+    cmd: -1,
     /** epoch when last check was done (logic was run) */
     chkTs: 0,
     /** active error count */
@@ -248,6 +250,16 @@ function updateTz(now) {
 function log(data) {
   let now = new Date();
   console.log(now.toString().substring(16, 24) + ":", data);
+}
+
+/**
+ * Adds command to history
+ */
+function addHistory() {
+  while (_.h.length >= C_HIST) {
+    _.h.splice(0, 1);
+  }
+  _.h.push([epoch(), cmd ? 1 : 0, _.s.st]);
 }
 
 /**
@@ -599,7 +611,7 @@ function getPrices(dayIndex) {
             //If we get less the prices may not be updated yet to elering API?
             throw new Error("huomisen hintoja ei saatu");
           }
-          
+
 
         } else {
           throw new Error("virhe: " + err + "(" + msg + ") - " + JSON.stringify(res));
@@ -650,6 +662,18 @@ function setOutputs(cb) {
     cmd = !cmd;
   }
 
+  function done() {
+  }
+
+  if (_.c.oc == 1 && _.s.cmd == cmd) {
+    //No need to write 
+    log("output already set");
+    addHistory();
+    _.s.cmd = cmd ? 1 : 0;
+    cb(true);
+    return;
+  }
+
   let cnt = 0;
   let success = 0;
 
@@ -664,13 +688,9 @@ function setOutputs(cb) {
       if (cnt == _.c.outs.length) {
         //All done
         if (success == cnt) {
-          while (_.h.length >= C_HIST) {
-            _.h.splice(0, 1);
-          }
-          _.h.push([epoch(), cmd ? 1 : 0, _.s.st]);
-
+          addHistory();
           _.s.cmd = cmd ? 1 : 0;
-          cb(true)
+          cb(true);
         } else {
           cb(false);
         }

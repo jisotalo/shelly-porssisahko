@@ -49,6 +49,7 @@
         setRadio(`f${i}`, (c.fh & (1 << i)) == (1 << i) ? (c.fhCmd & (1 << i)) == (1 << i) ? 1 : 0 : -1);
       }
       qs("#min").value = c.min;
+      qs("#oc").value = c.oc;
 
       qs("#err").checked = c.err ? "checked" : "";
       qs("#m0-cmd").checked = c.m0.cmd ? "checked" : "";
@@ -98,6 +99,7 @@
       }
       c.err = qs("#err").checked ? 1 : 0;
       c.min = n(qs("#min").value);
+      c.oc = n(qs("#oc").value);
       c.min = Math.max(0, Math.min(60, c.min));
 
       c.m0.cmd = qs("#m0-cmd").checked ? 1 : 0;
