@@ -67,7 +67,7 @@ body {
 .tab-label {
   display: block;
   line-height: 2.75em;
-  padding: 0 1.618em;
+  padding: 0 1.2em;
   border-right: 2px solid #16a085;
   cursor: pointer;
 }
@@ -78,7 +78,7 @@ body {
   z-index: 1;
   top: 2.75em;
   left: 0;
-  padding: 1rem;
+  padding: 1rem ;
   background: #fff;
   color: #2c3e50;
   opacity: 0;

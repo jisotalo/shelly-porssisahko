@@ -14,10 +14,11 @@
 function USER_OVERRIDE(cmd, state, callback) {
   try {
     //console.log("Suoritetaan USER_OVERRIDE. Ohjauksen tila ennen: ", cmd);
+    let priceInfo = state.s.p[0];
 
-    if (cmd && state.s.p.now > 0.8 * state.s.p.avg) {
-      state.s.str = "Hinta (" + state.s.p.now.toFixed(2) + "c/kWh) on yli 80% keskiarvosta -> ohjaus pois";
-      console.log("Hinta (" + state.s.p.now.toFixed(2) + "c/kWh) on yli 80% keskiarvosta -> ohjaus pois");
+    if (cmd && priceInfo.now > 0.8 * priceInfo.avg) {
+      state.s.str = "Hinta (" + priceInfo.now.toFixed(2) + "c/kWh) on yli 80% keskiarvosta -> ohjaus pois";
+      console.log("Hinta (" + priceInfo.now.toFixed(2) + "c/kWh) on yli 80% keskiarvosta -> ohjaus pois");
       cmd = false;
 
     } else {

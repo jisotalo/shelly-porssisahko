@@ -9,18 +9,10 @@
  * License: GNU Affero General Public License v3.0 
  */
 
-/**
- * Number of log lines saved to history
- * NOTE: Currenly commented out as we have no memory
- */
-//let C_LOG = 0;
-
-/**
- * Number of historical commands kept
- */
+/** Number of history rows */
 let C_HIST = 24;
 
-/** How many errors during getting prices until we have a break */
+/** How many errors with getting prices until to have a break */
 let C_ERRC = 3;
 
 /** How long to wait after multiple errors (>= C_ERRC) before trying again (s) */
@@ -80,15 +72,11 @@ let C_DEF = {
   min: 60
 };
 
-/** Log history */
-//let logData = [];
-//NOTE: Currenly commented out as we have no memory
-
 /** Main state of app */
 let _ = {
   s: {
     /** version number */
-    v: "2.10.2",
+    v: "2.11.0",
     /** Device name */
     dn: '',
     /** status as number */
@@ -115,51 +103,75 @@ let _ = {
     fCmd: 0,
     /** Active time zone as string (URL encoded - such as %2b02:00 = +02:00)*/
     tz: "+02:00",
-    /** current price info */
-    p: {
-      /** time when prices were read */
-      ts: 0,
-      /** current price */
-      now: 0,
-      /** lowest price of  the day */
-      low: 0,
-      /** highest price of the day */
-      high: 0,
-      /** average price of the day */
-      avg: 0
-    }
+    /** Active time zone hour difference*/
+    tzh: 0,
+    /** price info [0] = today, [1] = tomorrow */
+    p: [
+      {
+        /** time when prices were read */
+        ts: 0,
+        /** current price */
+        now: 0,
+        /** lowest price of  the day */
+        low: 0,
+        /** highest price of the day */
+        high: 0,
+        /** average price of the day */
+        avg: 0
+      },
+      {
+        /** time when prices were read */
+        ts: 0,
+        /** current price (not valid for tomorrow) */
+        now: 0,
+        /** lowest price of  the day */
+        low: 0,
+        /** highest price of the day */
+        high: 0,
+        /** average price of the day */
+        avg: 0
+      }
+    ],
   },
-  /** prices of the day (each item is array [epoch, price]*/
-  p: [],
-  /** command history (each item is array [epoch, cmd])*/
+  /** price data [0] = today, [1] tomorrow - each item is array [epoch, price]*/
+  p: [
+    [],
+    []
+  ],
+  /** command history (each item is array [epoch, cmd, desc])*/
   h: [],
   /** actice config */
   c: C_DEF
 };
 
 /**
- * True if loop is running (new one is not started + HTTP requests are not handled)
+ * True if loop is currently running 
+ * (new one is not started + HTTP requests are not handled)
  */
 let loopRunning = false;
 
-/** Active command (internal) - here because some weird issues if was inside logic()... (memory/stack issues?) */
+/** 
+ * Active command (internal)
+ * Here because some weird issues if it was inside logic()... 
+ * memory/stack issues?
+ */
 let cmd = false;
 
 /**
  * Returns true if hour in epoch timestamp is current hour
- * @param val epoch value
- * @param now current epoch time (s)
- * @returns 
+ * 
+ * @param {number} value epoch value
+ * @param {number} now current epoch time (s)
  */
-function isCurrentHour(val, now) {
-  let diff = now - val;
+function isCurrentHour(value, now) {
+  let diff = now - value;
   return diff >= 0 && diff < (60 * 60);
 }
 
 /**
- * Returns epoch time (s) without decimals
- * @param date Date object (optional) - if not provided, taking current time
- * @returns 
+ * Returns epoch time (seconds) without decimals
+ * 
+ * @param {Date?} date Date object (optional) - if not provided, using new Date()
  */
 function epoch(date) {
   return Math.floor((date ? date.getTime() : Date.now()) / 1000.0);
@@ -167,9 +179,10 @@ function epoch(date) {
 
 /**
  * Similar as String.padStart() which is missing from Shelly
- * @param {*} str String to add characters
- * @param {*} targetLength The length of the resulting string
- * @param {*} padString The string to pad the current str with. (optional - default is " ")
+ * 
+ * @param {string} str String to add characters
+ * @param {number} targetLength The length of the resulting string
+ * @param {string} padString The string to pad the current str with. (optional - default is " ")
  */
 function padStart(num, targetLength, padString) {
   let str = num.toString();
@@ -183,24 +196,26 @@ function padStart(num, targetLength, padString) {
 
 /**
  * Wrapper for Date.getDate to help minifying
+ * 
  * @param {Date} dt 
- * @returns 
  */
 function getDate(dt) {
   return dt.getDate();
 }
 
 /**
- * Updates current timezone to state
+ * Updates current timezone to state 
+ *  - _.s.tz is set to timezone as string 
+ *    - If timezone is UTC -> result is "Z"
+ *    - Otherwise the result is in format similar to -0200 or +0200
+ *  - _.s.tzh is set to timezone hour difference (minutes are not handled)
  * 
- *  - If timezone is UTC -> result is "Z"
- *  - Otherwise the result is in format similar to -0200 or +0200
- * 
- * @param {Date} now Current time
+ * @param {Date} now Date to use
  */
 function updateTz(now) {
   //Get date as string: Fri Nov 10 2023 00:02:29 GMT+0200
   let tz = now.toString();
+  let h = 0;
 
   //Get timezone part: +0200
   tz = tz.substring(tz.indexOf("GMT") + 3);
@@ -208,38 +223,35 @@ function updateTz(now) {
   //If timezone is UTC, we need to use Z
   if (tz == "+0000") {
     tz = "Z";
+    h = 0;
 
   } else {
     //tz is now similar to -0100 or +0200 -> add : between hours and minutes
+    h = Number(tz.substring(0, 3));
     tz = tz.substring(0, 3) + ":" + tz.substring(3);
   }
 
   if (tz != _.s.tz) {
     //Timezone has changed -> we should get prices
-    _.s.p.ts = 0;
+    _.s.p[0].ts = 0;
   }
 
   _.s.tz = tz;
+  _.s.tzh = h;
 }
 
 /**
- * Adds new log line row
- * @param {*} str 
+ * console.log() wrapper
+ * 
+ * @param {string} str String to log
  */
-function log(data, me) {
+function log(data) {
   let now = new Date();
-  console.log(now.toISOString().substring(11) + ": " + (me ? me + " - " : ""), data);
-
-  //NOTE: Currenly commented out as we have no memory
-  /*logData.push([epoch(now), me + ": " + str]);
-
-  if (logData.length >= C_LOG) {
-    logData.splice(0, 1);
-  }*/
+  console.log(now.toString().substring(16, 24) + ":", data);
 }
 
 /**
- * Updates state
+ * Updates state (called intervally)
  * - Checks if time is OK
  * - Some things need to be kept up-to-date here
  */
@@ -258,9 +270,9 @@ function updateState() {
  * If a config key is missings, adds a new one with default value
  */
 function chkConfig(cb) {
-  //let me = "chkConfig()";
   let count = 0;
 
+  //If config already checked, do nothing
   if (!C_DEF) {
     if (cb) {
       cb(true);
@@ -273,17 +285,15 @@ function chkConfig(cb) {
     _.c.fhCmd = _.c.fh;
   }
 
-  //Todo: Change to recursive, now hard-coded to max 2 levels
+  //Note: Hard-coded to max 2 levels
   for (let prop in C_DEF) {
     if (typeof _.c[prop] === "undefined") {
-      //log("Asetus '" + prop + "' alustettu arvoon " + JSON.stringify(C_DEF[prop]), me);
       _.c[prop] = C_DEF[prop];
       count++;
 
     } else if (typeof C_DEF[prop] === "object") {
       for (let innerProp in C_DEF[prop]) {
         if (typeof _.c[prop][innerProp] === "undefined") {
-          //log("Asetus '" + prop + "." + innerProp + "' alustettu arvoon " + JSON.stringify(C_DEF[prop][innerProp]), me);
           _.c[prop][innerProp] = C_DEF[prop][innerProp];
           count++;
         }
@@ -297,15 +307,14 @@ function chkConfig(cb) {
 
     _.c.out = undefined;
   }
-  //Deleting default config after 1st check to save memory...
+
+  //Deleting default config after 1st check to save memory
   C_DEF = null;
 
   if (count > 0) {
     Shelly.call("KVS.Set", { key: "porssi-config", value: _.c }, function (res, err, msg, cb) {
       if (err !== 0) {
-        //log("virhe tallennettaessa asetuksia:" + err + " - " + msg, me);
-      } else {
-        //log("asetukset tallennettu", me);
+        log("chkConfig() - save failed:" + err + " - " + msg);
       }
       if (cb) {
         cb(err === 0);
@@ -323,18 +332,9 @@ function chkConfig(cb) {
  * Reads config from KVS
  */
 function getConfig(isLoop) {
-  //let me = "getConfig()";
-  //log("luetaan asetukset...", me);
-
-  //Note: passing callback (cb) as userdata otherwise it can't be accessed from Shelly.call callback
   Shelly.call('KVS.Get', { key: "porssi-config" }, function (res, err, msg, isLoop) {
-    if (!res) {
-      //log("asetuksia ei löytynyt - alustetaan...", me);
-      _.c = {};
 
-    } else {
-      _.c = res.value;
-    }
+    _.c = res ? res.value : {};
 
     if (typeof USER_CONFIG == 'function') {
       _.c = USER_CONFIG(_.c, _, true);
@@ -343,7 +343,6 @@ function getConfig(isLoop) {
     chkConfig(function (ok) {
       _.s.configOK = ok ? 1 : 0;
       _.s.chkTs = 0; //To run the logic again with new settings
-      //log("asetukset ladattu", me);
 
       if (isLoop) {
         loopRunning = false;
@@ -358,47 +357,86 @@ function getConfig(isLoop) {
  * Background process loop that is called every x seconds
  */
 function loop() {
-  if (loopRunning) {
-    return;
-  }
-  loopRunning = true;
+  try {
+    if (loopRunning) {
+      return;
+    }
+    loopRunning = true;
 
-  updateState();
+    updateState();
 
-  if (!_.s.configOK) {
-    getConfig(true);
+    if (!_.s.configOK) {
+      getConfig(true);
 
-  } else if (pricesNeeded()) {
-    getPrices();
+    } else if (pricesNeeded(0)) {
+      //Prices for today
+      getPrices(0);
 
-  } else if (logicRunNeeded()) {
-    logic();
+    } else if (logicRunNeeded()) {
+      logic();
 
-  } else {
-    //Nothing to do
+    } else if (pricesNeeded(1)) {
+      //Prices for tomorrow
+      getPrices(1);
+
+    } else {
+      //Nothing to do
+      loopRunning = false;
+    }
+
+  } catch (err) {
+    //Shouldn't happen
+    log("loop() - " + err);
     loopRunning = false;
   }
 }
 
 /**
- * Returns true if we should get prices for today
+ * Returns true if we need prices for given day
+ * 
+ * @param {number} dayIndex 0 = today, 1 = tomorrow
  */
-function pricesNeeded() {
-  //let me = "pricesNeeded()";
+function pricesNeeded(dayIndex) {
   let now = new Date();
   let res = false;
 
-  /*
-  Getting prices for today if
-    - we have a valid time
-    - prices have never been fetched OR prices are from different day
-  */
-  res = _.s.timeOK && (_.s.p.ts === 0 || getDate(new Date(_.s.p.ts * 1000)) !== getDate(now));
+  if (dayIndex == 1) {
+    /*
+    Getting prices for tomorrow if
+      - we have a valid time
+      - clock is past 13:00 UTC+0 (NOTE: 13 instead of 12 as elering updates prices at 12:30 or so)
+      - we don't have prices
+    */
+    res = _.s.timeOK && _.s.p[1].ts === 0 && now.getHours() >= (13 + _.s.tzh);
+
+  } else {
+    /*
+    Getting prices for today if
+      - we have a valid time
+      - we don't have prices OR prices aren't for this day
+    */
+    let dateChanged = getDate(new Date(_.s.p[0].ts * 1000)) !== getDate(now);
+
+    //If day changes - do we already have prices in tomorrow data?
+    if (dateChanged && _.s.p[1].ts > 0 && getDate(new Date(_.s.p[1].ts * 1000)) !== getDate(now)) {
+      _["TOMORROW_PRICES_USED"] = true;
+      //Copy tomorrow data
+      _.p[0] = _.p[1];
+      _.s.p[0] = _.s.p[1];
+
+      //Clear tomorrow
+      _.s.p[1].ts = 0;
+      _.p[1] = [];
+
+      //No need to fetch from server
+      dateChanged = false;
+    }
+
+    res = _.s.timeOK && (_.s.p[0].ts == 0 || dateChanged);
+  }
 
   //If fetching prices has failed too many times -> wait until trying again
   if (_.s.errCnt >= C_ERRC && (epoch(now) - _.s.errTs) < C_ERRD) {
-    let timeLeft = (C_ERRD - (epoch(now) - _.s.errTs));
-    //log("liikaa virheitä, odotetaan " + timeLeft.toFixed(0) + " s", me);
     res = false;
 
   } else if (_.s.errCnt >= C_ERRC) {
@@ -420,13 +458,12 @@ function logicRunNeeded() {
   let now = new Date();
   let chk = new Date(_.s.chkTs * 1000);
 
-  //for debugging:
+  //for debugging (run every minute)
   /*return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
     || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0)
-    || (_.c.min > 0 && _.c.min < 60 && now.getMinutes() > _.c.min)
     || (_.s.fCmdTs == 0 && _.c.min < 60 && now.getMinutes() >= _.c.min && (_.s.cmd + _.c.inv) == 1);
-  */
+*/
 
   /*
     Logic should be run if
@@ -442,21 +479,24 @@ function logicRunNeeded() {
 }
 
 /**
- * Gets prices for today and then runs the logic
+ * Gets prices and then runs the logic if needed
+ * 
+ * @param {number} dayIndex 0 = today, 1 = tomorrow
  */
-function getPrices() {
-  let now = new Date();
-  updateTz(now);
-
+function getPrices(dayIndex) {
   try {
-    //let me = "getPrices()";
-    //log("haetaan päivän hinnat (yritys " + (_.s.errCnt + 1) + "/" + C_ERRC + ")", me);
+    let now = new Date();
+    updateTz(now);
 
-    let start = now.getFullYear()
+    let date = dayIndex == 1
+      ? new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 24 * 60 * 60 * 1000) //tomorrow at 00:00
+      : now;
+
+    let start = date.getFullYear()
       + "-"
-      + padStart(now.getMonth() + 1, 2, "0")
+      + padStart(date.getMonth() + 1, 2, "0")
       + "-"
-      + padStart(getDate(now), 2, "0")
+      + padStart(getDate(date), 2, "0")
       + "T00:00:00"
       + _.s.tz.replace("+", "%2b"); //URL encode the + character
 
@@ -473,7 +513,6 @@ function getPrices() {
     start = null;
     end = null;
 
-    //log("URL:" + req.url, me);
     Shelly.call("HTTP.GET", req, function (res, err, msg) {
       req = null;
 
@@ -484,10 +523,8 @@ function getPrices() {
           res.message = null;
           msg = null;
 
-          //log("hintadata luettu, käydään läpi", me);
-          _.p = [];
-          _.s.p.high = -999;
-          _.s.p.low = 999;
+          _.s.p[dayIndex].high = -999;
+          _.s.p[dayIndex].low = 999;
 
           //Converting base64 to text
           res.body_b64 = atob(res.body_b64);
@@ -533,16 +570,16 @@ function getPrices() {
             }
 
             //Adding and calculating stuff
-            _.p.push(row);
+            _.p[dayIndex].push(row);
 
-            _.s.p.avg += row[1];
+            _.s.p[dayIndex].avg += row[1];
 
-            if (row[1] > _.s.p.high) {
-              _.s.p.high = row[1];
+            if (row[1] > _.s.p[dayIndex].high) {
+              _.s.p[dayIndex].high = row[1];
             }
 
-            if (row[1] < _.s.p.low) {
-              _.s.p.low = row[1];
+            if (row[1] < _.s.p[dayIndex].low) {
+              _.s.p[dayIndex].low = row[1];
             }
 
             //find next row
@@ -552,61 +589,51 @@ function getPrices() {
           //Again to save memory..
           res = null;
 
-          //Calculate average
-          _.s.p.avg = _.p.length > 0 ? (_.s.p.avg / _.p.length) : 0;
+          //Calculate average and update timestamp
+          _.s.p[dayIndex].avg = _.p[dayIndex].length > 0 ? (_.s.p[dayIndex].avg / _.p[dayIndex].length) : 0;
+          _.s.p[dayIndex].ts = epoch(now);
 
-          //Check that read price data is from today
-          let now = new Date();
-          let priceDate = new Date(_.p[0][0] * 1000);
-
-          if (getDate(priceDate) === getDate(now)) {
-            _.s.p.ts = epoch(now);
-            _.s.p.now = getPriceNow();
-
-            //log("päivän hintatiedot päivitetty", me);
-
-          } else {
-            //throw new Error("virhe, hinnat eri päivältä - nyt:" + now.toString() + " - data:" + priceDate.toString());
-            throw new Error("date err " + now.toString() + " - " + priceDate.toString());
+          if (dayIndex == 1 && _.p[dayIndex].length < 23) {
+            //Let's assume that if we have data for at least 23 hours everything is OK
+            //This should take DST saving changes in account
+            //If we get less the prices may not be updated yet to elering API?
+            throw new Error("huomisen hintoja ei saatu");
           }
+          
 
         } else {
-          //throw new Error("virhe luettaessa hintoja: " + err + "(" + msg + ") - " + JSON.stringify(res));
-          throw new Error("conn.err (" + msg + ") " + JSON.stringify(res));
+          throw new Error("virhe: " + err + "(" + msg + ") - " + JSON.stringify(res));
         }
 
       } catch (err) {
+        log("getPrices() - " + err);
         _.s.errCnt += 1;
         _.s.errTs = epoch();
-        _.s.p.ts = 0;
-        _.p = [];
-        log(err);
 
-        //NOTE: All the rest are commented for now because of memory limit
-        /*
-        if (err.message.indexOf("virhe") >= 0) {
-          log(err.message, me);
-        } else {
-          log("virhe: " + JSON.stringify(err), me);
-        }
-        */
+        _.s.p[dayIndex].ts = 0;
+        _.p[dayIndex] = [];
       }
 
-      /*
-      NOTE: commented for now because of memory limit
-      if (_.s.errCnt >= C_ERRC) {
-        //log("luku epäonnistui " + EC + " kertaa, pidetään taukoa", me);
+      if (dayIndex == 1) {
+        loopRunning = false;
+        return;
       }
-      */
-
-      //Run logic no matter what happened
+      _["PRICE_READ_HTTP"] = epoch();
+      //Today prices -> run logic now
       logic();
-
     });
 
   } catch (err) {
-    log(err);
-    //Run logic no matter what happened
+    log("getPrices() - " + err);
+    _.s.p[dayIndex].ts = 0;
+    _.p[dayIndex] = [];
+
+    if (dayIndex == 1) {
+      loopRunning = false;
+      return;
+    }
+
+    //Today prices -> run logic now
     logic();
   }
 }
@@ -614,7 +641,8 @@ function getPrices() {
 /**
  * Sets outputs to cmd
  * If callback given, its called with success status, like cb(true)
- * @param {*} cb callback (optional)
+ * 
+ * @param {Function} cb callback (optional)
  */
 function setOutputs(cb) {
   //Invert?
@@ -626,7 +654,6 @@ function setOutputs(cb) {
   let success = 0;
 
   for (let i = 0; i < _.c.outs.length; i++) {
-
     setRelay(_.c.outs[i], function (res) {
       cnt++;
 
@@ -640,7 +667,7 @@ function setOutputs(cb) {
           while (_.h.length >= C_HIST) {
             _.h.splice(0, 1);
           }
-          _.h.push([epoch(), cmd ? 1 : 0]);
+          _.h.push([epoch(), cmd ? 1 : 0, _.s.st]);
 
           _.s.cmd = cmd ? 1 : 0;
           cb(true)
@@ -655,18 +682,19 @@ function setOutputs(cb) {
 /**
  * Sets relay output to cmd
  * If callback given, its called with success status, like cb(true)
- * @param {*} cb callback (optional)
+ * 
+ * @param {number} output output number
+ * @param {Function} cb callback (optional)
  */
 function setRelay(output, cb) {
   let prm = "{id:" + output + ",on:" + (cmd ? "true" : "false") + "}";
 
   Shelly.call("Switch.Set", prm, function (res, err, msg, cb) {
     if (err != 0) {
-      log("error setting output " + output + " " + (cmd ? "ON" : "OFF") + ": " + err + " - " + msg);
+      log("setRelay() - ohjaus #" + output + " epäonnistui: " + err + " - " + msg);
     }
 
     cb(err == 0);
-
   }, cb);
 }
 
@@ -674,34 +702,28 @@ function setRelay(output, cb) {
  * Runs the main logic
  */
 function logic() {
-
-  //This is a good time to update config if any overrides exist
-  if (typeof USER_CONFIG == 'function') {
-    _.c = USER_CONFIG(_.c, _, false);
-  }
-
-  //let me = "logic()";
-  let now = new Date();
-  updateTz(now);
-
-  cmd = false;
-
   try {
+    //This is a good time to update config if any overrides exist
+    if (typeof USER_CONFIG == 'function') {
+      _.c = USER_CONFIG(_.c, _, false);
+    }
+
+    cmd = false;
+    let now = new Date();
+    updateTz(now);
+    updateCurrentPrice();
+
     if (_.c.mode === 0) {
       //Manual mode
       cmd = _.c.m0.cmd === 1;
-      //log("moodi on käsiohjaus, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
       _.s.st = 1;
 
-    } else if (_.s.timeOK && (_.s.p.ts > 0 && getDate(new Date(_.s.p.ts * 1000)) === getDate(now))) {
+    } else if (_.s.timeOK && (_.s.p[0].ts > 0 && getDate(new Date(_.s.p[0].ts * 1000)) === getDate(now))) {
       //We have time and we have price data for today
-      _.s.p.now = getPriceNow();
 
-      //log("tämän tunnin hinta: " + _.s.p.now + " c/kWh", me);
       if (_.c.mode === 1) {
         //Price limit
-        cmd = _.s.p.now <= (_.c.m1.lim == "avg" ? _.s.p.avg : _.c.m1.lim);
-        //log("moodi on hintaraja (" + _.c.m1.priceLimit + "), ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
+        cmd = _.s.p[0].now <= (_.c.m1.lim == "avg" ? _.s.p[0].avg : _.c.m1.lim);
         _.s.st = cmd ? 2 : 3;
 
       } else if (_.c.mode === 2) {
@@ -710,18 +732,16 @@ function logic() {
         _.s.st = cmd ? 5 : 4;
 
         //always on price limit
-        if (!cmd && _.s.p.now <= (_.c.m2.lim == "avg" ? _.s.p.avg : _.c.m2.lim)) {
+        if (!cmd && _.s.p[0].now <= (_.c.m2.lim == "avg" ? _.s.p[0].avg : _.c.m2.lim)) {
           cmd = true;
           _.s.st = 6;
         }
 
         //maximum price
-        if (cmd && _.s.p.now > (_.c.m2.m == "avg" ? _.s.p.avg : _.c.m2.m)) {
+        if (cmd && _.s.p[0].now > (_.c.m2.m == "avg" ? _.s.p[0].avg : _.c.m2.m)) {
           cmd = false;
           _.s.st = 11;
         }
-
-        //log("moodi on halvimmat tunnit, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
       }
 
     } else if (_.s.timeOK) {
@@ -732,13 +752,11 @@ function logic() {
       if ((_.c.bk & binNow) == binNow) {
         cmd = true;
       }
-      //log("hintatietoja ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
 
     } else {
       //Time is not known
       cmd = _.c.err === 1;
       _.s.st = 8;
-      //log("kellonaikaa ei ole, ohjaus: " + (cmd ? "PÄÄLLE" : "POIS"), me);
     }
 
     //Forced hours
@@ -767,12 +785,11 @@ function logic() {
       }
     }
 
-
     function logicFinalize(finalCmd) {
       //Normally cmd == finalCmd, but user script could change it
       if (cmd != finalCmd) {
         _.s.st = 12;
-        log("HUOMIO: ohjaus muuttunut käyttäjän skriptin toimesta");
+        log("HUOMIO: käyttäjäskripti muutti ohjausta");
       }
 
       cmd = finalCmd;
@@ -794,8 +811,7 @@ function logic() {
     }
 
   } catch (err) {
-    //log("virhe: " + JSON.stringify(err), me);
-    log(err);
+    log("logic() virhe:" + err);
     loopRunning = false;
   }
 }
@@ -823,12 +839,12 @@ function isCheapestHour() {
   //This is (and needs to be) 1:1 in both frontend and backend code
   let cheapest = [];
 
-  for (_perStart = 0; _perStart < _.p.length; _perStart += _.c.m2.per) {
+  for (_perStart = 0; _perStart < _.p[0].length; _perStart += _.c.m2.per) {
     //Create array of indexes in selected period
     let order = [];
     for (ind = _perStart; ind < _perStart + _.c.m2.per; ind++) {
       //If we have less hours than 24 then skip the rest from the end
-      if (ind > _.p.length - 1)
+      if (ind > _.p[0].length - 1)
         break;
 
       order.push(ind);
@@ -844,7 +860,7 @@ function isCheapestHour() {
         let sum = 0;
         //Calculate sum of these sequential hours
         for (_ind2 = _ind; _ind2 < _ind + _.c.m2.cnt; _ind2++) {
-          sum += _.p[order[_ind2]][1];
+          sum += _.p[0][order[_ind2]][1];
         };
 
         //If average price of these sequential hours is lower -> it's better
@@ -863,7 +879,7 @@ function isCheapestHour() {
       for (_ind = 1; _ind < order.length; _ind++) {
         let temp = order[_ind];
 
-        for (_ind2 = _ind - 1; _ind2 >= 0 && _.p[temp][1] < _.p[order[_ind2]][1]; _ind2--) {
+        for (_ind2 = _ind - 1; _ind2 >= 0 && _.p[0][temp][1] < _.p[0][order[_ind2]][1]; _ind2--) {
           order[_ind2 + 1] = order[_ind2];
         }
         order[_ind2 + 1] = temp;
@@ -881,7 +897,7 @@ function isCheapestHour() {
   let res = false;
 
   for (let i = 0; i < cheapest.length; i++) {
-    let row = _.p[cheapest[i]];
+    let row = _.p[0][cheapest[i]];
 
     if (isCurrentHour(row[0], epochNow)) {
       //This hour is active -> current hour is one of the cheapest
@@ -898,35 +914,40 @@ function isCheapestHour() {
 }
 
 /**
- * Returns the current price. Throws error if not found
- * @returns 
+ * Update current price to _.s.p[0].now
+ * Returns true if OK, false if failed
  */
-function getPriceNow() {
-  ////let me = "getPriceNow()";
+function updateCurrentPrice() {
+  if (!_.s.timeOK || _.s.p[0].ts == 0) {
+    _.s.p[0].now = 0;
+    return;
+  }
+
   let now = epoch();
 
-  //todo start from current hour?
-  for (let i = 0; i < _.p.length; i++) {
-    if (isCurrentHour(_.p[i][0], now)) {
+  for (let i = 0; i < _.p[0].length; i++) {
+    if (isCurrentHour(_.p[0][i][0], now)) {
       //This hour is active 
-      return _.p[i][1];
+      _.s.p[0].now = _.p[0][i][1];
+      return true;
     }
   }
 
   //If no price found it might be error OR because of timezone we don't have prices yet
   //If number of hours is less than 24 -> get prices again
-  if (_.p.length < 24) {
-    _.s.p.ts = 0;
+  if (_.p[0].length < 24) {
+    _.s.p[0].ts = 0;
   }
-  //log("tämän tunnin hintaa ei löytynyt", me);
-  throw new Error("no price for this hour");
+
+  _.s.p[0].now = 0;
+  return false;
 }
 
 /**
  * Parses parameters from HTTP GET request query to array of objects
  * For example key=value&key2=value2
- * @param {*} params 
- * @returns 
+ * 
+ * @param {string} params 
  */
 function parseParams(params) {
   let res = {};
@@ -972,21 +993,15 @@ function onServerRequest(request, response) {
     if (params.r === "s") {
       //s = get state
       updateState();
-
-      //if k given, return only the key k
-      /*
-      if (params.k) {
-        response.body = JSON.stringify(_[params.k]);
-      } else {*/
       response.body = JSON.stringify(_);
       GZIP = false;
-      //}
 
     } else if (params.r === "r") {
       //r = reload settings
       _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
       getConfig(false);
-      _.s.p.ts = 0; //get prices
+      _.s.p[0].ts = 0; //get prices
+      _.s.p[1].ts = 0; //get prices
       response.code = 204;
       GZIP = false;
 
@@ -1016,6 +1031,14 @@ function onServerRequest(request, response) {
 
     } else if (params.r === "status.js") {
       response.body = atob('#[tab-status.js]');
+      MIME_TYPE = MIME_JS;
+
+    } else if (params.r === "history") {
+      response.body = atob('#[tab-history.html]');
+      MIME_TYPE = MIME_HTML;
+
+    } else if (params.r === "history.js") {
+      response.body = atob('#[tab-history.js]');
       MIME_TYPE = MIME_JS;
 
     } else if (params.r === "config") {

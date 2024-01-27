@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.11.0] - xx.01.2024
+- Seuraavan päivän hintojen haku ja niiden sekä ohjausten näyttö etusivulla
+- Ohjaushistorialle oma sivu
+- Pieniä parannuksia ja optimointeja 
+
 ## [2.10.2] - 21.01.2024(2)
 - Lisätty koodin tarkistus että halvimpien tuntien lukumäärä <= jakson pituus
   - Havaittu ongelma kun H&T skriptissä oli isompi tuntimäärä (koska käyttäjän skriptin muutoksia ei tarkisteta)
