@@ -423,6 +423,7 @@ function pricesNeeded(dayIndex) {
       //Copy tomorrow data
       _.p[0] = _.p[1];
       _.s.p[0] = _.s.p[1];
+      _.s.p[0].ts = epoch();
 
       //Clear tomorrow
       _.s.p[1].ts = 0;
@@ -523,6 +524,7 @@ function getPrices(dayIndex) {
           res.message = null;
           msg = null;
 
+          _.p[dayIndex] = [];
           _.s.p[dayIndex].high = -999;
           _.s.p[dayIndex].low = 999;
 
@@ -613,14 +615,15 @@ function getPrices(dayIndex) {
         _.s.p[dayIndex].ts = 0;
         _.p[dayIndex] = [];
       }
-
+      loopRunning = false;
+/*
       if (dayIndex == 1) {
         loopRunning = false;
         return;
-      }
+      }*/
       _["PRICE_READ_HTTP"] = epoch();
       //Today prices -> run logic now
-      logic();
+      //logic();
     });
 
   } catch (err) {
@@ -628,13 +631,15 @@ function getPrices(dayIndex) {
     _.s.p[dayIndex].ts = 0;
     _.p[dayIndex] = [];
 
+    loopRunning = false;
+    /*
     if (dayIndex == 1) {
       loopRunning = false;
       return;
     }
 
     //Today prices -> run logic now
-    logic();
+    logic();*/
   }
 }
 
