@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Suomeksi
 ## [2.11.1] - 01.02.2024 (2)
 - Bugikorjaus: Skripti ei aina käynnistynyt oikein Shellyn bootatessa / herätessä
+  - **HUOMIO: Koskee versioita 2.90...2.11.0!**
+  - Useamman lähdön ohjauksen yhteydessä tullut bugi, joka aiheuttaa välillä skriptin kaatumisen Shellyn käynnistyksen yhteydessä.
 
 ## [2.11.0] - 01.02.2024
 - Seuraavan päivän hinnat ja toteutuva ohjaus etusivulla
