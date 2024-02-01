@@ -57,7 +57,7 @@ Käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard.elering
 - [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
   + [Esimerkki: Ohjauksen muutos keskiarvon avulla](#esimerkki-ohjauksen-muutos-keskiarvon-avulla)
   + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-plus-add-on-ja-ds18b20)
-  + [Ohjaustuntien asetus lämpötilan perusteella (Shelly H&T)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-ht)
+  + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H&T)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-erillinen-shelly-ht)
   + [Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjauksen-rajoitus-lämpötilan-avulla-shelly-plus-add-on-ja-ds18b20)
   + [Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-sääpalvelusta-ja-sen-hyödyntäminen)
   + [Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)](#esimerkki-asetusten-määrittäminen-skriptissä-ilman-käyttöliittymää)
@@ -238,7 +238,7 @@ Alla esimerkki, kuinka käyttöliittymä näyttää [Shelly H&T:n lämpötilaa h
 
 **Globaalit muuttujat**
 
-Skriptissä on saatavilla globaali muuttuja `_`, joka sisältää skriptin tilan. Sen kuvaus löytyy koodista: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L88>
+Skriptissä on saatavilla globaali muuttuja `_`, joka sisältää skriptin tilan. Sen kuvaus löytyy koodista: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L78>
 
 
 **Ohjauksen muutokset (USER_OVERRIDE)**
@@ -250,7 +250,7 @@ Kun skripti on todennut ohjauksen tilan, kutsuu se funktiota `USER_OVERRIDE`, mi
 | parametri | tyyppi | selite |
 | --- | --- | --- |
 | `cmd` | `boolean` | Skriptin määrittämä lopullinen komento (ennen mahdollista käänteistä ohjausta)
-| `state` | `object` | Skriptin tila, sama kuin globaali muuttuja `_`.<br><br>Selitykset koodissa: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L88> (esim `state.s.p.now`)
+| `state` | `object` | Skriptin tila, sama kuin globaali muuttuja `_`.<br><br>Selitykset koodissa: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L78> (esim `state.s.p.now`)
 | `callback` | `function(boolean)` | Takaisinkutsufunktio, jota **täytyy** kutsua lopullisella komennolla, esim: `callback(true)`
 | *`paluuarvo`* | `void` | Ei paluuarvoa
 
@@ -264,7 +264,7 @@ Kun skripti on hakenut asetukset muistista tai kun pörssisähköohjauksen logii
 | parametri | tyyppi | selite |
 | --- | --- | --- |
 | `config` | `object` | Skriptin tämänhetkiset asetukset
-| `state` | `object` | Skriptin tila, sama kuin globaali muuttuja `_`.<br><br>Selitykset koodissa: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L88> (esim `state.s.p.now`)
+| `state` | `object` | Skriptin tila, sama kuin globaali muuttuja `_`.<br><br>Selitykset koodissa: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L78> (esim `state.s.p.now`)
 | `initialized` | `boolean` | `true` jos funktiota kutsutaan asetusten muistista hakemisen jälkeen, `false` jos kyseessä on logiikan suoritus. Tämän avulla tietää, onko aktiiviset asetukset tallennetut (`true`) vai mahdollisesti ylikirjoitetut. Näin esim. alkuperäiset käyttöliittymältä tallennetut asetukset voidaan ottaa talteen.
 | *`paluuarvo`* | `object` | Lopulliset asetukset, joita halutaan käyttää
 
@@ -294,11 +294,11 @@ Esimerkin toiminta
 
 **Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp-hours.js>
 
-### Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly H&T)
+### Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H&T)
 
-Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjaustuntien hienosäädössä.
+Tämä esimerkki näyttää, kuinka voi hyödyntää toisen Shelly H&T:n lämpötilamittausta ohjaustuntien hienosäädössä. Eli pörssisähköskripti pyörii relelähdön omaavassa Shellyssä ja erikseen on ulkolämpötilaa mittaava Shelly H&T.
 
-Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjaustuntien asetus lämpötilan perusteella (Shelly H&T)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H&T)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 HUOM: Tämä vaatii, että Shelly H&T asetetaan `actions -> sensor reports` alle osoite `http://ip-osoite/script/1/update-temp`, missä IP-osoite on pörssisähköskriptiä pyörittävän Shellyn osoite. Lisäksi `sensor reports` pitää ruksia käyttöön. Näin kyseinen laite lähettää lämpötilan tähän osoitteeseen.
 
@@ -314,7 +314,7 @@ Esimerkin toiminta
 
 Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen rajoituksessa siten, että ei lämmitetä turhaan mutta ei myöskään päästetä liian kylmäksi. 
 
-Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen ylikirjoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+Asenna esimerkkiskripti nimeltä **Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 Käyttää lämpötila-anturia, jonka id on 100.
 * Jos lämpötila on yli 15 astetta, asetetaan lähtö aina pois

@@ -16,7 +16,7 @@
   },
   {
     "fname": "dist/shelly-porssisahko-ht-sensor-temp.js",
-    "title": "Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly H&T)",
+    "title": "Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H&T)",
     "description": "Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjaustuntien hienosäädössä (lue README)"
   },
   {
