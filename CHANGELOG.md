@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.11.1] - 01.02.2024 (2)
+- Bugikorjaus: Skripti ei aina käynnistynyt oikein Shellyn bootatessa / herätessä
+
 ## [2.11.0] - 01.02.2024
 - Seuraavan päivän hinnat ja toteutuva ohjaus etusivulla
 - Uusi asetus: Lähdön ohjaus
@@ -136,6 +139,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.11.1] - 01.02.2024 (2)
+- Bug fix: Script didn't always start after boot / power reset
+
 ## [2.11.0] - 01.02.2024
 - Next day prices and control at the frontpage
 - New setting to select if output should be always written or only when changed

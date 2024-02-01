@@ -78,7 +78,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.11.0",
+    v: "2.11.1",
     /** Device name */
     dn: '',
     /** status as number */
@@ -358,7 +358,7 @@ function getConfig(isLoop) {
 
       if (isLoop) {
         loopRunning = false;
-        loop();
+        Timer.set(1000, false, loop);
       }
     });
 
@@ -433,7 +433,7 @@ function pricesNeeded(dayIndex) {
     if (dateChanged && _.s.p[1].ts > 0 && getDate(new Date(_.s.p[1].ts * 1000)) !== getDate(now)) {
       //Copy tomorrow data
       _.p[0] = _.p[1];
-      
+
       _.s.p[0] = Object.assign({}, _.s.p[1]);
       _.s.p[0].ts = epoch();
 
@@ -627,14 +627,14 @@ function getPrices(dayIndex) {
         _.s.p[dayIndex].ts = 0;
         _.p[dayIndex] = [];
       }
-      
+
       if (dayIndex == 1) {
         loopRunning = false;
         return;
       }
 
-      //Today prices -> run logic now
-      logic();
+      //Today prices -> run logic ASAP
+      Timer.set(1000, false, logic);
     });
 
   } catch (err) {
@@ -644,57 +644,11 @@ function getPrices(dayIndex) {
 
     if (dayIndex == 1) {
       loopRunning = false;
-      return; 
+      return;
     }
 
-    //Today prices -> run logic now
-    logic();
-  }
-}
-
-/**
- * Sets outputs to cmd
- * If callback given, its called with success status, like cb(true)
- * 
- * @param {Function} cb callback (optional)
- */
-function setOutputs(cb) {
-  //Invert?
-  if (_.c.inv) {
-    cmd = !cmd;
-  }
-
-  if (_.c.oc == 1 && _.s.cmd == cmd) {
-    //No need to write 
-    log("setOutputs(): lähtö on jo oikeassa tilassa");
-    addHistory();
-    _.s.cmd = cmd ? 1 : 0;
-    cb(true);
-    return;
-  }
-
-  let cnt = 0;
-  let success = 0;
-
-  for (let i = 0; i < _.c.outs.length; i++) {
-    setRelay(_.c.outs[i], function (res) {
-      cnt++;
-
-      if (res) {
-        success++;
-      }
-
-      if (cnt == _.c.outs.length) {
-        //All done
-        if (success == cnt) {
-          addHistory();
-          _.s.cmd = cmd ? 1 : 0;
-          cb(true);
-        } else {
-          cb(false);
-        }
-      }
-    });
+    //Today prices -> run logic ASAP
+    Timer.set(1000, false, logic);
   }
 }
 
@@ -812,14 +766,45 @@ function logic() {
 
       cmd = finalCmd;
 
-      setOutputs(function (ok) {
-        if (ok) {
-          _.s.chkTs = epoch();
-        }
+      //Invert?
+      if (_.c.inv) {
+        cmd = !cmd;
+      }
 
+      if (_.c.oc == 1 && _.s.cmd == cmd) {
+        //No need to write 
+        log("logic(): lähtö on jo oikeassa tilassa");
+        addHistory();
+        _.s.cmd = cmd ? 1 : 0;
+        _.s.chkTs = epoch();
         loopRunning = false;
-      });
+      }
+
+      let cnt = 0;
+      let success = 0;
+
+      for (let i = 0; i < _.c.outs.length; i++) {
+        setRelay(_.c.outs[i], function (res) {
+          cnt++;
+
+          if (res) {
+            success++;
+          }
+
+          if (cnt == _.c.outs.length) {
+            //All done
+            if (success == cnt) {
+              addHistory();
+              _.s.cmd = cmd ? 1 : 0;
+              _.s.chkTs = epoch();
+            }
+
+            loopRunning = false;
+          }
+        });
+      }
     }
+
 
     //User script
     if (typeof USER_OVERRIDE == 'function') {
