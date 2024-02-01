@@ -11,16 +11,15 @@ Shelly-laitteisiin selaimella ohjattava pörssisähkösovellus, joka venyttää 
 
 Jos haluat ohjata Shellyn relekytkintä sähkön hinnan mukaan, ilman johonkin palveluun rekisteröitymistä, niin tämä voi olla hyödyllinen.
 
-Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole muita palveluita. Skripti ei vaadi rekisteröitymistä mihinkään vaan se toimii "suoraan paketista".
+Käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard.elering.ee/api) -rajapintaa, eli välissä ei ole muita palveluita. Skripti ei vaadi rekisteröitymistä mihinkään vaan se toimii "suoraan paketista".
 
-<img style="width:100%;max-width:450px;" src="https://github.com/jisotalo/shelly-porssisahko/assets/13457157/44da4ece-2e7b-4420-9906-31a644ebcddd" alt="shelly-porssisahko">
+![g0MPiID21U](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2caa27f4-f1ec-4d22-b9c9-408ed01b13d0)
 
 ## Ominaisuudet
 * Oma web-serveri Shellyn sisällä ja siinä pyörivä käyttöliittymä
 * Valvonta ja konfigurointi selaimen avulla
 * Ei tarvitse rekisteröityä mihinkään
-* Konfiguroitavuus ja hienosäätö mahdollisesta omilla skripteillä
-  * Esim. ulkolämpötilan hyödyntäminen ohjauksessa
+* Nykyisen ja seuraavan päivän hinnat sekä toteutuva ohjaus näkyvillä
 * Kolme ohjaustapaa: 
   * **käsiohjaus** - yksinkertaisesti ohjaus päälle/pois
   * **hintaraja** - jos hinta on alle rajan, laitetaan ohjaus päälle 
@@ -30,7 +29,9 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
 * Vikasietoinen
   * Varmuustunnit (jos ei hintoja mutta tiedetään kellonaika)
   * Hätätilaohjaus (jos ei internet-yhteyttä eikä tiedetä kellonaikaa)
-* Todettu toimivaksi seuraavilla
+* Konfiguroitavuus ja hienosäätö mahdollisesta omilla skripteillä
+  * Esim. ulkolämpötilan hyödyntäminen ohjauksessa
+* Todettu toimivaksi ainakin seuraavilla
   * Shelly Plus 1PM
   * Shelly Plus 2PM
   * Shelly Plus 1
@@ -40,7 +41,7 @@ Käyttää suoraan Viron kantaverkkoyhtiön [elering.ee](https://dashboard.eleri
   * Shelly Pro 4PM
   * Shelly Plus Plug S
   * Shelly Pro3EM + Switch Add-on
-  * *Laita viestiä jos sinulla on kokemusta muista laitteista!*
+  * Shelly Plus UNI
 
 ## Sisällysluettelo
 - [Muutoshistoria](#muutoshistoria)
@@ -80,9 +81,9 @@ Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisot
 
 1. Ota Shelly käyttöön, yhdistä se wifi-verkkoon ja päivitä sen firmware. 
 
-    **HUOMIO: Firmware 1.0.7 tai uudempi vaaditaan versiosta 2.7.0 eteenpäin.**
+    **HUOMIO: Firmware 1.0.7 tai uudempi vaaditaan**
 
-2. Valinnainen: Laita **Websocket debug** päälle (Settings -> Debug -> Enable websocket debug). Näin näet suoraan hallintapaneelin osoitteen skriptin alla.
+2. Laita **Websocket debug** päälle (Settings -> Debug -> Enable websocket debug). Näin näet suoraan hallintapaneelin osoitteen skriptin alla.
 3. Avaa **Scripts**-sivu Shellyn hallinnasta. Poista olemassaolevat skriptit, jos niitä on.
 4. Paina **Library**-painiketta
 
@@ -145,19 +146,21 @@ Lisää hyvää tietoa löytyy [Shelly tuki (suomeksi)](https://www.facebook.com
 
 Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 
- ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/1e770799-25d6-442b-a04b-eb8f77de63f5)
+<img  alt="image" src="https://github.com/jisotalo/shelly-porssisahko/assets/13457157/33c9fa38-487b-4fbd-a2b6-25b4a22b6fb2">
 
 | Asetus | Selite | Esim. (kuva yllä)
 | --- | --- | ---
 | Ohjaustapa | Millä ohjaustavalla lähtöä ohjataan.<br><br>Selitykset taulukon alapuolella. | `jakson halvimmat tunnit`
 | Ohjattavat lähdöt | Shellyn ohjattavien lähtöjen ID-numerot.<br><br>Jos useampi lähtö, erota pilkulla (max. 4 kpl). <br><br>- Yksi lähtö  (mm. Shelly Plus 1) --> `0`.<br>- Useampi (esim 0, 1 ja 100) --> `0,1,100` | `0` 
+| Lähdön ohjaus | Ohjataanko relelähtö aina haluttuun tilaan vai ainoastaan jos tila muuttuu.<br><br>- **Aina tarkistaessa:** Lähtö ohjataan joka tarkistuksen jälkeen (eli yleensä kerran tunnissa) haluttuun tilaan ja Shellyn sovelluksen tai hallintapaneelin kautta tehty muutos ylikirjoitetaan.<br>- **Vain muuttuessa:** Lähtö ohjataan ensimmäisellä kerralla haluttuun tilaan ja sen jälkeen ainoastaan sen muuttuessa. | `vain muuttuessa`
+| Ohjausminuutit | Määrittää kuinka monta minuuttia tunnista ohjaus on päällä. Jos tunti on turhan pitkä aika pitää lähtöä päällä, voidaan aika muuttaa lyhyemmäksi. Asetus vaikuttaa kaikkiin ohjauksiin, pois lukien pakko-ohjaus käsin. [min]<br><br>Esim. 30 minuuttia riittää aina varaajan lämmittämiseen, joten pidetään vain tunnin ensimmäiset 30 minuuttia ohjausta päällä. | `60`
 | Käänteinen ohjaus | Jos ruksittu, ohjaus toimii käänteisesti normaaliin nähden. Tällöin lähtökohta on, että lähtö on päällä.<br><br>- **Varmuustunnit**: Lähtö ohjataan varmuustunneilla pois päältä<br>- **Hätätilaohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Pakko-ohjaukset**: Lähtö voidaan pakko-ohjata pois päältä<br>- **Käsiohjaus**: Lähtö on päinvastainen asetukseen nähden<br>- **Hintaraja**: Jos hinta on alle rajan, lähtö asetetaan pois päältä<br>- **Jakson halvimmat tunnit**: Jos nykyinen tunti on halvimpia tunteja, lähtö asetetaan pois päältä | `ei`
 | Sähkön ALV | Käytettävä ALV-% sähkön hinnalle. [%]| `24`
 | Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]<br><br>Esim. jos haluat ottaa erisuuruiset siirtomaksut huomioon tuntien valinnassa. | päivä: `4` <br> yö: `3`
 | Varmuustunnit | Jos sähkön hintaa ei jostain syystä tiedetä, ohjataan lähtö näillä tunneilla päälle.<br><br>Esim. ongelma hintojen haussa tai nettiyhteys katkeaa. | `01:00-07:00`
 | Hätätilaohjaus | Jos Shelly ei jostain syystä tiedä kellonaikaa, ohjataan lähtö tähän tilaan varmuuden vuoksi.<br><br>Esim. jos sähkökatkon jälkeen nettiyhteys ei palaudu (ei hintoja eikä kellonaikaa). | `ON`
 | Pakko-ohjaukset | Voidaan määrittää tunnit, jolloin ohjaus asetetaan joko päälle tai pois riippumatta sähkön hinnasta ja muista ohjauksista (pl. pakko-ohjaus käsin).<br><br>Esim. jos haluat lämmittää varajaa joka aamu tai estää ohjauksen tiettynä osana vuorokaudesta. | `05:00-07:00` ja `19:00-21:00` päällä<br><br>`01:00-02:00` pois
-| Ohjausminuutit | Määrittää kuinka monta minuuttia tunnista ohjaus on päällä. Jos tunti on turhan pitkä aika pitää lähtöä päällä, voidaan aika muuttaa lyhyemmäksi. Asetus vaikuttaa kaikkiin ohjauksiin pois lukien pakko-ohjaukseen käsin. [min]<br><br>Esim. 30 minuuttia riittää aina varaajan lämmittämiseen, joten pidetään vain tunnin ensimmäiset 30 minuuttia ohjausta päällä. | `60`
+
 ### Ohjaustapa: Käsiohjaus
 
 Käsiohjauksella lähtö ohjataan käyttöliittymältä asetettuun tilaan.
@@ -196,7 +199,7 @@ Versiosta 2.4.0 lähtien voidaan myös määrittää, että päälläolotuntien 
 | Aina päällä -raja | Jos sähkö on tätä halvempaa (tai juuri tämän hintaista) niin lähtö on aina päällä. [c/kWh]<br><br>Voit syöttää tähän myös arvon `avg`, jolloin käytetään päivän hinnan keskiarvoa. | `-0.5`
 | Maksimihinta | Jos sähkön hinta on tätä korkeampi, lähtöä ei aseteta päälle vaikka tunti olisikin halvimpia tunteja. [c/kWh]<br><br>Voit syöttää tähän myös arvon `avg`, jolloin käytetään päivän hinnan keskiarvoa.<br><br>*Tämän kanssa pitää olla tarkkana, jos tulee kalliita päiviä.* | `30` 
 
-Alla esimerkki miten ohjaukset menenivät 12.10.2023 hinnoilla ja yllä olevilla asetuksilla (6h, 2 halvinta tuntia, aina päällä -raja -0.5 c/kWh). Huomaa jaksojen korostus taustavärillä.
+Alla esimerkki miten ohjaukset toteutuivat 12.10.2023 hinnoilla ja yllä olevilla asetuksilla (6h, 2 halvinta tuntia, aina päällä -raja -0.5 c/kWh). Huomaa jaksojen korostus taustavärillä.
 
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/b095bac2-4b95-4f1f-810c-51ae2bba98d9)
 
@@ -264,9 +267,11 @@ Kun skripti on hakenut asetukset muistista tai kun pörssisähköohjauksen logii
 | `initialized` | `boolean` | `true` jos funktiota kutsutaan asetusten muistista hakemisen jälkeen, `false` jos kyseessä on logiikan suoritus. Tämän avulla tietää, onko aktiiviset asetukset tallennetut (`true`) vai mahdollisesti ylikirjoitetut. Näin esim. alkuperäiset käyttöliittymältä tallennetut asetukset voidaan ottaa talteen.
 | *`paluuarvo`* | `object` | Lopulliset asetukset, joita halutaan käyttää
 
-### Esimerkki: Ohjauksen hienosäätö keskiarvon avulla
+### Esimerkki: Ohjauksen muutos keskiarvon avulla
 
-Tämä esimerkki näyttää kuinka voi hyödyntää hintatietoja ohjauksen hienosäätöön. Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö keskiarvon avulla** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+Tämä esimerkki näyttää kuinka voi hyödyntää hintatietoja ohjauksen hienosäätöön. 
+
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen muutos keskiarvon avulla** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 Skripti asettaa ohjauksen pois, mikäli tuntihinta on yli 80% päivän keskiarvosta. Muuten mennään pörssisähköohjauksen mukaan.
 
@@ -274,18 +279,25 @@ Skripti asettaa ohjauksen pois, mikäli tuntihinta on yli 80% päivän keskiarvo
 
 ### Esimerkki: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)
 
-Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen hienosäädössä. Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+Tämä esimerkki näyttää, kuinka voi hyödyntää mitattua ulkolämpötilaa ohjauksen hienosäädössä. 
+
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 Käyttää lämpötila-anturia, jonka id on 100.
-* Jos lämpötila on yli 15 astetta, asetetaan lähtö aina pois
-* Jos lämpötila on alle 5 astetta, asetetaan se aina päälle
-* Muuten annetaan ohjata pörssisähköohjauksen mukaan
 
-**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js>
+Esimerkin toiminta
+* Jos lämpötila on alle -15°C, laitetaan halvimpien tuntien määräksi 8h ja ohjausminuuteksi 60min
+* Jos lämpötila on alle -10°C, laitetaan halvimpien tuntien määräksi 7h ja ohjausminuuteksi 45min
+* Jos lämpötila on alle -5°C, laitetaan halvimpien tuntien määräksi 6h ja ohjausminuuteksi 45min
+* Muuten annetaan ohjata pörssisähköohjauksen asetusten mukaan
+
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp-hours.js>
 
 ### Esimerkki: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla
 
-Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjauksen hienosäädössä. Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjauksen hienosäädössä. 
+
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 HUOM: Tämä vaatii, että Shelly H&T asetetaan `actions -> sensor reports` alle osoite `http://ip-osoite/script/1/update-temp`, missä IP-osoite on pörssisähköskriptiä pyörittävän Shellyn osoite. Lisäksi `sensor reports` pitää ruksia käyttöön. Näin kyseinen laite lähettää lämpötilan tähän osoitteeseen.
 
@@ -296,6 +308,21 @@ Esimerkin toiminta
 * Muuten annetaan ohjata pörssisähköohjauksen asetusten mukaan
 
 **Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temp.js>
+
+
+
+### Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)
+
+Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen rajoituksessa siten, että ei lämmitetä turhaan mutta ei myöskään päästetä liian kylmäksi. 
+
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen ylikirjoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+
+Käyttää lämpötila-anturia, jonka id on 100.
+* Jos lämpötila on yli 15 astetta, asetetaan lähtö aina pois
+* Jos lämpötila on alle 5 astetta, asetetaan se aina päälle
+* Muuten annetaan ohjata pörssisähköohjauksen mukaan
+
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js>
 
 ### Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen
 
@@ -360,6 +387,12 @@ Kun olet asentanut add-onin, näet lähdön numeron Shellyn hallinnassa. Alla ol
 
 Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjaus toimii.
 
+### Milloin seuraavan päivän hinnat haetaan? Miksi hintoja ei näy vaikka kello on 14?
+
+Seuraavan päivän hinnat haetaan kello 15. 
+
+Elering tuntui päivittävän ne rajapintansa puoli kolmen kieppeillä, joten aiemmin yrittäminen on turhaa.
+
 ## Teknistä tietoa ja kehitysympäristö
 
 ### Lyhyesti 
@@ -397,14 +430,14 @@ Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjau
 
 ### Muistin käyttö
 
-Skripti vie enimillään hetkellisesti noin 12kt RAM-muistia (Shellyn maksimi 25200).
+Skriptin versio 2.11.0 vie enimillään hetkellisesti noin 15kt RAM-muistia (Shellyn maksimi 25200).
 ```json
 "script:1": {
   "id": 1,
   "running": true,
-  "mem_used": 6482,
-  "mem_peak": 11788,
-  "mem_free": 18718
+  "mem_used": 9240,
+  "mem_peak": 14854,
+  "mem_free": 15960
 },
 ```
 

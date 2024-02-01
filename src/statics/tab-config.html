@@ -27,9 +27,15 @@
     <td>Lähdön ohjaus</td>
     <td>
       <select id="oc">
-        <option value="0">Joka kerta</option>
+        <option value="0">Aina tarkistaessa</option>
         <option value="1">Vain muuttuessa</option>
       </select>
+    </td>
+  </tr>
+  <tr>
+    <td>Ohjausminuutit</td>
+    <td>
+      <input type="text" id="min" size="2"> min
     </td>
   </tr>
   <tr>
@@ -70,12 +76,6 @@
         <summary>Näytä/piilota</summary>
         <table id="fh" class="sm mt10"></table>
       </details>
-    </td>
-  </tr>
-  <tr>
-    <td>Ohjausminuutit</td>
-    <td>
-      <input type="text" id="min" size="2"> min
     </td>
   </tr>
 </table>
@@ -149,7 +149,7 @@
 <div class="tc mt10 b">TOIMINNOT</div>
 <div class="tc">
   <input class="mt10" type="button" id="force" value="Pakko-ohjaus"><br>
-  <input class="mt10" type="button" onclick="window.open(`/`)" value="Shelly">
+  <input class="mt10" type="button" onclick="window.open(`/`)" value="Shellyn hallinta">
 </div>
 
 <script>

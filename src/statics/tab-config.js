@@ -133,9 +133,11 @@
   };
 
   const force = async () => {
+    let hours = prompt("Pakko-ohjauksen kesto tunteina? (0 = peru nykyinen)");
+    
+    if (hours != null) {
+      hours = Number(hours);
 
-    let hours = Number(prompt("Pakko-ohjauksen kesto tunteina? (0 = peru nykyinen)"));
-    if (!isNaN(hours)) {
       let cmd = hours > 0 ? parseInt(prompt("Pakko-ohjataanko ohjaus päälle (1) vai pois (0)?", "1")) : 0;
       if (isNaN(cmd)) {
         return;

@@ -9,6 +9,7 @@
 {
   let priceListsUpdated = [0, 0];
   let priceListActiveHour = -1;
+  let notYetKnown = `<tr><td colspan="3">Ei vielä tiedossa</td></tr>`;
 
   const onUpdate = async () => {
     try {
@@ -39,20 +40,43 @@
         qs("#s-st").innerHTML += `<br><br>${s.str}`;
       }
 
-      qs("#s-day").innerHTML = todayPricesOK ? `Keskiarvo: ${s.p[0].avg.toFixed(2)} c/kWh<br>Halvin: ${s.p[0].low.toFixed(2)} c/kWh<br>Kallein: ${s.p[0].high.toFixed(2)} c/kWh` : "";
-      qs("#s-info").innerHTML = `${s.chkTs > 0 ? `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))}` : `Tarkistetaan ohjausta...`} - ${s.p[0].ts > 0 ? `hinnat haettu ${formatTime(new Date(s.p[0].ts * 1000))}` : "hintatietoja haetaan..."}`;
+      qs("#s-info").innerHTML = `${s.chkTs > 0 ? `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))}` : `Tarkistetaan ohjausta...`} - ${s.p[0].ts > 0 ? `Hinnat päivitetty ${formatTime(new Date(Math.max(s.p[0].ts, s.p[1].ts) * 1000))}` : "Hintoja haetaan..."}`;
       qs("#s-v").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
+
+      
+      /**
+       * Helper that builds price info table for today or tomorrow
+       */
+      const buildPriceTable = (priceInfo, elementId) => {
+        let header = `<tr><td class="t bg">Keskiarvo</td><td class="t bg">Halvin</td><td class="t bg">Kallein</td></tr>`;
+
+        if (priceInfo.ts == 0) {
+          return `${header}${notYetKnown}`;
+        }
+
+        return `${header}
+        <tr>
+          <td>${priceInfo.avg.toFixed(2)} c/kWh</td>
+          <td>${priceInfo.low.toFixed(2)} c/kWh</td>
+          <td>${priceInfo.high.toFixed(2)} c/kWh</td>
+        </tr>`;
+      }
+      
+      qs("#s-pi0").innerHTML = buildPriceTable(s.p[0]);
+      qs("#s-pi1").innerHTML = buildPriceTable(s.p[1]);
+
 
       /**
        * Helper that builds price/cmd table for today or tomorrow 
        */
       const buildPriceList = (dayIndex, element) => {
+        let header = ` <tr><td class="t bg">Aika</td><td class="t bg">Hinta</td><td class="t bg">Ohjaus</td></tr>`;
         //Get cheapest hours
         //This is (and needs to be) 1:1 in both frontend and backend code
         let cheapest = [];
         
-        if (d.p[dayIndex].length == 0) {
-          element.innerHTML = `<tr><td colspan="3">Ei vielä tiedossa</td></tr>`;
+        if (s.p[dayIndex].ts == 0) {
+          element.innerHTML = `${header}${notYetKnown}`;;
           return;
         }
 
@@ -116,7 +140,7 @@
 
         //Price list
         if (priceListsUpdated[dayIndex] !== s.p[dayIndex].ts || (dayIndex == 0 && priceListActiveHour !== new Date().getHours())) {
-          element.innerHTML = "";
+          element.innerHTML = header;
 
           let per = 0;
           let bg = false;
@@ -143,19 +167,18 @@
               bg = !bg;
             }
 
-            let data = `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">`;
-            data += `<td class="fit">${formatTime(date, false)}</td>`;
-            data += `<td>${row[1].toFixed(2)} c/kWh</td>`;
-            data += `<td>${cmd ? "&#x2714;" : ""}</td>`;
-            data += `</tr>`;
-
-            element.innerHTML += data;
+            element.innerHTML += `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
+            <td class="fit">${formatTime(date, false)}</td>
+            <td>${row[1].toFixed(2)} c/kWh</td>
+            <td>${cmd ? "&#x2714;" : ""}</td>
+            </tr>`;            
           }
 
           //Only if today
           if(dayIndex == 0) {
             priceListActiveHour = new Date().getHours();
           }
+
           priceListsUpdated[dayIndex] = s.p[dayIndex].ts;
         }
 
@@ -176,7 +199,9 @@
       c("#s-now");
       c("#s-mode");
       c("#s-p0");
+      c("#s-pi0");
       c("#s-p1");
+      c("#s-pi1");
       c("#s-info");
       c("#s-st");
 

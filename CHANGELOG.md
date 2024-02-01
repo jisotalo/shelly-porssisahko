@@ -5,13 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
-## [2.11.0] - xx.01.2024
-- Seuraavan päivän hintojen haku ja niiden sekä ohjausten näyttö etusivulla
+## [2.11.0] - 01.02.2024
+- Seuraavan päivän hinnat ja toteutuva ohjaus etusivulla
 - Uusi asetus: Lähdön ohjaus
-  - Voi asettaa niin että lähtö asetetaan vain tila muuttuessa
+  - Voi asettaa niin että lähtö asetetaan vain sen muuttuessa
   - Näin ohjauksen ylikirjoitus toimii kätevämmin Shellyn sovelluksesta tai hallinnasta
-- Ohjaushistorialle oma sivu
-- Pieniä parannuksia ja optimointeja 
+- Ohjaushistorialle oma välilehti
+- Pieniä parannuksia ja optimointeja
+- Lisätty esimerkki kuink Plus Add-onin mittaamalla lämpötilalla voidaan muuttaa halvimpien tuntien määrää
 
 ## [2.10.2] - 21.01.2024(2)
 - Lisätty koodin tarkistus että halvimpien tuntien lukumäärä <= jakson pituus
@@ -135,6 +136,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.11.0] - 01.02.2024
+- Next day prices and control at the frontpage
+- New setting to select if output should be always written or only when changed
+- Own tab for history
+
 ## [2.10.2] - 21.01.2024(2)
 - Added a safety check that period hours <= period length
 

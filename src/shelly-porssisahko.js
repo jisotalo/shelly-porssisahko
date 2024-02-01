@@ -85,7 +85,7 @@ let _ = {
     st: 0,
     /** Additional status string (only meant to be used by user override scripts) */
     str: '',
-    /** active command */
+    /** active command (-1 = not yet determined)*/
     cmd: -1,
     /** epoch when last check was done (logic was run) */
     chkTs: 0,
@@ -326,7 +326,7 @@ function chkConfig(cb) {
   if (count > 0) {
     Shelly.call("KVS.Set", { key: "porssi-config", value: _.c }, function (res, err, msg, cb) {
       if (err !== 0) {
-        log("chkConfig() - save failed:" + err + " - " + msg);
+        log("chkConfig() - virhe:" + err + " - " + msg);
       }
       if (cb) {
         cb(err === 0);
@@ -398,7 +398,7 @@ function loop() {
 
   } catch (err) {
     //Shouldn't happen
-    log("loop() - " + err);
+    log("loop() - virhe:" + err);
     loopRunning = false;
   }
 }
@@ -431,10 +431,10 @@ function pricesNeeded(dayIndex) {
 
     //If day changes - do we already have prices in tomorrow data?
     if (dateChanged && _.s.p[1].ts > 0 && getDate(new Date(_.s.p[1].ts * 1000)) !== getDate(now)) {
-      _["TOMORROW_PRICES_USED"] = true;
       //Copy tomorrow data
       _.p[0] = _.p[1];
-      _.s.p[0] = _.s.p[1];
+      
+      _.s.p[0] = Object.assign({}, _.s.p[1]);
       _.s.p[0].ts = epoch();
 
       //Clear tomorrow
@@ -620,38 +620,35 @@ function getPrices(dayIndex) {
         }
 
       } catch (err) {
-        log("getPrices() - " + err);
+        log("getPrices() - virhe:" + err);
         _.s.errCnt += 1;
         _.s.errTs = epoch();
 
         _.s.p[dayIndex].ts = 0;
         _.p[dayIndex] = [];
       }
-      loopRunning = false;
-/*
+      
       if (dayIndex == 1) {
         loopRunning = false;
         return;
-      }*/
-      _["PRICE_READ_HTTP"] = epoch();
+      }
+
       //Today prices -> run logic now
-      //logic();
+      logic();
     });
 
   } catch (err) {
-    log("getPrices() - " + err);
+    log("getPrices() - virhe:" + err);
     _.s.p[dayIndex].ts = 0;
     _.p[dayIndex] = [];
 
-    loopRunning = false;
-    /*
     if (dayIndex == 1) {
       loopRunning = false;
-      return;
+      return; 
     }
 
     //Today prices -> run logic now
-    logic();*/
+    logic();
   }
 }
 
@@ -667,12 +664,9 @@ function setOutputs(cb) {
     cmd = !cmd;
   }
 
-  function done() {
-  }
-
   if (_.c.oc == 1 && _.s.cmd == cmd) {
     //No need to write 
-    log("output already set");
+    log("setOutputs(): lähtö on jo oikeassa tilassa");
     addHistory();
     _.s.cmd = cmd ? 1 : 0;
     cb(true);
@@ -814,7 +808,6 @@ function logic() {
       //Normally cmd == finalCmd, but user script could change it
       if (cmd != finalCmd) {
         _.s.st = 12;
-        log("HUOMIO: käyttäjäskripti muutti ohjausta");
       }
 
       cmd = finalCmd;
@@ -836,7 +829,7 @@ function logic() {
     }
 
   } catch (err) {
-    log("logic() virhe:" + err);
+    log("logic() - virhe:" + err);
     loopRunning = false;
   }
 }
@@ -1089,7 +1082,7 @@ function onServerRequest(request, response) {
       response.headers.push(["Content-Encoding", "gzip"]);
     }
   } catch (err) {
-    log(err);
+    log("http - virhe:" + err);
     response.code = 500;
   }
   response.send();

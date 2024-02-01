@@ -6,18 +6,23 @@
   },
   {
     "fname": "dist/shelly-porssisahko-override-avg-price.js",
-    "title": "ESIMERKKI: Ohjauksen hienosäätö keskiarvon avulla",
-    "description": "Sisältää esimerkkikoodin, miten Add-Onin lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
+    "title": "ESIMERKKI: Ohjauksen muutos keskiarvon avulla",
+    "description": "Sisältää esimerkkikoodin, miten ohjausta voidaan muokata halutunlaiseksi (lue README ennen kuin teet mitään)"
   },
   {
-    "fname": "dist/shelly-porssisahko-addon-temp.js",
-    "title": "ESIMERKKI: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)",
+    "fname": "dist/shelly-porssisahko-addon-temp-hours.js",
+    "title": "ESIMERKKI: Ohjauksen hienosäätö ulkolämpötilan avulla (Shelly Plus Add-On ja DS18B20)",
     "description": "Sisältää esimerkkikoodin, miten lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
   },
   {
     "fname": "dist/shelly-porssisahko-ht-sensor-temp.js",
     "title": "ESIMERKKI: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla",
     "description": "Sisältää esimerkkikoodin, miten Shelly H&T:n lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
+  },
+  {
+    "fname": "dist/shelly-porssisahko-addon-temp.js",
+    "title": "ESIMERKKI: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)",
+    "description": "Sisältää esimerkkikoodin, miten lämpötilamittausta voidaan hyödyntää ohjauksessa (lue README ennen kuin teet mitään)"
   },
   {
     "fname": "dist/shelly-porssisahko-user-config.js",

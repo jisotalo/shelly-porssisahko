@@ -58,7 +58,9 @@ function USER_CONFIG(config, state, initialized) {
     /** Invert output [0/1] */
     inv: 0,
     /** How many first minutes of the hour the output should be on [min]*/
-    min: 60
+    min: 60,
+    /** Output config - when to set output (0 = always after running logic, 1 = only when output changes)*/
+    oc: 0
   };
 
   return config;
