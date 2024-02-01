@@ -55,9 +55,10 @@ Käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard.elering
   + [Ohjaustapa: Jakson halvimmat tunnit](#ohjaustapa-jakson-halvimmat-tunnit)
   + [Toiminnot](#toiminnot)
 - [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
-  + [Esimerkki: Ohjauksen hienosäätö keskiarvon avulla](#esimerkki-ohjauksen-hienosäätö-keskiarvon-avulla)
-  + [Esimerkki: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjauksen-hienosäätö-lämpötilan-avulla-shelly-plus-add-on-ja-ds18b20)
-  + [Esimerkki: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla](#esimerkki-ohjauksen-hienosäätö-shelly-htn-lämpötilamittauksen-avulla)
+  + [Esimerkki: Ohjauksen muutos keskiarvon avulla](#esimerkki-ohjauksen-muutos-keskiarvon-avulla)
+  + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-plus-add-on-ja-ds18b20)
+  + [Ohjaustuntien asetus lämpötilan perusteella (Shelly H&T)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-ht)
+  + [Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjauksen-rajoitus-lämpötilan-avulla-shelly-plus-add-on-ja-ds18b20)
   + [Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-sääpalvelusta-ja-sen-hyödyntäminen)
   + [Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)](#esimerkki-asetusten-määrittäminen-skriptissä-ilman-käyttöliittymää)
 - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
@@ -277,11 +278,11 @@ Skripti asettaa ohjauksen pois, mikäli tuntihinta on yli 80% päivän keskiarvo
 
 **Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-override-avg-price.js>
 
-### Esimerkki: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)
+### Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)
 
-Tämä esimerkki näyttää, kuinka voi hyödyntää mitattua ulkolämpötilaa ohjauksen hienosäädössä. 
+Tämä esimerkki näyttää, kuinka voi hyödyntää mitattua ulkolämpötilaa ohjaustuntien hienosäädössä. 
 
-Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö lämpötilan avulla (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 Käyttää lämpötila-anturia, jonka id on 100.
 
@@ -293,11 +294,11 @@ Esimerkin toiminta
 
 **Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp-hours.js>
 
-### Esimerkki: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla
+### Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly H&T)
 
-Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjauksen hienosäädössä. 
+Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjaustuntien hienosäädössä.
 
-Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjauksen hienosäätö Shelly H&T:n lämpötilamittauksen avulla** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+Asenna esimerkkiskripti nimeltä **ESIMERKKI: Ohjaustuntien asetus lämpötilan perusteella (Shelly H&T)** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
 
 HUOM: Tämä vaatii, että Shelly H&T asetetaan `actions -> sensor reports` alle osoite `http://ip-osoite/script/1/update-temp`, missä IP-osoite on pörssisähköskriptiä pyörittävän Shellyn osoite. Lisäksi `sensor reports` pitää ruksia käyttöön. Näin kyseinen laite lähettää lämpötilan tähän osoitteeseen.
 
@@ -308,8 +309,6 @@ Esimerkin toiminta
 * Muuten annetaan ohjata pörssisähköohjauksen asetusten mukaan
 
 **Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temp.js>
-
-
 
 ### Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)
 
