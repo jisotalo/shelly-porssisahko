@@ -26,7 +26,7 @@
   },
   {
     "fname": "dist/shelly-porssisahko-user-config.js",
-    "title": "ESIMERKKI: Asetusten määrittäminen skriptissä",
+    "title": "Esimerkki: Asetusten määrittäminen skriptissä",
     "description": "Sisältää esimerkkikoodin, miten asetukset voidaan määrittää suoraan skriptissä (lue README)"
   }
 ]

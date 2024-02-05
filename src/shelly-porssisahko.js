@@ -78,7 +78,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.11.1",
+    v: "2.11.2",
     /** Device name */
     dn: '',
     /** status as number */
@@ -537,6 +537,7 @@ function getPrices(dayIndex) {
           msg = null;
 
           _.p[dayIndex] = [];
+          _.s.p[dayIndex].avg = 0;
           _.s.p[dayIndex].high = -999;
           _.s.p[dayIndex].low = 999;
 

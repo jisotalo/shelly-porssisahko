@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.11.2] - 05.02.2024
+- Bugikorjaus: Hinnan keskiarvon laskennan virhe
+  - Alussa laskenta näytti oikein, mutta joka päivä virhe alkoi kasvaa suuremmaksi
+
 ## [2.11.1] - 01.02.2024 (2)
 - Bugikorjaus: Skripti ei aina käynnistynyt oikein Shellyn bootatessa / herätessä
   - **HUOMIO: Koskee versioita 2.90...2.11.0!**
@@ -141,6 +145,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.11.2] - 05.02.2024
+- Bug fix: Average price calculation
+
 ## [2.11.1] - 01.02.2024 (2)
 - Bug fix: Script didn't always start after boot / power reset
 
