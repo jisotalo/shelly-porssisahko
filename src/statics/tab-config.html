@@ -106,21 +106,44 @@
     <td class="w180">Ajanjakso</td>
     <td>
       <select id="m2-per">
-        <option value="24">24</option>
-        <option value="12">12</option>
-        <option value="8">8</option>
-        <option value="6">6</option>
-        <option value="4">4</option>
-        <option value="3">3</option>
-        <option value="2">2</option>
+        <option value="24">24h</option>
+        <option value="12">12h</option>
+        <option value="8">8h</option>
+        <option value="6">6h</option>
+        <option value="4">4h</option>
+        <option value="3">3h</option>
+        <option value="2">2h</option>
+        <option value="-1">oma valinta (1 jakso)</option>
+        <option value="-2">oma valinta (2 jaksoa)</option>
       </select>
-      h
+
+      <span class="h">
+        aikaväli (klo):
+      </span>
+    </td>
+  </tr>
+  <tr class="m2-c">
+    <td>Oma ajanjakso</td>
+    <td>
+      <input type="text" id="m2-ps" size="2"> - <input type="text" id="m2-pe" size="2">
     </td>
   </tr>
   <tr>
     <td>Tuntimäärä</td>
     <td>
       <input type="text" id="m2-cnt" size="2"> h
+    </td>
+  </tr>
+  <tr class="m2-c2">
+    <td>Oma ajanjakso 2</td>
+    <td>
+      <input type="text" id="m2-ps2" size="2"> - <input type="text" id="m2-pe2" size="2">
+    </td>
+  </tr>
+  <tr class="m2-c2">
+    <td>Tuntimäärä 2</td>
+    <td>
+      <input type="text" id="m2-cnt2" size="2"> h
     </td>
   </tr>
   <tr>

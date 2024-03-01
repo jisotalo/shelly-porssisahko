@@ -35,7 +35,7 @@
       qs("#s-st").innerHTML = (s.st === 9
         ? STATE_STR[s.st].replace("%s", formatDateTime(new Date(s.fCmdTs * 1000), false))
         : STATE_STR[s.st]) + (c.inv ? " (käänteinen)" : "");
-    
+
       if (s.str != "") {
         qs("#s-st").innerHTML += `<br><br>${s.str}`;
       }
@@ -43,7 +43,7 @@
       qs("#s-info").innerHTML = `${s.chkTs > 0 ? `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))}` : `Tarkistetaan ohjausta...`} - ${s.p[0].ts > 0 ? `Hinnat päivitetty ${formatTime(new Date(Math.max(s.p[0].ts, s.p[1].ts) * 1000))}` : "Hintoja haetaan..."}`;
       qs("#s-v").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
 
-      
+
       /**
        * Helper that builds price info table for today or tomorrow
        */
@@ -61,31 +61,55 @@
           <td>${priceInfo.high.toFixed(2)} c/kWh</td>
         </tr>`;
       }
-      
+
       qs("#s-pi0").innerHTML = buildPriceTable(s.p[0]);
       qs("#s-pi1").innerHTML = buildPriceTable(s.p[1]);
 
-
+      c.m2.sq = true;
       /**
        * Helper that builds price/cmd table for today or tomorrow 
        */
       const buildPriceList = (dayIndex, element) => {
         let header = ` <tr><td class="t bg">Aika</td><td class="t bg">Hinta</td><td class="t bg">Ohjaus</td></tr>`;
         //Get cheapest hours
+
         //This is (and needs to be) 1:1 in both frontend and backend code
         let cheapest = [];
-        
+
         if (s.p[dayIndex].ts == 0) {
           element.innerHTML = `${header}${notYetKnown}`;;
           return;
         }
 
         if (c.mode === 2) {
-          for (let i = 0; i < d.p[dayIndex].length; i += c.m2.per) {
+          let inc = c.m2.per < 0 ? 1 : c.m2.per;
+
+          for (let i = 0; i < d.p[dayIndex].length; i += inc) {
+            let cnt = (c.m2.per == -2 && i >= 1 ? c.m2.cnt2 : c.m2.cnt);
+
+            //Safety check
+            if (cnt <= 0)
+              continue;
+
             //Create array of indexes in selected period
             let order = [];
 
-            for (let j = i; j < i + c.m2.per; j++) {
+            //If custom period -> select hours from that range. Otherwise use this period
+            let start = i;
+            let end = (i + c.m2.per);
+
+            if (c.m2.per < 0 && i == 0) {
+              //Custom period 1 
+              start = c.m2.ps;
+              end = c.m2.pe;
+
+            } else if (c.m2.per == -2 && i == 1) {
+              //Custom period 2
+              start = c.m2.ps2;
+              end = c.m2.pe2;
+            }
+
+            for (let j = start; j < end; j++) {
               //If we have less hours than 24 then skip the rest from the end
               if (j > d.p[dayIndex].length - 1)
                 break;
@@ -99,27 +123,29 @@
               let avg = 999;
               let startIndex = 0;
 
-              for (let j = 0; j <= order.length - c.m2.cnt; j++) {
+              for (let j = 0; j <= order.length - cnt; j++) {
                 let sum = 0;
+
                 //Calculate sum of these sequential hours
-                for (let k = j; k < j + c.m2.cnt; k++) {
+                for (let k = j; k < j + cnt; k++) {
                   sum += d.p[dayIndex][order[k]][1];
                 };
 
                 //If average price of these sequential hours is lower -> it's better
-                if (sum / c.m2.cnt < avg) {
-                  avg = sum / c.m2.cnt;
+                if (sum / cnt < avg) {
+                  avg = sum / cnt;
                   startIndex = j;
                 }
               }
 
-              for (let j = startIndex; j < startIndex + c.m2.cnt; j++) {
+              for (let j = startIndex; j < startIndex + cnt; j++) {
                 cheapest.push(order[j]);
               }
 
             } else {
               //Sort indexes by price
               let j = 0;
+
               for (let k = 1; k < order.length; k++) {
                 let temp = order[k];
 
@@ -130,11 +156,14 @@
               }
 
               //Select the cheapest ones
-              for (let j = 0; j < c.m2.cnt; j++) {
+              for (let j = 0; j < cnt; j++) {
                 cheapest.push(order[j]);
               }
             }
 
+            //If custom period, quit when all periods are done (1 or 2 periods)
+            if (c.m2.per == -1 || (c.m2.per == -2 && i >= 1))
+              break;
           }
         }
 
@@ -161,7 +190,9 @@
               cmd = !cmd;
             }
 
-            if (i >= per + c.m2.per) {
+            if ((c.m2.per < 0 && (i == c.m2.ps || i == c.m2.pe))
+              || (c.m2.per == -2 && (i == c.m2.ps2 || i == c.m2.pe2))
+              || (c.m2.per > 0 && i >= per + c.m2.per)) {
               //Period changed
               per += c.m2.per;
               bg = !bg;
@@ -171,11 +202,11 @@
             <td class="fit">${formatTime(date, false)}</td>
             <td>${row[1].toFixed(2)} c/kWh</td>
             <td>${cmd ? "&#x2714;" : ""}</td>
-            </tr>`;            
+            </tr>`;
           }
 
           //Only if today
-          if(dayIndex == 0) {
+          if (dayIndex == 0) {
             priceListActiveHour = new Date().getHours();
           }
 

@@ -39,7 +39,7 @@ let C_DEF = {
   },
   /** Settings for mode 2 (cheapest hours) */
   m2: {
-    /** Period length [h] (example: 24 -> cheapest hours during 24h) */
+    /** Period length (-1 = custom range) [h] (example: 24 -> cheapest hours during 24h) */
     per: 24,
     /** How many cheapest hours */
     cnt: 0,
@@ -48,7 +48,17 @@ let C_DEF = {
     /** Should the hours be sequential / in a row [0/1] */
     sq: 0,
     /** Maximum price limit [c/kWh] */
-    m: 999
+    m: 999,
+    /** Custom period start hour */
+    ps: 0,
+    /** Custom period end hour */
+    pe: 23,
+    /** Custom period 2 start hour */
+    ps2: 0,
+    /** Custom period 2 end hour */
+    pe2: 23,
+    /** How many cheapest hours (custom period 2) */
+    cnt2: 0,
   },
   /** VAT added to spot price [%] */
   vat: 24,
@@ -78,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.11.2",
+    v: "2.12.0",
     /** Device name */
     dn: '',
     /** status as number */
@@ -815,7 +825,7 @@ function logic() {
     }
 
   } catch (err) {
-    log("logic() - virhe:" + err);
+    log("logic() - virhe:" + JSON.stringify(err));
     loopRunning = false;
   }
 }
@@ -823,35 +833,63 @@ function logic() {
 /**
  * Returns true if current hour is one of the cheapest
  * 
- * NOTE: Variables are here outside function() as it caused memory issues
- * (for loop i variable suddenly changed to something very odd)
- * Perhaps the stack was getting too full or something because of multiple for() loops?
- * This worked!
+ * DEV. NOTE: 
+ * Variables are intentionally in global scope outside isCheapestHour()
  * 
+ * There were memory issues with for-loops (random values)
+ * Perhaps the stack was getting too full or something because of multiple for() loops
+ * 
+ * This fixes the operation 
  */
-let _perStart = 0;
-let _ind = 0;
-let _ind2 = 0;
+let _i = 0;
+let _j = 0;
+let _k = 0;
+let _inc = 0;
+let _cnt = 0;
+let _start = 0;
+let _end = 0;
 function isCheapestHour() {
-  if (_.c.m2.cn == 0) {
-    return;
+  //Safety checks
+  if (_.c.m2.per > 0) {
+    _.c.m2.cnt = Math.min(_.c.m2.cnt, _.c.m2.per);
   }
-
-  //Safety check
-  _.c.m2.cnt = Math.min(_.c.m2.cnt, _.c.m2.per);
 
   //This is (and needs to be) 1:1 in both frontend and backend code
   let cheapest = [];
 
-  for (_perStart = 0; _perStart < _.p[0].length; _perStart += _.c.m2.per) {
+  _inc = _.c.m2.per < 0 ? 1 : _.c.m2.per;
+
+  for (_i = 0; _i < _.p[0].length; _i += _inc) {
+    _cnt = (_.c.m2.per == -2 && _i >= 1 ? _.c.m2.cnt2 : _.c.m2.cnt);
+
+    //Safety check
+    if (_cnt <= 0)
+      continue;
+
     //Create array of indexes in selected period
     let order = [];
-    for (ind = _perStart; ind < _perStart + _.c.m2.per; ind++) {
+
+    //If custom period -> select hours from that range. Otherwise use this period
+    _start = _i;
+    _end = (_i + _.c.m2.per);
+
+    if (_.c.m2.per < 0 && _i == 0) {
+      //Custom period 1 
+      _start = _.c.m2.ps;
+      _end = _.c.m2.pe;
+
+    } else if (_.c.m2.per == -2 && _i == 1) {
+      //Custom period 2
+      _start = _.c.m2.ps2;
+      _end = _.c.m2.pe2;
+    }
+
+    for (_j = _start; _j < _end; _j++) {
       //If we have less hours than 24 then skip the rest from the end
-      if (ind > _.p[0].length - 1)
+      if (_j > _.p[0].length - 1)
         break;
 
-      order.push(ind);
+      order.push(_j);
     }
 
     if (_.c.m2.sq) {
@@ -859,41 +897,48 @@ function isCheapestHour() {
       //Loop through each possible starting index and compare average prices
       let avg = 999;
       let startIndex = 0;
-
-      for (_ind = 0; _ind <= order.length - _.c.m2.cnt; _ind++) {
+      
+      for (_j = 0; _j <= order.length - _cnt; _j++) {
         let sum = 0;
+
         //Calculate sum of these sequential hours
-        for (_ind2 = _ind; _ind2 < _ind + _.c.m2.cnt; _ind2++) {
-          sum += _.p[0][order[_ind2]][1];
+        for (_k = _j; _k < _j + _cnt; _k++) {
+          sum += _.p[0][order[_k]][1];
         };
 
         //If average price of these sequential hours is lower -> it's better
-        if (sum / _.c.m2.cnt < avg) {
-          avg = sum / _.c.m2.cnt;
-          startIndex = _ind;
+        if (sum / _cnt < avg) {
+          avg = sum / _cnt;
+          startIndex = _j;
         }
       }
 
-      for (_ind = startIndex; _ind < startIndex + _.c.m2.cnt; _ind++) {
-        cheapest.push(order[_ind]);
+      for (_j = startIndex; _j < startIndex + _cnt; _j++) {
+        cheapest.push(order[_j]);
       }
 
     } else {
       //Sort indexes by price
-      for (_ind = 1; _ind < order.length; _ind++) {
-        let temp = order[_ind];
+      _j = 0;
+      
+      for (_k = 1; _k < order.length; _k++) {
+        let temp = order[_k];
 
-        for (_ind2 = _ind - 1; _ind2 >= 0 && _.p[0][temp][1] < _.p[0][order[_ind2]][1]; _ind2--) {
-          order[_ind2 + 1] = order[_ind2];
+        for (_j = _k - 1; _j >= 0 && _.p[0][temp][1] < _.p[0][order[_j]][1]; _j--) {
+          order[_j + 1] = order[_j];
         }
-        order[_ind2 + 1] = temp;
+        order[_j + 1] = temp;
       }
 
       //Select the cheapest ones
-      for (_ind = 0; _ind < _.c.m2.cnt; _ind++) {
-        cheapest.push(order[_ind]);
+      for (_j = 0;  _j < _cnt; _j++) {
+        cheapest.push(order[_j]);
       }
     }
+
+    //If custom period, quit when all periods are done (1 or 2 periods)
+    if (_.c.m2.per == -1 || (_.c.m2.per == -2 && _i >= 1))
+      break;
   }
 
   //Check if current hour is cheap enough
@@ -909,10 +954,6 @@ function isCheapestHour() {
       break;
     }
   }
-
-  _perStart = null;
-  _ind = null;
-  _ind2 = null;
 
   return res;
 }

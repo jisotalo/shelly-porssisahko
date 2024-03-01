@@ -60,7 +60,7 @@ body {
   float: left;
 }
 
-.ts {
+.ts, .h {
   display: none;
 }
 
@@ -128,7 +128,7 @@ table.cc>tbody>tr>td:first-child, .bg, table.sm tr:first-child {
 }
 
 @media(max-width: 480px) {
-  table.m>tbody>tr>td {
+  table.m>tbody>tr>td, label {
     display: block;
     width: 100%;
   }
@@ -173,7 +173,7 @@ td {
 }
 
 .w180 {
-  width: 180px;
+  width: 185px;
 }
 
 .mt10 {
