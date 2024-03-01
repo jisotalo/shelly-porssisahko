@@ -65,7 +65,6 @@
       qs("#s-pi0").innerHTML = buildPriceTable(s.p[0]);
       qs("#s-pi1").innerHTML = buildPriceTable(s.p[1]);
 
-      c.m2.sq = true;
       /**
        * Helper that builds price/cmd table for today or tomorrow 
        */
