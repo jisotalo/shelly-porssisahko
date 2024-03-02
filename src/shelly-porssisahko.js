@@ -88,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.12.0",
+    v: "2.12.1",
     /** Device name */
     dn: '',
     /** status as number */
@@ -853,6 +853,7 @@ function isCheapestHour() {
   if (_.c.m2.per > 0) {
     _.c.m2.cnt = Math.min(_.c.m2.cnt, _.c.m2.per);
   }
+  //TODO: Add period start/end checks?
 
   //This is (and needs to be) 1:1 in both frontend and backend code
   let cheapest = [];

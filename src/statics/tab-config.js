@@ -81,6 +81,11 @@
   let save = async (e) => {
     e.preventDefault();
 
+    const lim = (min, value, max) => {
+      console.log(min, max, value);
+      return Math.min(max, Math.max(min, value));
+    }
+
     try {
       let c = state.c
       let avgn = (e) => qs(e).value == "avg" ? "avg" : n(qs(e).value);
@@ -119,10 +124,10 @@
       c.m2.sq = qs("#m2-sq").checked ? 1 : 0;
       c.m2.m = avgn("#m2-m");
       c.m2.lim = avgn("#m2-lim");
-      c.m2.ps = n(qs("#m2-ps").value);
-      c.m2.pe = n(qs("#m2-pe").value);
-      c.m2.ps2 = n(qs("#m2-ps2").value);
-      c.m2.pe2 = n(qs("#m2-pe2").value);
+      c.m2.ps = lim(0, n(qs("#m2-ps").value), 23);
+      c.m2.pe = lim(c.m2.ps, n(qs("#m2-pe").value), 24);
+      c.m2.ps2 = lim(0, n(qs("#m2-ps2").value), 23);
+      c.m2.pe2 = lim(c.m2.ps2, n(qs("#m2-pe2").value), 24);
       c.m2.cnt2 = n(qs("#m2-cnt2").value); //Math.min(c.m2.per, n(qs("#m2-cnt2").value)); //TODO limit
 
       DBG(me(), "Settings to save:", c);
