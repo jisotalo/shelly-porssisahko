@@ -54,6 +54,7 @@
         qs(`#b${i}`).checked = (c.bk & (1 << i)) == (1 << i);
         setRadio(`f${i}`, (c.fh & (1 << i)) == (1 << i) ? (c.fhCmd & (1 << i)) == (1 << i) ? 1 : 0 : -1);
       }
+      
       qs("#min").value = c.min;
       qs("#oc").value = c.oc;
       qs("#err").checked = c.err ? "checked" : "";
@@ -64,10 +65,10 @@
       qs("#m2-sq").checked = c.m2.sq ? "checked" : "";
       qs("#m2-m").value = c.m2.m;
       qs("#m2-lim").value = c.m2.lim;
-      qs("#m2-ps").value = c.m2.ps;
-      qs("#m2-pe").value = c.m2.pe;
-      qs("#m2-ps2").value = c.m2.ps2;
-      qs("#m2-pe2").value = c.m2.pe2;
+      qs("#m2-ps").value = `${c.m2.ps}`.padStart(2, "0");
+      qs("#m2-pe").value = `${c.m2.pe}`.padStart(2, "0");
+      qs("#m2-ps2").value = `${c.m2.ps2}`.padStart(2, "0");
+      qs("#m2-pe2").value = `${c.m2.pe2}`.padStart(2, "0");
       qs("#m2-cnt2").value = c.m2.cnt2;
       checkCustomPeriodDisplay(c.m2.per);
 
@@ -81,10 +82,7 @@
   let save = async (e) => {
     e.preventDefault();
 
-    const lim = (min, value, max) => {
-      console.log(min, max, value);
-      return Math.min(max, Math.max(min, value));
-    }
+    const limit = (min, value, max) => Math.min(max, Math.max(min, value));
 
     try {
       let c = state.c
@@ -115,20 +113,24 @@
       c.err = qs("#err").checked ? 1 : 0;
       c.min = n(qs("#min").value);
       c.oc = n(qs("#oc").value);
-      c.min = Math.max(0, Math.min(60, c.min));
+      c.min = limit(0, c.min, 60);
 
       c.m0.cmd = qs("#m0-cmd").checked ? 1 : 0;
       c.m1.lim = avgn("#m1-lim");
       c.m2.per = n(qs("#m2-per").value);
-      c.m2.cnt = n(qs("#m2-cnt").value); //Math.min(c.m2.per, n(qs("#m2-cnt").value)); //TODO limit
+      c.m2.cnt = n(qs("#m2-cnt").value);
       c.m2.sq = qs("#m2-sq").checked ? 1 : 0;
       c.m2.m = avgn("#m2-m");
       c.m2.lim = avgn("#m2-lim");
-      c.m2.ps = lim(0, n(qs("#m2-ps").value), 23);
-      c.m2.pe = lim(c.m2.ps, n(qs("#m2-pe").value), 24);
-      c.m2.ps2 = lim(0, n(qs("#m2-ps2").value), 23);
-      c.m2.pe2 = lim(c.m2.ps2, n(qs("#m2-pe2").value), 24);
-      c.m2.cnt2 = n(qs("#m2-cnt2").value); //Math.min(c.m2.per, n(qs("#m2-cnt2").value)); //TODO limit
+      c.m2.ps = limit(0, n(qs("#m2-ps").value), 23);
+      c.m2.pe = limit(c.m2.ps, n(qs("#m2-pe").value), 24);
+      c.m2.ps2 = limit(0, n(qs("#m2-ps2").value), 23);
+      c.m2.pe2 = limit(c.m2.ps2, n(qs("#m2-pe2").value), 24);
+      c.m2.cnt2 = n(qs("#m2-cnt2").value);
+
+      //Checking count limits
+      c.m2.cnt = limit(0, c.m2.cnt, c.m2.per > 0 ? c.m2.per : c.m2.pe - c.m2.ps);
+      c.m2.cnt2 = limit(0, c.m2.cnt2, c.m2.pe2 - c.m2.ps2);
 
       DBG(me(), "Settings to save:", c);
 

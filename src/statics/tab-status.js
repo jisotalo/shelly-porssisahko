@@ -81,6 +81,7 @@
         }
 
         if (c.mode === 2) {
+          //Select increment (a little hacky - to support custom periods too)
           let inc = c.m2.per < 0 ? 1 : c.m2.per;
 
           for (let i = 0; i < d.p[dayIndex].length; i += inc) {

@@ -88,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.12.1",
+    v: "2.12.2",
     /** Device name */
     dn: '',
     /** status as number */
@@ -181,6 +181,16 @@ function isCurrentHour(value, now) {
 }
 
 /**
+ * Limits the value to min..max range
+ * @param {number} min 
+ * @param {number} value 
+ * @param {number} max 
+ */
+function limit(min, value, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+/**
  * Returns epoch time (seconds) without decimals
  * 
  * @param {Date?} date Date object (optional) - if not provided, using new Date()
@@ -266,7 +276,7 @@ function log(data) {
  * Adds command to history
  */
 function addHistory() {
-  while (_.h.length >= C_HIST) {
+  while (C_HIST > 0 && _.h.length >= C_HIST) {
     _.h.splice(0, 1);
   }
   _.h.push([epoch(), cmd ? 1 : 0, _.s.st]);
@@ -850,14 +860,17 @@ let _start = 0;
 let _end = 0;
 function isCheapestHour() {
   //Safety checks
-  if (_.c.m2.per > 0) {
-    _.c.m2.cnt = Math.min(_.c.m2.cnt, _.c.m2.per);
-  }
-  //TODO: Add period start/end checks?
+  _.c.m2.ps = limit(0, _.c.m2.ps, 23);
+  _.c.m2.pe = limit(_.c.m2.ps, _.c.m2.pe, 24);
+  _.c.m2.ps2 = limit(0, _.c.m2.ps2, 23);
+  _.c.m2.pe2 = limit(_.c.m2.ps2, _.c.m2.pe2, 24);
+  _.c.m2.cnt = limit(0, _.c.m2.cnt, _.c.m2.per > 0 ? _.c.m2.per : _.c.m2.pe - _.c.m2.ps);
+  _.c.m2.cnt2 = limit(0, _.c.m2.cnt2, _.c.m2.pe2 - _.c.m2.ps2);
 
   //This is (and needs to be) 1:1 in both frontend and backend code
   let cheapest = [];
 
+  //Select increment (a little hacky - to support custom periods too)
   _inc = _.c.m2.per < 0 ? 1 : _.c.m2.per;
 
   for (_i = 0; _i < _.p[0].length; _i += _inc) {
@@ -898,7 +911,7 @@ function isCheapestHour() {
       //Loop through each possible starting index and compare average prices
       let avg = 999;
       let startIndex = 0;
-      
+
       for (_j = 0; _j <= order.length - _cnt; _j++) {
         let sum = 0;
 
@@ -921,7 +934,7 @@ function isCheapestHour() {
     } else {
       //Sort indexes by price
       _j = 0;
-      
+
       for (_k = 1; _k < order.length; _k++) {
         let temp = order[_k];
 
@@ -932,7 +945,7 @@ function isCheapestHour() {
       }
 
       //Select the cheapest ones
-      for (_j = 0;  _j < _cnt; _j++) {
+      for (_j = 0; _j < _cnt; _j++) {
         cheapest.push(order[_j]);
       }
     }
