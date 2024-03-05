@@ -16,6 +16,7 @@ Käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard.elering
 ![g0MPiID21U](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2caa27f4-f1ec-4d22-b9c9-408ed01b13d0)
 
 ## Ominaisuudet
+* Ilmainen sekä avoin lähdekoodi
 * Oma web-serveri Shellyn sisällä ja siinä pyörivä käyttöliittymä
 * Ei rekisteröitymistä
 * Valvonta ja konfigurointi nettiselaimen avulla kotiverkossa (PC, puhelin, tabletti)
