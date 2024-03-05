@@ -2,7 +2,7 @@
   {
     "fname": "dist/shelly-porssisahko.js",
     "title": "Pörssisähköohjaus (shelly-porssisahko.js)",
-    "description": "Pörssisähköohjaus Shellyyn. Klikaa Insert code -painiketta skriptin asentamiseksi. Github-sivu: https://github.com/jisotalo/shelly-porssisahko"
+    "description": "Pörssisähköohjaus Shellyyn. Klikaa Import code -painiketta skriptin asentamiseksi. Github-sivu: https://github.com/jisotalo/shelly-porssisahko"
   },
   {
     "fname": "dist/shelly-porssisahko-override-avg-price.js",

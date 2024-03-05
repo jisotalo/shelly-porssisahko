@@ -105,7 +105,7 @@ Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisot
 
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/972fedb9-8503-4d90-a9b2-3af6f430ed7d)
 
-7. Nyt kirjastoon ilmestyy pörssisähköohjaus. Asenna se painamalla **Insert code**
+7. Nyt kirjastoon ilmestyy pörssisähköohjaus. Asenna se painamalla **Import code**
 
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/9139dad1-e3ec-4a09-9e39-d940af5ea9d7)
 
@@ -241,7 +241,7 @@ Tällöin ohjaus voisi mennä esimerkiksi seuraavasti:
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/41d46697-028b-4294-8c62-88bc67c846c6)
 * **Pakko-ohjaus**
   * Painamalla tätä voit asettaa lähdön päälle tai pois määritellyksi ajaksi
-  * Syötä kysyttäessä kuinka monta tuntia lähtö pidetään päällä (voit syöttää myös osatunteja, esim. `0.5` on puoli tuntia) sekä haluttu lähdön tila
+  * Syötä kysyttäessä kuinka monta tuntia pakko-ohjaus on käytössä sekä haluttu lähdön tila (voit syöttää myös osatunteja, esim. `0.5` on puoli tuntia)
 * **Shelly**
   * Avaa uudessa välilehdessä Shellyn oman hallintasivun
 

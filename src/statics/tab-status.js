@@ -190,9 +190,10 @@
               cmd = !cmd;
             }
 
-            if ((c.m2.per < 0 && (i == c.m2.ps || i == c.m2.pe))
-              || (c.m2.per == -2 && (i == c.m2.ps2 || i == c.m2.pe2))
-              || (c.m2.per > 0 && i >= per + c.m2.per)) {
+            if (c.mode === 2
+              && ((c.m2.per < 0 && (i == c.m2.ps || i == c.m2.pe))
+                || (c.m2.per == -2 && (i == c.m2.ps2 || i == c.m2.pe2))
+                || (c.m2.per > 0 && i >= per + c.m2.per))) {
               //Period changed
               per += c.m2.per;
               bg = !bg;
