@@ -5,10 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
-## [2.12.2] - 05.03.2024
+## [2.12.2] - 06.03.2024
 - Uusi ominaisuus: Vapaavalintaiset ajanjaksot
   - Voi valita yhden tai kaksi vapaavalintaista ajanjaksoa ja niille halutut tuntimääräät
-  - Esim "yöllä 00:00-06:00 halvimmat kolme tuntia, illalla 18:00-21:00 halvin tunti"
+  - Esim *"kolme halvinta tuntia yöllä kello 00-06 väliltä ja yksi halvin tunti illalla kello 18-21 väliltä"*
 
 ## [2.11.2] - 05.02.2024
 - Bugikorjaus: Hinnan keskiarvon laskennan virhe
@@ -150,7 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
-## [2.12.2] - 05.03.2024
+## [2.12.2] - 06.03.2024
 - New feature: custom hour ranges
   - Can configure one or two custom time ranges and number of cheapest hours for each
 
