@@ -24,13 +24,13 @@ const { promisify } = require('node:util');
 const dgram = require('node:dgram');
 
 //Settings
-const BASE_URL = "http://192.168.68.105";
+const BASE_URL = "http://192.168.68.100";
 const RPC_URL = `${BASE_URL}/rpc`;
 const MAX_CODE_CHUNK_SIZE = 1024;
 const GZIP = true;
 const UDP_DEBUG_PORT = 8001;
-const MAX_STATIC_FILE_SIZE = 3000; //Max file size served with shelly HTTP in bytes
-const MAX_SCRIPT_SIZE = 15000; //Max script size allowed in bytes
+const MAX_STATIC_FILE_SIZE = -1; //Max file size served with shelly HTTP in bytes
+const MAX_SCRIPT_SIZE = -1; //Max script size allowed in bytes
 
 const log = (...args) => {
   let time = new Date().toISOString();
@@ -200,7 +200,6 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
   log(`createDistFile(): Minifying script "${filePath}"...`);
   let data = (await fs.readFile(filePath)).toString();
 
-  //TODO: Move this after minify()?
   if (isShellyScript) {
     let staticFileMatches = data.matchAll(/\#\[(.*)\]/gm);
     for (const staticFileMatch of staticFileMatches) {
@@ -397,10 +396,12 @@ const printStats = async () => {
     }
 
     log(`  ${file}`);
-    if (MAX_STATIC_FILE_SIZE - fileInfo.size < 100) {
+    if (MAX_STATIC_FILE_SIZE > 0 && MAX_STATIC_FILE_SIZE - fileInfo.size < 100) {
       log(`    ${(fileInfo.size / 1024.0).toFixed(1)} KB\t${(MAX_STATIC_FILE_SIZE - fileInfo.size)} bytes left (used ${(fileInfo.size / MAX_STATIC_FILE_SIZE * 100.0).toFixed(0)} %) <---- WARNING!!!`);
-    } else {
+    } else if (MAX_STATIC_FILE_SIZE > 0) {
       log(`    ${(fileInfo.size / 1024.0).toFixed(1)} KB\t${(MAX_STATIC_FILE_SIZE - fileInfo.size)} bytes left (used ${(fileInfo.size / MAX_STATIC_FILE_SIZE * 100.0).toFixed(0)} %)`);
+    } else {
+      log(`    ${(fileInfo.size / 1024.0).toFixed(1)} KB`);
     }
   }
 
@@ -420,7 +421,11 @@ const printStats = async () => {
     }
 
     log(`  ${file}`);
-    log(`    ${(fileInfo.size / 1024.0).toFixed(1)} KB\t${(MAX_SCRIPT_SIZE - fileInfo.size)} bytes left (used ${(fileInfo.size / MAX_SCRIPT_SIZE * 100.0).toFixed(0)} %)`);
+    if (MAX_SCRIPT_SIZE > 0) {
+      log(`    ${(fileInfo.size / 1024.0).toFixed(1)} KB\t${(MAX_SCRIPT_SIZE - fileInfo.size)} bytes left (used ${(fileInfo.size / MAX_SCRIPT_SIZE * 100.0).toFixed(0)} %)`);
+    } else {
+      log(`    ${(fileInfo.size / 1024.0).toFixed(1)} KB`);
+    }
     count++;
   }
   log('');

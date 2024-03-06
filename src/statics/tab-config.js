@@ -8,14 +8,20 @@
  */
 {
   let configRead = false;
+  let n = (v) => Number(v);
 
-  const setRadio = (name, value) => {
+  let checkCustomPeriodDisplay = (value) => {
+    document.querySelectorAll(".m2-c").forEach(e => e.style.display = n(value) < 0 ? "table-row" : "none");
+    document.querySelectorAll(".m2-c2").forEach(e => e.style.display = n(value) < -1 ? "table-row" : "none");
+  }
+
+  let setRadio = (name, value) => {
     document.querySelectorAll(`[name=${name}]`).forEach(e => e.checked = e.value == value);
   }
 
-  const radioRow = (name, value) => `<td><input type="radio" name="${name}" value="${value}"></td>`;
+  let radioRow = (name, value) => `<td><input type="radio" name="${name}" value="${value}"></td>`;
 
-  const onUpdate = async () => {
+  let onUpdate = async () => {
     try {
       if (state === undefined || configRead || !state) {
         return;
@@ -33,7 +39,7 @@
 
       let hours = "";
       for (let i = 0; i < 24; i++) {
-        hours += `<input type="checkbox" id="X${i}"><label for="X${i}">${("" + i).padStart(2, "0")}</label> `
+        hours += `<label for="X${i}"><input type="checkbox" id="X${i}">${("" + i).padStart(2, "0")}</label> `
       }
       qs("#bk").innerHTML = hours.replaceAll("X", "b");
 
@@ -48,9 +54,9 @@
         qs(`#b${i}`).checked = (c.bk & (1 << i)) == (1 << i);
         setRadio(`f${i}`, (c.fh & (1 << i)) == (1 << i) ? (c.fhCmd & (1 << i)) == (1 << i) ? 1 : 0 : -1);
       }
+      
       qs("#min").value = c.min;
       qs("#oc").value = c.oc;
-
       qs("#err").checked = c.err ? "checked" : "";
       qs("#m0-cmd").checked = c.m0.cmd ? "checked" : "";
       qs("#m1-lim").value = c.m1.lim;
@@ -59,6 +65,12 @@
       qs("#m2-sq").checked = c.m2.sq ? "checked" : "";
       qs("#m2-m").value = c.m2.m;
       qs("#m2-lim").value = c.m2.lim;
+      qs("#m2-ps").value = `${c.m2.ps}`.padStart(2, "0");
+      qs("#m2-pe").value = `${c.m2.pe}`.padStart(2, "0");
+      qs("#m2-ps2").value = `${c.m2.ps2}`.padStart(2, "0");
+      qs("#m2-pe2").value = `${c.m2.pe2}`.padStart(2, "0");
+      qs("#m2-cnt2").value = c.m2.cnt2;
+      checkCustomPeriodDisplay(c.m2.per);
 
       configRead = true;
     } catch (err) {
@@ -67,12 +79,13 @@
     }
   };
 
-  const save = async (e) => {
+  let save = async (e) => {
     e.preventDefault();
+
+    const limit = (min, value, max) => Math.min(max, Math.max(min, value));
 
     try {
       let c = state.c
-      let n = (v) => Number(v);
       let avgn = (e) => qs(e).value == "avg" ? "avg" : n(qs(e).value);
 
       c.mode = n(qs("#mode").value);
@@ -100,19 +113,28 @@
       c.err = qs("#err").checked ? 1 : 0;
       c.min = n(qs("#min").value);
       c.oc = n(qs("#oc").value);
-      c.min = Math.max(0, Math.min(60, c.min));
+      c.min = limit(0, c.min, 60);
 
       c.m0.cmd = qs("#m0-cmd").checked ? 1 : 0;
       c.m1.lim = avgn("#m1-lim");
       c.m2.per = n(qs("#m2-per").value);
-      c.m2.cnt = Math.min(c.m2.per, n(qs("#m2-cnt").value));
+      c.m2.cnt = n(qs("#m2-cnt").value);
       c.m2.sq = qs("#m2-sq").checked ? 1 : 0;
-      c.m2.lim = avgn("#m2-lim");
       c.m2.m = avgn("#m2-m");
+      c.m2.lim = avgn("#m2-lim");
+      c.m2.ps = limit(0, n(qs("#m2-ps").value), 23);
+      c.m2.pe = limit(c.m2.ps, n(qs("#m2-pe").value), 24);
+      c.m2.ps2 = limit(0, n(qs("#m2-ps2").value), 23);
+      c.m2.pe2 = limit(c.m2.ps2, n(qs("#m2-pe2").value), 24);
+      c.m2.cnt2 = n(qs("#m2-cnt2").value);
+
+      //Checking count limits
+      c.m2.cnt = limit(0, c.m2.cnt, c.m2.per > 0 ? c.m2.per : c.m2.pe - c.m2.ps);
+      c.m2.cnt2 = limit(0, c.m2.cnt2, c.m2.pe2 - c.m2.ps2);
 
       DBG(me(), "Settings to save:", c);
 
-      const res = await getData(`${URL}/rpc/KVS.Set?key="porssi-config"&value=${(JSON.stringify(c))}`);
+      let res = await getData(`${URL}/rpc/KVS.Set?key="porssi-config"&value=${(JSON.stringify(c))}`);
 
       if (res.code == 200) {
         getData(`${URLS}?r=r`)
@@ -132,7 +154,7 @@
     }
   };
 
-  const force = async () => {
+  let force = async () => {
     let hours = prompt("Pakko-ohjauksen kesto tunteina? (0 = peru nykyinen)");
     
     if (hours != null) {
@@ -152,4 +174,5 @@
   CBS.push(onUpdate);
   qs("#save").addEventListener("click", save);
   qs("#force").addEventListener("click", force);
+  qs("#m2-per").addEventListener("change", (e) => checkCustomPeriodDisplay(e.target.value));
 }
