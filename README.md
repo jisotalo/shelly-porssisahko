@@ -405,6 +405,8 @@ Tämä esimerkki hakee koordinaattien perusteella kuluvan vuorokauden alhaisimma
 
 Säätiedot haetaan vain kerran vuorokaudessa tai asetusten muuttuessa. Open-Meteo ei vaadi rekisteröitymistä.
 
+Asenna esimerkkiskripti nimeltä **Esimerkki: Ulkolämpötilan hakeminen Open-Meteo-sääpalvelusta ja sen hyödyntäminen** Library-painikkeen takaa. Voit myös kopioida sen käsin alla olevasta linkistä.
+
 Esimerkin toiminta
 * Käytetään Tampereen koordinaatteja
 * Jos vuorokauden alhaisin lämpötila on alle -15°C, laitetaan halvimpien tuntien määräksi 8h ja ohjausminuuteksi 60min
