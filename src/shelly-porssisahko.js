@@ -88,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.12.2",
+    v: "2.12.3",
     /** Device name */
     dn: '',
     /** status as number */
@@ -780,6 +780,11 @@ function logic() {
     }
 
     function logicFinalize(finalCmd) {
+      if (finalCmd == null) {
+        //User script wants to re-run logic
+        loopRunning = false;
+        return;
+      }
       //Normally cmd == finalCmd, but user script could change it
       if (cmd != finalCmd) {
         _.s.st = 12;

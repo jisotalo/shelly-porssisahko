@@ -66,7 +66,7 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard
   + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-plus-add-on-ja-ds18b20)
   + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H&T)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-erillinen-shelly-ht)
   + [Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjauksen-rajoitus-lämpötilan-avulla-shelly-plus-add-on-ja-ds18b20)
-  + [Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-sääpalvelusta-ja-sen-hyödyntäminen)
+  + [Esimerkki: Ulkolämpötilan hakeminen Open-Meteo-sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-open-meteo-sääpalvelusta-ja-sen-hyödyntäminen)
   + [Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)](#esimerkki-asetusten-määrittäminen-skriptissä-ilman-käyttöliittymää)
 - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
 - [Teknistä tietoa ja kehitysympäristö](#teknistä-tietoa-ja-kehitysympäristö)
@@ -319,13 +319,15 @@ Skriptissä on saatavilla globaali muuttuja `_`, joka sisältää skriptin tilan
 
 Kun skripti on todennut ohjauksen tilan, kutsuu se funktiota `USER_OVERRIDE`, mikäli se on määritelty. Tässä funktiossa voidaan vielä tehdä viime hetken muutoksia skriptin ohjaukseen.
 
-`USER_OVERRIDE(cmd: boolean, state: object, callback: function(boolean)) => void`
+Vaihtoehtoisesti voidaan myös käskeä skriptiä ajamaan logiikka uudelleen. Tämä voi olla hyödyllistä esimerkiksi jos asetuksia on muutettu ja halutaan suorittaa logiikka heti uusilla asetuksilla.
+
+`USER_OVERRIDE(cmd: boolean, state: object, callback: function(boolean|null)) => void`
 
 | parametri | tyyppi | selite |
 | --- | --- | --- |
 | `cmd` | `boolean` | Skriptin määrittämä lopullinen komento (ennen mahdollista käänteistä ohjausta)
 | `state` | `object` | Skriptin tila, sama kuin globaali muuttuja `_`.<br><br>Selitykset koodissa: <https://github.com/jisotalo/shelly-porssisahko/blob/master/src/shelly-porssisahko.js#L78> (esim `state.s.p.now`)
-| `callback` | `function(boolean)` | Takaisinkutsufunktio, jota **täytyy** kutsua lopullisella komennolla, esim: `callback(true)`
+| `callback` | `function(boolean\|null)` | Takaisinkutsufunktio, jota **täytyy** kutsua lopullisella komennolla, esim: `callback(true)`.<br><br>Jos parametri on `null`, eli kutsu on `callback(null)`, ohjausta ei aseteta, vaan logiikka ajetaan hetken päästä uudelleen.
 | *`paluuarvo`* | `void` | Ei paluuarvoa
 
 
@@ -397,10 +399,20 @@ Käyttää lämpötila-anturia, jonka id on 100.
 
 **Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js>
 
-### Esimerkki: Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen
+### Esimerkki: Ulkolämpötilan hakeminen Open-Meteo-sääpalvelusta ja sen hyödyntäminen
 
-Tulossa.
+Tämä esimerkki hakee koordinaattien perusteella kuluvan vuorokauden alhaisimman ja korkeimman lämpötilan [Open-Meteo](https://open-meteo.com/)-sääpalvelun API-rajapinnasta. Alhaisimman lämpötilan perusteella valitaan ohjaustuntien määrä ja ohjausminuutit.
 
+Säätiedot haetaan vain kerran vuorokaudessa tai asetusten muuttuessa. Open-Meteo ei vaadi rekisteröitymistä.
+
+Esimerkin toiminta
+* Käytetään Tampereen koordinaatteja
+* Jos vuorokauden alhaisin lämpötila on alle -15°C, laitetaan halvimpien tuntien määräksi 8h ja ohjausminuuteksi 60min
+* Jos vuorokauden alhaisin lämpötila on alle -10°C, laitetaan halvimpien tuntien määräksi 7h ja ohjausminuuteksi 45min
+* Jos vuorokauden alhaisin lämpötila on alle -5°C, laitetaan halvimpien tuntien määräksi 6h ja ohjausminuuteksi 45min
+* Muuten annetaan ohjata pörssisähköohjauksen asetusten mukaan
+
+**Esimerkin koodi:** <https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-open-meteo-api.js>
 ### Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)
 
 Jos et halua käyttää tai pysty käyttämään selainpohjaista käyttöliittymää, voidaan asetukset määrittää myös skriptissä (versiosta 2.8.0 alkaen). Tämä tapahtuu lisäämällä skriptin perään uusi funktio `USER_CONFIG`. 

@@ -25,6 +25,11 @@
     "description": "Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen rajoituksessa siten, että ei lämmitetä turhaan mutta ei myöskään päästetä liian kylmäksi (lue README)"
   },
   {
+    "fname": "dist/shelly-porssisahko-open-meteo-api.js",
+    "title": "Esimerkki: Ulkolämpötilan hakeminen Open-Meteo-sääpalvelusta ja sen hyödyntäminen",
+    "description": "Tämä esimerkki hakee koordinaattien perusteella kuluvan vuorokauden alhaisimman lämpötilan Open-Meteo-sääpalvelun API-rajapinnasta ja muuttaa sen perusteella ohjaustunteja. (lue README)"
+  },
+  {
     "fname": "dist/shelly-porssisahko-user-config.js",
     "title": "Esimerkki: Asetusten määrittäminen skriptissä",
     "description": "Sisältää esimerkkikoodin, miten asetukset voidaan määrittää suoraan skriptissä (lue README)"

@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.12.3] - 09.03.2024
+- Lisätty mahdollisuus pyytää `USER_OVERRIDE`-funktiosta logiikan uudelleen suoritusta (palauttamalla `null` takaisinkutsulla)
+- Lisätty uusi esimerkki: **Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen** (`shelly-porssisahko-open-meteo-api.js`)
+  - Hakee kuluvan vuorokauden alhaisimman lämpötilan Open-Meteo-palvelusta koordinaattien perusteella ja muuttaa sen perusteella ohjaustunteja
+
 ## [2.12.2] - 06.03.2024
 - Uusi ominaisuus: Vapaavalintaiset ajanjaksot
   - Voi valita yhden tai kaksi vapaavalintaista ajanjaksoa ja niille halutut tuntimääräät
@@ -150,6 +155,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.12.3] - 09.03.2024
+- Added option for `USER_OVERRIDE` to request a re-run of logic by returning `null` with the callback
+- New example: `shelly-porssisahko-open-meteo-api.js`
+
 ## [2.12.2] - 06.03.2024
 - New feature: custom hour ranges
   - Can configure one or two custom time ranges and number of cheapest hours for each
