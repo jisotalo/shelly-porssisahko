@@ -55,10 +55,10 @@ function USER_CONFIG(config, state, initialized) {
     } else if (temp.tC <= -5) {
       hours = 6;
       minutes = 45;
+      
     } else {
-      hours = 6;
-      minutes = 45;
-    }
+      //Ei tehdä mitään --> käytetään käyttöliittymän asetuksia
+    } 
 
     //------------------------------
     // Toimintalogiikka päättyy

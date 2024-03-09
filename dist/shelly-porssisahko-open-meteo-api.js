@@ -124,10 +124,11 @@ function USER_OVERRIDE(cmd, state, callback) {
               minutes = 45;
 
             } else {
-              //Vuorokauden aikana alimmillaan >= -5 °C
-              hours = 6;
-              minutes = 45;
-            }
+              //Ei tehdä mitään --> käytetään käyttöliittymän asetuksia
+            } 
+
+
+            
 
             //------------------------------
             // Toimintalogiikka päättyy
