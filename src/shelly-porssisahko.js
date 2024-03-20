@@ -88,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.12.3",
+    v: "2.12.4",
     /** Device name */
     dn: '',
     /** status as number */
@@ -804,6 +804,7 @@ function logic() {
         _.s.cmd = cmd ? 1 : 0;
         _.s.chkTs = epoch();
         loopRunning = false;
+        return;
       }
 
       let cnt = 0;

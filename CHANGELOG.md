@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.12.4] - 20.03.2024
+- Bugikorjaus: Korjattu `vain muuttuessa` -ohjausasetus
+  - Ohjaus saatettiin ylikirjoittaa vaikka ei pitänyt
+  - Historiaan kirjoitettiin tuplarivejä
+
 ## [2.12.3] - 09.03.2024
 - Lisätty mahdollisuus pyytää `USER_OVERRIDE`-funktiosta logiikan uudelleen suoritusta (palauttamalla `null` takaisinkutsulla)
 - Lisätty uusi esimerkki: **Ulkolämpötilan hakeminen sääpalvelusta ja sen hyödyntäminen** (`shelly-porssisahko-open-meteo-api.js`)
@@ -155,6 +160,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.12.4] - 20.03.2024
+- Bugfix: Fixed issues with `only on change` output setting
+
 ## [2.12.3] - 09.03.2024
 - Added option for `USER_OVERRIDE` to request a re-run of logic by returning `null` with the callback
 - New example: `shelly-porssisahko-open-meteo-api.js`
