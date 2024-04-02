@@ -37,9 +37,11 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard
   * Shelly Pro 2
   * Shelly Pro 3
   * Shelly Pro 4PM
-  * Shelly Plus Plug S
   * Shelly Pro3EM + Switch Add-on
   * Shelly Plus UNI
+  * Shelly Plus 1 Mini
+  * Shelly Plus Plug S
+    * Plugin valon värin ohjaus sähkön hinnan mukaan onnistuu skriptillä [shelly-plug-nordpool-light](https://github.com/jisotalo/shelly-plug-nordpool-light)
 
 ## Sisällysluettelo
 - [Muutoshistoria](#muutoshistoria)

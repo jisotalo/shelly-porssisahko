@@ -88,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.12.4",
+    v: "2.12.5",
     /** Device name */
     dn: '',
     /** status as number */
@@ -436,10 +436,10 @@ function pricesNeeded(dayIndex) {
     /*
     Getting prices for tomorrow if
       - we have a valid time
-      - clock is past 13:00 UTC+0 (NOTE: 13 instead of 12 as elering updates prices at 12:30 or so)
+      - clock is past 15:00 local time (NOTE: Elering seems to have prices after 14.30 LOCAL time, no matter is it DST or not)
       - we don't have prices
     */
-    res = _.s.timeOK && _.s.p[1].ts === 0 && now.getHours() >= (13 + _.s.tzh);
+    res = _.s.timeOK && _.s.p[1].ts === 0 && now.getHours() >= 15;
 
   } else {
     /*

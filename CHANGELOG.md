@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.12.5] - 02.04.2024
+- Bugikorjaus: Seuraavan päivän hinnat haettiin kesäaikaan siirtymisen takia vasta 16:00 (15:00 sijaan)
+
 ## [2.12.4] - 20.03.2024
 - Bugikorjaus: Korjattu `vain muuttuessa` -ohjausasetus
   - Ohjaus saatettiin ylikirjoittaa vaikka ei pitänyt
@@ -160,6 +163,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.12.5] - 02.04.2024
+- Bugfix: Next day prices were read after 16:00 after DST change (instead of 15:00)
+
 ## [2.12.4] - 20.03.2024
 - Bugfix: Fixed issues with `only on change` output setting
 
