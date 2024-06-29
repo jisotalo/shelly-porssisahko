@@ -319,7 +319,7 @@ Koska asetuksia on nykyään niin paljon, ajattelin listata tähän esimerkkejä
 
 Versiosta 2.8.0 lähtien on mahdollista lisätä omaa toiminnallisuutta pörssisähköohjuksen rinnalle. Tämä tapahtuu lisäämällä omaa koodia skriptin perään. Idea on, että pörssisähköohjauksen asetuksia tai ohjausta voidaan hienosäätää tarpeen mukaan, esimerkiksi lämpötilan perusteella. Alla oleva esimerkit voi asentaa **Library**-painikkeen takaa.
 
-Alla esimerkki, kuinka käyttöliittymä näyttää [Shelly H&T:n lämpötilaa hyödyntävän ohjauksen](#esimerkki-ohjauksen-hienosäätö-shelly-htn-lämpötilamittauksen-avulla) tilan:
+Alla esimerkki, kuinka käyttöliittymä näyttää [Shelly H&T:n lämpötilaa hyödyntävän ohjauksen](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-erillinen-shelly-ht) tilan:
 <img alt="image" src="https://github.com/jisotalo/shelly-porssisahko/assets/13457157/76449d42-d2bb-4300-9786-fcf2cf23498c">
 
 **Globaalit muuttujat**
