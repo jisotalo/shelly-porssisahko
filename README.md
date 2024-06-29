@@ -63,6 +63,7 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard
     + [Vuorokauden halvimmat tunnit](#vuorokauden-halvimmat-tunnit)
     + [Joka 12 tunnin jakson halvimmat peräkkäiset tunnit](#joka-12-tunnin-jakson-halvimmat-peräkkäiset-tunnit)
     + [Alle päivän keskiarvon](#alle-päivän-keskiarvon)
+    + [Ohjaus päällä vuorokauden kalliimpana tuntina](#ohjaus-päällä-vuorokauden-kalliimpana-tuntina)
 - [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
   + [Esimerkki: Ohjauksen muutos keskiarvon avulla](#esimerkki-ohjauksen-muutos-keskiarvon-avulla)
   + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-plus-add-on-ja-ds18b20)
@@ -304,6 +305,15 @@ Koska asetuksia on nykyään niin paljon, ajattelin listata tähän esimerkkejä
 * Jos yhteysvika, ohjaus päällä
 
 ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/aa6650b9-c468-4dd0-b7a3-5bd2395cd4dc)
+
+### Ohjaus päällä vuorokauden kalliimpana tuntina
+
+* Ohjaus on päällä vuorokauden kalliimpana tuntina (huomaa käänteinen ohjaus)
+* 23 muuta tuntia ohjaus on pois
+* Jos hinnat ei tiedossa, ohjaus päällä 08:00-09:00
+* Jos yhteysvika, ohjaus päällä
+
+ ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/f9e4cf1f-84be-4dfd-816b-dde479f12dc2)
 
 ## Lisätoiminnot ja omat skriptit
 
