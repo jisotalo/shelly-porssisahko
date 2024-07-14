@@ -88,7 +88,7 @@ let C_DEF = {
 let _ = {
   s: {
     /** version number */
-    v: "2.12.5",
+    v: "2.13.0",
     /** Device name */
     dn: '',
     /** status as number */
@@ -449,7 +449,20 @@ function pricesNeeded(dayIndex) {
     */
     let dateChanged = getDate(new Date(_.s.p[0].ts * 1000)) !== getDate(now);
 
-    //If day changes - do we already have prices in tomorrow data?
+    //Clear tomorrow data
+    if (dateChanged) {
+      _.s.p[1].ts = 0;
+      _.p[1] = [];
+    }
+
+    /*
+    -----------------
+    The following commented code moves tomorrow prices to today
+    This way we don't need to get prices from Elering again
+
+    If using this, comment out the if (dateChanged) { ... } above
+    -----------------
+
     if (dateChanged && _.s.p[1].ts > 0 && getDate(new Date(_.s.p[1].ts * 1000)) !== getDate(now)) {
       //Copy tomorrow data
       _.p[0] = _.p[1];
@@ -464,6 +477,7 @@ function pricesNeeded(dayIndex) {
       //No need to fetch from server
       dateChanged = false;
     }
+    */
 
     res = _.s.timeOK && (_.s.p[0].ts == 0 || dateChanged);
   }

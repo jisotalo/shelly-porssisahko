@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # Suomeksi
+## [2.13.0] - 14.07.2024
+- Muutos: Kun vuorokausi vaihtuu, hinnat haetaan aina varalta uudelleen ([Katso issue #26](https://github.com/jisotalo/shelly-porssisahko/issues/26))
+  - Aiemmin käytettiin jo tiedossa olevia hintoja datan säästämiseksi ja optimoimiseksi
+  - Aiemmin jos Nordpoolin hinnoissa oli klo 15:00 virheitä, virheelliset hinnat jäivät voimaan, vaikka korjattu data oli ollut saatavilla
+
 ## [2.12.5] - 02.04.2024
 - Bugikorjaus: Seuraavan päivän hinnat haettiin kesäaikaan siirtymisen takia vasta 16:00 (15:00 sijaan)
 
@@ -163,6 +168,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versio 2 julkaistu (tehty täysin uusiksi)
 
 # In English
+## [2.13.0] - 14.07.2024
+- When day changes, the price data is always updated ([See issue #26](https://github.com/jisotalo/shelly-porssisahko/issues/26))
+  - Before the already known prices were used 
+  - Before, if Nordpool had faulty price data at 15:00, the corrected data was never updated. Now it will always be up-to-date.
+
 ## [2.12.5] - 02.04.2024
 - Bugfix: Next day prices were read after 16:00 after DST change (instead of 15:00)
 
