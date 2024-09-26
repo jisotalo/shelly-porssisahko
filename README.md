@@ -44,41 +44,51 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard
     * Plugin valon värin ohjaus sähkön hinnan mukaan onnistuu skriptillä [shelly-plug-nordpool-light](https://github.com/jisotalo/shelly-plug-nordpool-light)
 
 ## Sisällysluettelo
-- [Muutoshistoria](#muutoshistoria)
-- [Asennus](#asennus)
-  + [Asennus kirjaston avulla (suositeltu tapa)](#asennus-kirjaston-avulla-suositeltu-tapa)
-  + [Asennus käsin](#asennus-käsin)
-- [Skriptin päivitys](#skriptin-päivitys)
-- [Laitteisto ja sähköinen kytkentä](#laitteisto-ja-sähköinen-kytkentä)
-- [Asetukset](#asetukset)
-  + [Yleiset](#yleiset)
-  + [Ohjaustapa: Käsiohjaus](#ohjaustapa-käsiohjaus)
-  + [Ohjaustapa: Hintaraja](#ohjaustapa-hintaraja)
-  + [Ohjaustapa: Jakson halvimmat tunnit](#ohjaustapa-jakson-halvimmat-tunnit)
-  + [Jakson halvimmat tunnit - omavalintaiset jaksot](#jakson-halvimmat-tunnit---omavalintaiset-jaksot)
-  + [Toiminnot](#toiminnot)
-- [Valmiita esimerkkiasetuksia](#valmiita-esimerkkiasetuksia)
-    + [Yön halvimmat tunnit](#yön-halvimmat-tunnit)
-    + [Yön ja illan halvimmat tunnit](#yön-ja-illan-halvimmat-tunnit)
-    + [Vuorokauden halvimmat tunnit](#vuorokauden-halvimmat-tunnit)
-    + [Joka 12 tunnin jakson halvimmat peräkkäiset tunnit](#joka-12-tunnin-jakson-halvimmat-peräkkäiset-tunnit)
-    + [Alle päivän keskiarvon](#alle-päivän-keskiarvon)
-    + [Ohjaus päällä vuorokauden kalliimpana tuntina](#ohjaus-päällä-vuorokauden-kalliimpana-tuntina)
-- [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
-  + [Esimerkki: Ohjauksen muutos keskiarvon avulla](#esimerkki-ohjauksen-muutos-keskiarvon-avulla)
-  + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-plus-add-on-ja-ds18b20)
-  + [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H&T)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-erillinen-shelly-ht)
-  + [Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjauksen-rajoitus-lämpötilan-avulla-shelly-plus-add-on-ja-ds18b20)
-  + [Esimerkki: Ulkolämpötilan hakeminen Open-Meteo-sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-open-meteo-sääpalvelusta-ja-sen-hyödyntäminen)
-  + [Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)](#esimerkki-asetusten-määrittäminen-skriptissä-ilman-käyttöliittymää)
-- [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
-- [Teknistä tietoa ja kehitysympäristö](#teknistä-tietoa-ja-kehitysympäristö)
-  + [Lyhyesti](#lyhyesti)
-  + [Tiedostot ja kansiot](#tiedostot-ja-kansiot)
-  + [Muistin käyttö](#muistin-käyttö)
-  + [Kehitysympäristö](#kehitysympäristö)
-- [In English](#in-english)
-- [License](#license)
+- [shelly-porssisahko - Pörssisähköohjaus Shelly-releisiin](#shelly-porssisahko---pörssisähköohjaus-shelly-releisiin)
+  - [Ominaisuudet](#ominaisuudet)
+  - [Sisällysluettelo](#sisällysluettelo)
+  - [Muutoshistoria](#muutoshistoria)
+  - [Tukeminen](#tukeminen)
+  - [Asennus](#asennus)
+    - [Asennus kirjaston avulla (suositeltu tapa)](#asennus-kirjaston-avulla-suositeltu-tapa)
+    - [Asennus käsin](#asennus-käsin)
+  - [Skriptin päivitys](#skriptin-päivitys)
+  - [Laitteisto ja sähköinen kytkentä](#laitteisto-ja-sähköinen-kytkentä)
+  - [Asetukset](#asetukset)
+    - [Yleiset](#yleiset)
+    - [Ohjaustapa: Käsiohjaus](#ohjaustapa-käsiohjaus)
+    - [Ohjaustapa: Hintaraja](#ohjaustapa-hintaraja)
+    - [Ohjaustapa: Jakson halvimmat tunnit](#ohjaustapa-jakson-halvimmat-tunnit)
+    - [Jakson halvimmat tunnit - omavalintaiset jaksot](#jakson-halvimmat-tunnit---omavalintaiset-jaksot)
+    - [Toiminnot](#toiminnot)
+  - [Valmiita esimerkkiasetuksia](#valmiita-esimerkkiasetuksia)
+    - [Yön halvimmat tunnit](#yön-halvimmat-tunnit)
+    - [Yön ja illan halvimmat tunnit](#yön-ja-illan-halvimmat-tunnit)
+    - [Vuorokauden halvimmat tunnit](#vuorokauden-halvimmat-tunnit)
+    - [Joka 12 tunnin jakson halvimmat peräkkäiset tunnit](#joka-12-tunnin-jakson-halvimmat-peräkkäiset-tunnit)
+    - [Alle päivän keskiarvon](#alle-päivän-keskiarvon)
+    - [Ohjaus päällä vuorokauden kalliimpana tuntina](#ohjaus-päällä-vuorokauden-kalliimpana-tuntina)
+  - [Lisätoiminnot ja omat skriptit](#lisätoiminnot-ja-omat-skriptit)
+    - [Esimerkki: Ohjauksen muutos keskiarvon avulla](#esimerkki-ohjauksen-muutos-keskiarvon-avulla)
+    - [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-shelly-plus-add-on-ja-ds18b20)
+    - [Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H\&T)](#esimerkki-ohjaustuntien-asetus-lämpötilan-perusteella-erillinen-shelly-ht)
+    - [Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)](#esimerkki-ohjauksen-rajoitus-lämpötilan-avulla-shelly-plus-add-on-ja-ds18b20)
+    - [Esimerkki: Ulkolämpötilan hakeminen Open-Meteo-sääpalvelusta ja sen hyödyntäminen](#esimerkki-ulkolämpötilan-hakeminen-open-meteo-sääpalvelusta-ja-sen-hyödyntäminen)
+    - [Esimerkki: Asetusten määrittäminen skriptissä (ilman käyttöliittymää)](#esimerkki-asetusten-määrittäminen-skriptissä-ilman-käyttöliittymää)
+  - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
+    - [Miksi välillä tulee HTTP error 503?](#miksi-välillä-tulee-http-error-503)
+    - [Miten ohjaan ainoastaan yön halvimmilla tunneilla?](#miten-ohjaan-ainoastaan-yön-halvimmilla-tunneilla)
+    - [Miten saan lähdön päälle aina jos sähkön hinta on keskiarvon alapuolella?](#miten-saan-lähdön-päälle-aina-jos-sähkön-hinta-on-keskiarvon-alapuolella)
+    - [Miksi laitteen nimen kohdalla lukee "Ei asetettu"?](#miksi-laitteen-nimen-kohdalla-lukee-ei-asetettu)
+    - [Kuinka saa skriptin toimimaan Switch Add-Onin kanssa?](#kuinka-saa-skriptin-toimimaan-switch-add-onin-kanssa)
+    - [Milloin seuraavan päivän hinnat haetaan? Miksi hintoja ei näy vaikka kello on 14?](#milloin-seuraavan-päivän-hinnat-haetaan-miksi-hintoja-ei-näy-vaikka-kello-on-14)
+  - [Teknistä tietoa ja kehitysympäristö](#teknistä-tietoa-ja-kehitysympäristö)
+    - [Lyhyesti](#lyhyesti)
+    - [Tiedostot ja kansiot](#tiedostot-ja-kansiot)
+    - [Muistin käyttö](#muistin-käyttö)
+    - [Kehitysympäristö](#kehitysympäristö)
+  - [In English](#in-english)
+  - [License](#license)
 
 ## Muutoshistoria
 
@@ -86,6 +96,15 @@ Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisot
 
 Tarvittaessa vanhat skriptiversiot löytyvät [Releases](https://github.com/jisotalo/shelly-porssisahko/releases)-sivulta. Lataa halutun version zip-tiedosto, ja kopioi `dist/shelly-porssisahko.js`-tiedoston sisältö.
 
+
+## Tukeminen
+
+Jos skriptistä on hyötyä, voit vaikka tarjota kahvit vastineena!
+
+<a href="https://www.buymeacoffee.com/jisotalo" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
+[![Support](https://img.shields.io/badge/Support_with-PayPal-yellow)](https://www.paypal.com/donate/?business=KUWBXXCVGZZME&no_recurring=0&currency_code=EUR)
+ 
 ## Asennus
 
 **HUOMIO:** Skripti vaatii firmwaren 1.0.7 tai uudemman
@@ -145,15 +164,15 @@ Jos haluat päivittää skriptin uusimaan versioon, poista nykyinen skripti ja t
 
 ## Laitteisto ja sähköinen kytkentä
 
-Olen kehittänyt tämän skriptin alunperin Shelly Plus 1PM -relekytkimelle, jonka saa esimerkiksi [Verkkokaupasta](https://www.verkkokauppa.com/fi/product/835579/Shelly-Plus-1PM-relekytkin-Wi-Fi-verkkoon) tai halvemmalla [monelta suomalaiselta jälleenmyyjältä](https://www.google.com/search?q=shelly+plus+1pm&lr=lang_fi). Se kestää speksien mukaan 16A kuorman, joten ainakin kevyttä sähköpatteria uskaltaa ohjata suoraan.
+Uskallan suositella Shelly-tuotteiden ostoa [Nurkan Takaa -kaupasta](https://verkkokauppa.nurkantakaa.fi/), sillä omien kokemuksien perusteella homma toimii erittäin luotettavasti ja hinnat ovat Suomen alhaisimmat. 
 
-Jos ohjaat kontaktoria, on suositeltavaa käyttää Shellyn sinisiä laitteita, jotka kestävät paremmin kelan aiheuttamia kytkentäpiikkejä. Näitä ovat esimerkiksi:
+Olen kehittänyt tämän skriptin alunperin Shelly Plus 1PM -relekytkimelle. Jos ohjaat kontaktoria, on suositeltavaa käyttää Shellyn sinisiä laitteita, jotka kestävät paremmin kelan aiheuttamia kytkentäpiikkejä. Näitä ovat esimerkiksi:
 
-* Shelly Plus 1
-* Shelly Plus 1 Mini
-* Shelly Pro 1, 2 ja 3
+* [Shelly Plus 1](https://verkkokauppa.nurkantakaa.fi/tuote/shelly-plus-1/)
+* [Shelly 1 Mini](https://verkkokauppa.nurkantakaa.fi/tuote/shelly-plus-1-mini-gen-3/)
+* [Shelly Pro 1, 2 ja 3](https://verkkokauppa.nurkantakaa.fi/osasto/shelly/shelly-pro/)
 
-Jos kuitenkin käytät esim. Shelly Plus 1PM -laitetta kontaktorin kanssa, [RC-suodatin](https://www.google.com/search?q=shelly+rc+snubber&lr=lang_fi) voi auttaa. Jännitepiikit ovat tunnetusti aiheuttaneet laitteen yllättävää uudelleenkäynnistystä.
+Jos kuitenkin käytät esim. Shelly Plus 1PM -laitetta kontaktorin kanssa, [RC-suodatin](https://verkkokauppa.nurkantakaa.fi/tuote/rc-snubber/) voi auttaa. Jännitepiikit ovat tunnetusti aiheuttaneet laitteen yllättävää uudelleenkäynnistystä.
 
 Lisää hyvää tietoa löytyy [Shelly tuki (suomeksi)](https://www.facebook.com/groups/shellytuki) -ryhmästä.
 
