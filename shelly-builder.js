@@ -217,6 +217,7 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
         comments: "some" //leaving @license comment
       },
       mangle: {
+        toplevel: false,
         reserved: [
           //Some issues atm. with global constants -> setting so that names will not be mangled
           "C_LOG",
@@ -224,6 +225,7 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
           "C_ERRC",
           "C_ERRD",
           "C_DEF",
+          "C_COUNT",
           "_" //Keeping state variable name as _ for user scripts
         ]
       },
