@@ -220,12 +220,7 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
         toplevel: false,
         reserved: [
           //Some issues atm. with global constants -> setting so that names will not be mangled
-          "C_LOG",
-          "C_HIST",
-          "C_ERRC",
-          "C_ERRD",
-          "C_DEF",
-          "C_COUNT",
+          "CNST",
           "_" //Keeping state variable name as _ for user scripts
         ]
       },

@@ -8,121 +8,115 @@
  * 
  * License: GNU Affero General Public License v3.0 
  */
-
-let CNST = {
+/** Constants etc. */
+const CNST = {
+  /** Number of instances */
   INST_COUNT: 3,
-  HIST_LEN: 24,
+  /** Number of history rows per instance */
+  HIST_LEN: 8,
+  /** How many errors with getting prices until to have a break */
   ERR_LIMIT: 3,
-  ERR_DELAY: 120
-}
+  /** How long to wait after multiple errors (>= ERR_LIMIT) before trying again (s) */
+  ERR_DELAY: 120,
 
-/** Number of instances */
-let C_COUNT = 3;
-
-/** Number of history rows per instance */
-let C_HIST = 24;
-
-/** How many errors with getting prices until to have a break */
-let C_ERRC = 3;
-
-/** How long to wait after multiple errors (>= C_ERRC) before trying again (s) */
-let C_ERRD = 120;
-
-/** Default config for an instance to use if some/all of them are missing from KVS */
-let C_DEF_I = {
-  /** Enabled */
-  en: 0,
-  /**  
-   * Active mode
-   * 0: manual mode (on/off toggle)
-   * 1: price limit
-   * 2: cheapest hours 
-  */
-  mode: 0,
-  /** Settings for mode 0 (manual) */
-  m0: {
-    /** Manual relay output command [0/1] */
-    c: 0
+  /** Default status for an instance */
+  DEF_INST_ST: {
+    /** epoch when last check was done (logic was run) */
+    chkTs: 0,
+    /** status as number */
+    st: 0,
+    /** Additional status string (only meant to be used by user override scripts) */
+    str: '',
+    /** active command (-1 = not yet determined)*/
+    cmd: -1,
+    /** 1 if config is checked */
+    configOK: 0,
+    /** If forced manually, then this is the timestamp until the force is removed */
+    fCmdTs: 0,
+    /** If forced manually, then this is the command */
+    fCmd: 0,
   },
-  /** Settings for mode 1 (price limit) */
-  m1: {
-    /** Price limit limit - if price <= relay output command is set on [c/kWh] */
-    l: 0
-  },
-  /** Settings for mode 2 (cheapest hours) */
-  m2: {
-    /** Period length (-1 = custom range) [h] (example: 24 -> cheapest hours during 24h) */
-    p: 24,
-    /** How many cheapest hours */
-    c: 0,
-    /** Always on price limit [c/kWh] */
-    l: -999,
-    /** Should the hours be sequential / in a row [0/1] */
-    s: 0,
-    /** Maximum price limit [c/kWh] */
-    m: 999,
-    /** Custom period start hour */
-    ps: 0,
-    /** Custom period end hour */
-    pe: 23,
-    /** Custom period 2 start hour */
-    ps2: 0,
-    /** Custom period 2 end hour */
-    pe2: 23,
-    /** How many cheapest hours (custom period 2) */
-    c2: 0,
-  },
-  /** Backup hours [binary] (example: 0b111111 = 00, 01, 02, 03, 04, 05) */
-  b: 0b0,
-  /** Relay output command if clock time is not known [0/1] */
-  e: 0,
-  /** Outputs IDs to use (array of numbers) */
-  o: [0],
-  /** Forced hours [binary] (example: 0b110000000000001100001 = 00, 05, 06, 19, 20) */
-  f: 0b0,
-  /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example "fh" setting) */
-  fc: 0b0,
-  /** Invert output [0/1] */
-  in: 0,
-  /** How many first minutes of the hour the output should be on [min]*/
-  m: 60,
-  /** Output config - when to set output (0 = always after running logic, 1 = only when output changes)*/
-  oc: 0
-}
 
-/** Default config for common to use if some/all of them are missing from KVS */
-let C_DEF_C = {
-  /** Group (country) to get prices from */
-  g: 'fi',
-  /** VAT added to spot price [%] */
-  vat: 25.5,
-  /** Day (07...22) transfer price [c/kWh] */
-  day: 0,
-  /** Night (22...07) transfer price [c/kWh] */
-  night: 0,
-  /** TODO */
-  names: []
+  /** Default configs - deleted from memory after checking */
+  DEF_CFG: {
+
+    /** Default config for common settings */
+    COM: {
+      /** Group (country) to get prices from */
+      g: 'fi',
+      /** VAT added to spot price [%] */
+      vat: 25.5,
+      /** Day (07...22) transfer price [c/kWh] */
+      day: 0,
+      /** Night (22...07) transfer price [c/kWh] */
+      night: 0,
+      /** TODO */
+      names: []
+    },
+
+    /** Default config for instance settings */
+    INST: {
+      /** Enabled */
+      en: 0,
+      /**  
+       * Active mode
+       * 0: manual mode (on/off toggle)
+       * 1: price limit
+       * 2: cheapest hours 
+      */
+      mode: 0,
+      /** Settings for mode 0 (manual) */
+      m0: {
+        /** Manual relay output command [0/1] */
+        c: 0
+      },
+      /** Settings for mode 1 (price limit) */
+      m1: {
+        /** Price limit limit - if price <= relay output command is set on [c/kWh] */
+        l: 0
+      },
+      /** Settings for mode 2 (cheapest hours) */
+      m2: {
+        /** Period length (-1 = custom range) [h] (example: 24 -> cheapest hours during 24h) */
+        p: 24,
+        /** How many cheapest hours */
+        c: 0,
+        /** Always on price limit [c/kWh] */
+        l: -999,
+        /** Should the hours be sequential / in a row [0/1] */
+        s: 0,
+        /** Maximum price limit [c/kWh] */
+        m: 999,
+        /** Custom period start hour */
+        ps: 0,
+        /** Custom period end hour */
+        pe: 23,
+        /** Custom period 2 start hour */
+        ps2: 0,
+        /** Custom period 2 end hour */
+        pe2: 23,
+        /** How many cheapest hours (custom period 2) */
+        c2: 0,
+      },
+      /** Backup hours [binary] (example: 0b111111 = 00, 01, 02, 03, 04, 05) */
+      b: 0b0,
+      /** Relay output command if clock time is not known [0/1] */
+      e: 0,
+      /** Outputs IDs to use (array of numbers) */
+      o: [0],
+      /** Forced hours [binary] (example: 0b110000000000001100001 = 00, 05, 06, 19, 20) */
+      f: 0b0,
+      /** Forced hours commands [binary] (example: 0b110000000000001100000 = 05, 06, 19, 20 are forced to on, 00 to off (if forced as in above example "fh" setting) */
+      fc: 0b0,
+      /** Invert output [0/1] */
+      i: 0,
+      /** How many first minutes of the hour the output should be on [min]*/
+      m: 60,
+      /** Output config - when to set output (0 = always after running logic, 1 = only when output changes)*/
+      oc: 0
+    }
+  }
 };
-
-/** Default status for an instance */
-let C_DEF_S = {
-  /** epoch when last check was done (logic was run) */
-  chkTs: 0,
-  /** status as number */
-  st: 0,
-  /** Additional status string (only meant to be used by user override scripts) */
-  str: '',
-  /** active command (-1 = not yet determined)*/
-  cmd: -1,
-  /** 1 if we have somewhat ok time */
-  timeOK: 0,
-  /** 1 if config is checked */
-  configOK: 0,
-  /** If forced manually, then this is the timestamp until the force is removed */
-  fCmdTs: 0,
-  /** If forced manually, then this is the command */
-  fCmd: 0,
-}
 
 /** Main state of app */
 let _ = {
@@ -133,6 +127,8 @@ let _ = {
     dn: '',
     /** 1 if config is checked */
     configOK: 0,
+    /** 1 if we have somewhat ok time */
+    timeOK: 0,
     /** active error count */
     errCnt: 0,
     /** epoch of last error */
@@ -172,28 +168,16 @@ let _ = {
     ]
   },
   /** status for instances */
-  si: [], //Initialized later
-  /* [
-    Object.assign({}, C_DEF_S),
-    Object.assign({}, C_DEF_S),
-    Object.assign({}, C_DEF_S)
-  ],*/
+  si: [CNST.DEF_INST_ST], //Initialized later - this is just for autocomplete
   /** price data [0] = today, [1] tomorrow - each item is array [epoch, price]*/
-  p: [
-    [],
-    []
-  ],
-
+  p: [[], []],
   /** command history for each instance (each item is array [epoch, cmd, desc])*/
-  h: [
-    [],
-    [],
-    []
-  ],
+  h: [], //Initialized later
+
   /** actice config */
   c: {
-    c: C_DEF_C,
-    i: [] //Initialized later
+    c: CNST.DEF_CFG.COM,
+    i: [CNST.DEF_CFG.INST] //Initialized later - this is just for autocomplete
   }
 };
 
@@ -208,7 +192,7 @@ let loopRunning = false;
  * Here because some weird issues if it was inside logic()... 
  * memory/stack issues?
  */
-let cmd = [false, false, false];
+let cmd = [];
 
 function getKvsKey(inst) {
   let key = "porssi-config-";
@@ -327,11 +311,11 @@ function log(data) {
 /**
  * Adds command to history
  */
-function addHistory() {
-  while (C_HIST > 0 && _.h.length >= C_HIST) {
-    _.h.splice(0, 1);
+function addHistory(inst) {
+  while (CNST.HIST_LEN > 0 && _.h[inst].length >= CNST.HIST_LEN) {
+    _.h[inst].splice(0, 1);
   }
-  _.h.push([epoch(), cmd ? 1 : 0, _.s.st]);
+  _.h[inst].push([epoch(), cmd ? 1 : 0, _.si[inst].st]);
 }
 
 /**
@@ -356,7 +340,7 @@ function updateState() {
 function chkConfig(inst, cb) {
   let count = 0;
   //If config already checked, do nothing
-  if (!C_DEF_C && !C_DEF_I) {
+  if (!CNST.DEF_CFG.COM && !CNST.DEF_CFG.INST) {
     if (cb) {
       cb(true);
     }
@@ -364,7 +348,7 @@ function chkConfig(inst, cb) {
   }
 
   //Note: Hard-coded to max 2 levels
-  let source = inst < 0 ? C_DEF_C : C_DEF_I;
+  let source = inst < 0 ? CNST.DEF_CFG.COM : CNST.DEF_CFG.INST;
   let target = inst < 0 ? _.c.c : _.c.i[inst];
 
   for (let prop in source) {
@@ -384,10 +368,10 @@ function chkConfig(inst, cb) {
   }
 
   //Deleting default config after 1st check to save memory
-  if (inst >= C_COUNT - 1) {
+  if (inst >= CNST.INST_COUNT - 1) {
     log("default config deleted");
-    C_DEF_C = null;
-    C_DEF_I = null;
+    CNST.DEF_CFG.COM = null;
+    CNST.DEF_CFG.INST = null;
   }
 
   if (count > 0) {
@@ -455,7 +439,7 @@ function loop() {
   loopRunning = true;
 
   updateState();
-  
+
   if (!_.s.configOK) {
     //Common config
     getConfig(-1, true);
@@ -470,7 +454,7 @@ function loop() {
 
   } else {
     //Instances
-    for (let inst = 0; inst < C_COUNT; inst++) {
+    for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
       if (!_.si[inst].configOK) {
         //We need to update config to this instance
         getConfig(inst, true);
@@ -478,11 +462,11 @@ function loop() {
 
       } else if (logicRunNeeded(inst)) {
         //We need to run logic for this instance
-        logic(inst);
+        //Running using a timer to prevent stack issues
+        Timer.set(500, false, logic, inst);
         return;
       }
     }
-
     //If we are here, there is nothing to 
     loopRunning = false;
   }
@@ -556,10 +540,10 @@ function pricesNeeded(dayIndex) {
   }
 
   //If fetching prices has failed too many times -> wait until trying again
-  if (_.s.errCnt >= C_ERRC && (epoch(now) - _.s.errTs) < C_ERRD) {
+  if (_.s.errCnt >= CNST.ERR_LIMIT && (epoch(now) - _.s.errTs) < CNST.ERR_DELAY) {
     res = false;
 
-  } else if (_.s.errCnt >= C_ERRC) {
+  } else if (_.s.errCnt >= CNST.ERR_LIMIT) {
     //We can clear error counter (time has passed)
     _.s.errCnt = 0;
   }
@@ -586,11 +570,11 @@ function logicRunNeeded(inst) {
   let chk = new Date(st.chkTs * 1000);
 
   //for debugging (run every minute)
-  /*return (chk.getMinutes() !== now.getMinutes()
+  return (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
-    || (_.s.fCmdTs > 0 && _.s.fCmdTs - epoch(now) < 0)
-    || (_.s.fCmdTs == 0 && _.c.min < 60 && now.getMinutes() >= _.c.min && (_.s.cmd + _.c.inv) == 1);
-  */
+    || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
+    || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
+
 
   /*
     Logic should be run if
@@ -602,7 +586,7 @@ function logicRunNeeded(inst) {
   return (chk.getHours() !== now.getHours()
     || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
-    || (st.fCmdTs == 0 && cfg.min < 60 && now.getMinutes() >= cfg.min && (st.cmd + cfg.inv) == 1);
+    || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
 }
 
 /**
@@ -728,8 +712,6 @@ function getPrices(dayIndex) {
             //If we get less the prices may not be updated yet to elering API?
             throw new Error("huomisen hintoja ei saatu");
           }
-
-
         } else {
           throw new Error("error: " + err + "(" + msg + ") - " + JSON.stringify(res));
         }
@@ -748,10 +730,8 @@ function getPrices(dayIndex) {
         return;
       }
 
-      //Today prices -> run logic ASAP
-      //TODO
-      loopRunning = false;
-      //Timer.set(1000, false, logic);
+      //Today's prices -> run instance 1 logic asap
+      Timer.set(500, false, logic, 0);
     });
 
   } catch (err) {
@@ -764,10 +744,8 @@ function getPrices(dayIndex) {
       return;
     }
 
-    //Today prices -> run logic ASAP
-    loopRunning = false;
-    //TODO
-    //Timer.set(1000, false, logic);
+    //Today prices -> run instance 1 logic asap
+    Timer.set(500, false, logic, 0);
   }
 }
 
@@ -815,9 +793,10 @@ function logic(inst) {
 
 
 
+
     if (cfg.mode === 0) {
       //Manual mode
-      cmd[inst] = cfg.m0.cmd === 1;
+      cmd[inst] = cfg.m0.c === 1;
       st.st = 1;
 
     } else if (_.s.timeOK && (_.s.p[0].ts > 0 && getDate(new Date(_.s.p[0].ts * 1000)) === getDate(now))) {
@@ -825,7 +804,7 @@ function logic(inst) {
 
       if (cfg.mode === 1) {
         //Price limit
-        cmd[inst] = _.s.p[0].now <= (cfg.m1.lim == "avg" ? _.s.p[0].avg : cfg.m1.lim);
+        cmd[inst] = _.s.p[0].now <= (cfg.m1.l == "avg" ? _.s.p[0].avg : cfg.m1.l);
         st.st = cmd[inst] ? 2 : 3;
 
       } else if (cfg.mode === 2) {
@@ -834,7 +813,7 @@ function logic(inst) {
         st.st = cmd[inst] ? 5 : 4;
 
         //always on price limit
-        if (!cmd[inst] && _.s.p[0].now <= (cfg.m2.lim == "avg" ? _.s.p[0].avg : cfg.m2.lim)) {
+        if (!cmd[inst] && _.s.p[0].now <= (cfg.m2.l == "avg" ? _.s.p[0].avg : cfg.m2.l)) {
           cmd[inst] = true;
           st.st = 6;
         }
@@ -851,28 +830,28 @@ function logic(inst) {
       st.st = 7;
 
       let binNow = (1 << now.getHours());
-      if ((cfg.bk & binNow) == binNow) {
+      if ((cfg.b & binNow) == binNow) {
         cmd[inst] = true;
       }
 
     } else {
       //Time is not known
-      cmd[inst] = cfg.err === 1;
+      cmd[inst] = cfg.e === 1;
       st.st = 8;
     }
 
     //Forced hours
-    if (_.s.timeOK && cfg.fh > 0) {
+    if (_.s.timeOK && cfg.f > 0) {
       let binNow = (1 << now.getHours());
-      if ((cfg.fh & binNow) == binNow) {
-        cmd[inst] = (cfg.fhCmd & binNow) == binNow;
+      if ((cfg.f & binNow) == binNow) {
+        cmd[inst] = (cfg.fc & binNow) == binNow;
         st.st = 10;
       }
     }
 
     //Final check - if user wants to set command only for first x minutes
     //Manual force is only thing that overrides
-    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.min) {
+    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.m) {
       st.st = 13;
       cmd[inst] = false;
     }
@@ -901,14 +880,14 @@ function logic(inst) {
       cmd[inst] = finalCmd;
 
       //Invert?
-      if (cfg.inv) {
+      if (cfg.i) {
         cmd[inst] = !cmd[inst];
       }
 
       if (cfg.oc == 1 && st.cmd == cmd[inst]) {
         //No need to write 
         log("logic(): lähtö on jo oikeassa tilassa");
-        addHistory();
+        addHistory(inst);
         st.cmd = cmd[inst] ? 1 : 0;
         st.chkTs = epoch();
         loopRunning = false;
@@ -929,7 +908,7 @@ function logic(inst) {
           if (cnt == cfg.o.length) {
             //All done
             if (success == cnt) {
-              addHistory();
+              addHistory(inst);
               st.cmd = cmd[inst] ? 1 : 0;
               st.chkTs = epoch();
             }
@@ -954,6 +933,7 @@ function logic(inst) {
   }
 }
 
+
 /**
  * Returns true if current hour is one of the cheapest
  * 
@@ -973,7 +953,6 @@ let _cnt = 0;
 let _start = 0;
 let _end = 0;
 function isCheapestHour(inst) {
-  let st = _.s.i[inst];
   let cfg = _.c.i[inst];
 
   //Safety checks
@@ -981,7 +960,7 @@ function isCheapestHour(inst) {
   cfg.m2.pe = limit(cfg.m2.ps, cfg.m2.pe, 24);
   cfg.m2.ps2 = limit(0, cfg.m2.ps2, 23);
   cfg.m2.pe2 = limit(cfg.m2.ps2, cfg.m2.pe2, 24);
-  cfg.m2.c = limit(0, cfg.m2.c, cfg.m2.per > 0 ? cfg.m2.per : cfg.m2.pe - cfg.m2.ps);
+  cfg.m2.c = limit(0, cfg.m2.c, cfg.m2.p > 0 ? cfg.m2.p : cfg.m2.pe - cfg.m2.ps);
   cfg.m2.c2 = limit(0, cfg.m2.c2, cfg.m2.pe2 - cfg.m2.ps2);
 
   //This is (and needs to be) 1:1 in both frontend and backend code
@@ -1156,6 +1135,7 @@ function onServerRequest(request, response) {
 
     //Parsing parameters (key=value&key2=value2) to object
     let params = parseParams(request.query);
+    let inst = parseInt(params.i);
     request = null;
 
     let MIME_TYPE = "application/json"; //default
@@ -1169,15 +1149,29 @@ function onServerRequest(request, response) {
     if (params.r === "s") {
       //s = get state
       updateState();
-      response.body = JSON.stringify(_);
+
+      let inst = parseInt(params.i);
+
+      if (inst >= 0 && inst < CNST.INST_COUNT) {
+        //Building status object for certain instance
+        response.body = JSON.stringify({
+          s: _.s,
+          si: _.si[inst],
+          c: _.c.c,
+          ci: _.c.i[inst],
+          p: _.p
+        });
+
+      } else {
+        response.body = JSON.stringify(_);
+      }
       GZIP = false;
 
     } else if (params.r === "c") {
       //c = get config
       updateState();
-      let inst = parseInt(params.i);
 
-      if (inst >= 0 && inst < C_COUNT) {
+      if (inst >= 0 && inst < CNST.INST_COUNT) {
         response.body = JSON.stringify(_.c.i[inst]);
       } else {
         //common
@@ -1186,10 +1180,25 @@ function onServerRequest(request, response) {
 
       GZIP = false;
 
+
+    } else if (params.r === "h") {
+      //h = get history
+
+      if (inst >= 0 && inst < CNST.INST_COUNT) {
+        response.body = JSON.stringify(_.h[inst]);
+      }
+      GZIP = false;
+
     } else if (params.r === "r") {
       //r = reload settings
       _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
-      getConfig(false);
+      _.si[inst].configOK = false;
+
+      if (!loopRunning) {
+        loopRunning = true;
+        getConfig(inst, true);
+      }
+      
       _.s.p[0].ts = 0; //get prices
       _.s.p[1].ts = 0; //get prices
       response.code = 204;
@@ -1260,21 +1269,30 @@ function onServerRequest(request, response) {
   response.send();
 }
 
+function initialize() {
+  _.c.i.pop();
+  _.si.pop();
+
+  for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
+    _.si.push(Object.assign({}, CNST.DEF_INST_ST));
+    _.c.i.push(Object.assign({}, CNST.DEF_CFG.INST));
+
+    _.c.c.names.push("(tyhja)");
+    _.h.push([]);
+
+    cmd.push(false);
+  }
+
+  CNST.DEF_INST_ST = null; //No longer needed
+}
+
 //Startup
 log("shelly-porssisahko v." + _.s.v);
 log("URL: http://" + (Shelly.getComponentStatus("wifi").sta_ip ?? "192.168.33.1") + "/script/" + Shelly.getCurrentScriptId());
 
-//Initialize
-for (let inst = 0; inst < C_COUNT; inst++) {
-  _.si.push(Object.assign({}, C_DEF_S));
-  _.c.i.push(Object.assign({}, C_DEF_I));
-
-  _.c.c.names.push("");
-}
-
-C_DEF_S = null;//No longer needed
+initialize();
 
 //Start server and loop
 HTTPServer.registerEndpoint('', onServerRequest);
-Timer.set(5000, true, loop);
+Timer.set(10000, true, loop);
 loop();

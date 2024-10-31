@@ -11,8 +11,30 @@
   let priceListActiveHour = -1;
   let notYetKnown = `<tr><td colspan="3">Ei vielä tiedossa</td></tr>`;
 
-  const onUpdate = async () => {
+  const clear = () => {
+    let c = (e) => qs(e).innerHTML = "";
+    c("#s-cmd");
+    qs("#s-cmd").style.color = "";
+    c("#s-dn");
+    c("#s-now");
+    c("#s-mode");
+    c("#s-p0");
+    c("#s-pi0");
+    c("#s-p1");
+    c("#s-pi1");
+    c("#s-info");
+    c("#s-st");
+  }
+
+  const onUpdate = async (instChanged) => {
     try {
+      if (instChanged) {
+        clear();
+        qs("#s-cmd").innerHTML = "Ladataan...";
+        priceListsUpdated = [0, 0];
+        priceListActiveHour = -1;
+      }
+
       if (state === undefined) {
         return;
       } else if (!state) {
@@ -23,24 +45,42 @@
       let d = state;
       let s = d.s;
       let c = d.c;
+      let si = d.si;
+      let ci = d.ci;
 
       let todayPricesOK = d.p.length > 0;
       document.title = `${(s.dn ? `${s.dn} - ` : '')}Pörssisähkö`;
 
-      qs("#s-cmd").innerHTML = s.cmd ? "PÄÄLLÄ" : "POIS";
-      qs("#s-cmd").style.color = s.cmd ? "green" : "red";
-      qs("#s-mode").innerHTML = MODE_STR[c.mode];
-      qs("#s-dn").innerHTML = s.dn ? s.dn : '<i>Ei asetettu</i>';
-      qs("#s-now").innerHTML = todayPricesOK ? `${s.p[0].now.toFixed(2)} c/kWh` : "";
-      qs("#s-st").innerHTML = (s.st === 9
-        ? STATE_STR[s.st].replace("%s", formatDateTime(new Date(s.fCmdTs * 1000), false))
-        : STATE_STR[s.st]) + (c.inv ? " (käänteinen)" : "");
+      if (ci.en) {
+        qs("#s-cmd").innerHTML = si.cmd ? "PÄÄLLÄ" : "POIS";
+        qs("#s-cmd").style.color = si.cmd ? "green" : "red";
+        qs("#s-mode").innerHTML = MODE_STR[ci.mode];
+        qs("#s-now").innerHTML = todayPricesOK ? `${s.p[0].now.toFixed(2)} c/kWh` : "";
+        qs("#s-st").innerHTML = (si.st === 9
+          ? STATE_STR[si.st].replace("%s", formatDateTime(new Date(si.fCmdTs * 1000), false))
+          : STATE_STR[si.st]) + (ci.inv ? " (käänteinen)" : "");
 
-      if (s.str != "") {
-        qs("#s-st").innerHTML += `<br><br>${s.str}`;
+        if (si.str != "") {
+          qs("#s-st").innerHTML += `<br><br>${s.str}`;
+        }
+        qs("#s-info").innerHTML = si.chkTs > 0 ? `Ohjaus tarkistettu ${formatTime(new Date(si.chkTs * 1000))}` : `Tarkistetaan ohjausta...`;
+
+      } else {
+        clear();
+        qs("#s-info").innerHTML = `Ei käytössä`;
+        qs("#s-cmd").innerHTML = `Ohjaus #${(inst + 1)} ei käytössä`;
+        qs("#s-cmd").style.color = "orange";
       }
 
-      qs("#s-info").innerHTML = `${s.chkTs > 0 ? `Ohjaus tarkistettu ${formatTime(new Date(s.chkTs * 1000))}` : `Tarkistetaan ohjausta...`} - ${s.p[0].ts > 0 ? `Hinnat päivitetty ${formatTime(new Date(Math.max(s.p[0].ts, s.p[1].ts) * 1000))}` : "Hintoja haetaan..."}`;
+      let dn = s.dn ? s.dn : '<i>Ei asetettu</i>';
+      if (c.names[inst]) {
+        dn += ` | ${c.names[inst]}`
+      }
+      dn += ` (ohjaus #${(inst + 1)})`;
+
+      qs("#s-dn").innerHTML = dn;
+
+      qs("#s-info").innerHTML += ` - ${s.p[0].ts > 0 ? `Hinnat päivitetty ${formatTime(new Date(Math.max(s.p[0].ts, s.p[1].ts) * 1000))}` : "Hintoja haetaan..."}`;
       qs("#s-v").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
 
 
@@ -80,12 +120,12 @@
           return;
         }
 
-        if (c.mode === 2) {
+        if (ci.mode === 2) {
           //Select increment (a little hacky - to support custom periods too)
-          let inc = c.m2.per < 0 ? 1 : c.m2.per;
+          let inc = ci.m2.p < 0 ? 1 : ci.m2.p;
 
           for (let i = 0; i < d.p[dayIndex].length; i += inc) {
-            let cnt = (c.m2.per == -2 && i >= 1 ? c.m2.cnt2 : c.m2.cnt);
+            let cnt = (ci.m2.p == -2 && i >= 1 ? ci.m2.c2 : ci.m2.c);
 
             //Safety check
             if (cnt <= 0)
@@ -96,17 +136,17 @@
 
             //If custom period -> select hours from that range. Otherwise use this period
             let start = i;
-            let end = (i + c.m2.per);
+            let end = (i + ci.m2.p);
 
-            if (c.m2.per < 0 && i == 0) {
+            if (ci.m2.p < 0 && i == 0) {
               //Custom period 1 
-              start = c.m2.ps;
-              end = c.m2.pe;
+              start = ci.m2.ps;
+              end = ci.m2.pe;
 
-            } else if (c.m2.per == -2 && i == 1) {
+            } else if (ci.m2.p == -2 && i == 1) {
               //Custom period 2
-              start = c.m2.ps2;
-              end = c.m2.pe2;
+              start = ci.m2.ps2;
+              end = ci.m2.pe2;
             }
 
             for (let j = start; j < end; j++) {
@@ -117,7 +157,7 @@
               order.push(j);
             }
 
-            if (c.m2.sq) {
+            if (ci.m2.sq) {
               //Find cheapest in a sequence
               //Loop through each possible starting index and compare average prices
               let avg = 999;
@@ -162,7 +202,7 @@
             }
 
             //If custom period, quit when all periods are done (1 or 2 periods)
-            if (c.m2.per == -1 || (c.m2.per == -2 && i >= 1))
+            if (ci.m2.p == -1 || (ci.m2.p == -2 && i >= 1))
               break;
           }
         }
@@ -178,24 +218,29 @@
             let date = new Date(row[0] * 1000);
             let cmd =
 
-              ((c.mode === 0 && c.m0.cmd)
-                || (c.mode === 1 && row[1] <= (c.m1.lim == "avg" ? s.p[dayIndex].avg : c.m1.lim))
-                || (c.mode === 2 && cheapest.includes(i) && row[1] <= (c.m2.m == "avg" ? s.p[dayIndex].avg : c.m2.m))
-                || (c.mode === 2 && row[1] <= (c.m2.lim == "avg" ? s.p[dayIndex].avg : c.m2.lim))
-                || ((c.fh & (1 << i)) == (1 << i) && (c.fhCmd & (1 << i)) == (1 << i)))
-              && !((c.fh & (1 << i)) == (1 << i) && (c.fhCmd & (1 << i)) == 0);
+              ((ci.mode === 0 && ci.m0.cmd)
+                || (ci.mode === 1 && row[1] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
+                || (ci.mode === 2 && cheapest.includes(i) && row[1] <= (ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m))
+                || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l))
+                || ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == (1 << i)))
+              && !((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == 0);
 
             //Invert
-            if (c.inv) {
+            if (ci.inv) {
               cmd = !cmd;
             }
 
-            if (c.mode === 2
-              && ((c.m2.per < 0 && (i == c.m2.ps || i == c.m2.pe))
-                || (c.m2.per == -2 && (i == c.m2.ps2 || i == c.m2.pe2))
-                || (c.m2.per > 0 && i >= per + c.m2.per))) {
+            if (!ci.en) {
+              cmd = false;
+            }
+
+
+            if (ci.en && ci.mode === 2
+              && ((ci.m2.p < 0 && (i == ci.m2.ps || i == ci.m2.pe))
+                || (ci.m2.p == -2 && (i == ci.m2.ps2 || i == ci.m2.pe2))
+                || (ci.m2.p > 0 && i >= per + ci.m2.p))) {
               //Period changed
-              per += c.m2.per;
+              per += ci.m2.p;
               bg = !bg;
             }
 
@@ -224,19 +269,10 @@
 
     } catch (err) {
       console.error(err);
-      let c = (e) => qs(e).innerHTML = "";
+      clear();
+
       qs("#s-cmd").innerHTML = "Tila ei tiedossa";
       qs("#s-cmd").style.color = "red";
-      c("#s-dn");
-      c("#s-now");
-      c("#s-mode");
-      c("#s-p0");
-      c("#s-pi0");
-      c("#s-p1");
-      c("#s-pi1");
-      c("#s-info");
-      c("#s-st");
-
     }
   };
 

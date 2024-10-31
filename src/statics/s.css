@@ -128,7 +128,7 @@ table.cc>tbody>tr>td:first-child, .bg, table.sm tr:first-child {
 }
 
 @media(max-width: 480px) {
-  table.m>tbody>tr>td, label {
+  table.m>tbody>tr>td, #bk>label {
     display: block;
     width: 100%;
   }

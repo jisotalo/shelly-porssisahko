@@ -12,6 +12,8 @@ let URL = "";
 /** URL of the logic script */
 let URLS = ``;
 
+let activeTab = '';
+
 /** Shortcut for querySelector() call */
 let qs = (s) => document.querySelector(s);
 
@@ -49,6 +51,8 @@ let MODE_STR = [
   "Jakson halvimmat tunnit"
 ]
 
+let inst = 0;
+
 /**
  * Global state
  * 
@@ -65,6 +69,11 @@ let CBS = [];
  */
 let me = () => "";
 
+/** Timer handle */
+let loopTimer = null;
+
+
+
 /**
  * Opens tab with given id
  * @param {*} tab 
@@ -75,6 +84,7 @@ let openTab = async (tab) => {
     tab = "tab-status";
   }
   window.location.hash = tab;
+  activeTab = tab;
 
   let e = qs("#" + tab);
   if (e) {
@@ -84,6 +94,7 @@ let openTab = async (tab) => {
   if (qs(`#c-${tab}`).innerHTML === "") {
     await populateDynamicData(`${tab}.html`, `#c-${tab}`);
   }
+  updateLoop(true);
 };
 
 window.onload = async () => {
@@ -193,22 +204,28 @@ let formatDateTime = (date, showSeconds = true, showMilliseconds = false) => {
   return `${formatDate(date)} ${formatTime(date, showSeconds, showMilliseconds)}`;
 }
 
-let updateLoop = async () => {
+let updateLoop = async (instChanged) => {
+  //if (instChanged) {
+    clearTimeout(loopTimer);
+  //}
+
   DBG(me(), "Updating");
   qs("#spin").style.visibility = "visible";
 
   try {
-    let res = await getData(`${URLS}?r=s`);
+    let res = await getData(`${URLS}?r=s&i=${inst}`);
 
     if (res.ok) {
       state = res.data;
-
+      qs("#inst").querySelectorAll("option").forEach((o, i) => o.innerHTML = `Ohjaus #${(i + 1)}: ${state.c.names[i]}`);
+      
       //If status 503 the shelly is just now busy running the logic -> do nothing
     } else if (res.code !== 503) {
       state = null;
     }
 
-    CBS.forEach(cb => cb());
+    console.log("active:", activeTab);
+    CBS.forEach(cb => cb(instChanged));
 
   } catch (err) {
     console.error(err);
@@ -216,9 +233,16 @@ let updateLoop = async () => {
 
   } finally {
     qs("#spin").style.visibility = "hidden";
-    setTimeout(updateLoop, 10000);
+    loopTimer = setTimeout(updateLoop, 5000);
   }
 }
+
+qs("#inst").addEventListener("change", (e) => {
+  inst = Number(e.target.value);
+  state = undefined;
+  CBS.forEach(cb => cb(true));
+  updateLoop(true);
+});
 
 if (DEV) {
   reqJs("dev.js");

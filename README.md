@@ -600,3 +600,5 @@ There will be an English version (maybe with country selection) available later 
 GNU Affero General Public License v3.0 - [LICENSE.txt](https://github.com/jisotalo/shelly-porssisahko/blob/master/LICENSE.txt)
 
 Huomaathan, että projekti on täysin harrasteena tehty, eikä siinä ole lisenssin mukaisesti mitään takuuta. Näin ollen tekijä ei ole vastuussa jos sen käytön kanssa on ongelmia.
+
+Välilehtisysteemin pohja otettu [täältä](https://alvarotrigo.com/blog/html-css-tabs/).
