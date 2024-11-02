@@ -108,9 +108,7 @@ Jos skriptistä on hyötyä, voit vaikka tarjota kahvit vastineena! Tämä on pu
 
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/ccd4b9fd-f9f2-4f42-8bc9-74c9486f6432)
 
-6. Syötä osoitteeksi `https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/dev-v3/shelly-library.json` ja paina **Save**. 
-
-**HUOM: v3 testiversiolla on eri osoite!**
+6. Syötä osoitteeksi `https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/dev-v3/shelly-library.json` ja paina **Save** (**HUOM: v3 testiversiolla on eri osoite!**)
 
     ![image](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/972fedb9-8503-4d90-a9b2-3af6f430ed7d)
 
