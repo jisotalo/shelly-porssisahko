@@ -101,7 +101,6 @@ body {
 }
 
 .spn {
-  pointer-events: none;
   width: 1.2rem;
   height: 1.2rem;
   border: 0.2rem solid transparent;
@@ -109,6 +108,7 @@ body {
   border-top-color: white;
   border-radius: 50%;
   animation: spn 1s linear infinite;
+  display: inline-block;
 }
 
 @keyframes spn {
@@ -128,6 +128,18 @@ table.cc>tbody>tr>td:first-child, .bg, table.sm tr:first-child {
 }
 
 @media(max-width: 480px) {
+  .top {
+    grid-template-columns: 1fr auto;
+  }
+
+  .top > :nth-child(3) { /* Target the last column and make it full width */
+    grid-column: 1 / -1;
+  }
+
+  #copy {
+    text-align: center;
+  }
+
   table.m>tbody>tr>td, #bk>label {
     display: block;
     width: 100%;

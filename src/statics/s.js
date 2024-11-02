@@ -6,16 +6,36 @@
  * 
  * License: GNU Affero General Public License v3.0 
  */
-/** URL of the shelly (only if DEV active, otherwise it is same origin) */
+
+/** 
+ * URL of the shelly (only if DEV active, otherwise it is same origin) 
+ */
 let URL = "";
 
-/** URL of the logic script */
+/** 
+ * URL of the logic script 
+ */
 let URLS = ``;
 
+/**
+ * Selected instance from dropdown
+ */
+let inst = 0;
+
+/** 
+ * Active tab name
+ */
 let activeTab = '';
 
-/** Shortcut for querySelector() call */
-let qs = (s) => document.querySelector(s);
+/**
+ * Shortcut for document
+ */
+let doc = document;
+
+/** 
+ * Shortcut for querySelector() call 
+ */
+let qs = (s) => doc.querySelector("#" + s);
 
 /**
  * debug function that is printing to console only when DEV is active
@@ -51,8 +71,6 @@ let MODE_STR = [
   "Jakson halvimmat tunnit"
 ]
 
-let inst = 0;
-
 /**
  * Global state
  * 
@@ -61,7 +79,9 @@ let inst = 0;
  */
 let state = undefined;
 
-/** Callbacks called when state is updated */
+/** 
+ * Callbacks to call when state is updated 
+ */
 let CBS = [];
 
 /**
@@ -69,13 +89,13 @@ let CBS = [];
  */
 let me = () => "";
 
-/** Timer handle */
+/** 
+ * Timer handle 
+ */
 let loopTimer = null;
 
-
-
 /**
- * Opens tab with given id
+ * Opens tab with given name
  * @param {*} tab 
  * @returns 
  */
@@ -83,28 +103,49 @@ let openTab = async (tab) => {
   if (tab === undefined || tab === "") {
     tab = "tab-status";
   }
-  window.location.hash = tab;
+  console.log(inst);
+  window.location.hash = `${tab}/${inst + 1}`;
   activeTab = tab;
 
-  let e = qs("#" + tab);
+  let e = qs("" + tab);
   if (e) {
     e.checked = true;
   }
 
-  if (qs(`#c-${tab}`).innerHTML === "") {
-    await populateDynamicData(`${tab}.html`, `#c-${tab}`);
+  if (qs(`c-${tab}`).innerHTML === "") {
+    await populateDynamicData(`${tab}.html`, `c-${tab}`);
   }
+
   updateLoop(true);
 };
 
+/**
+ * When page opens, select tab by URL hash
+ */
 window.onload = async () => {
-  openTab(window.location.hash.substring(window.location.hash.indexOf("#") + 1));
+  let hash = window.location.hash.split("/");
+  inst = (parseInt(hash[1]) || 1) - 1;
+  openTab(hash[0].slice(1));
+
+  //At startup, run dev code or start immediately
+  if (DEV) {
+    reqJs("dev.js");
+  } else {
+    updateLoop();
+  }
 };
 
-document.querySelectorAll(".ts").forEach(e => e.addEventListener("change", (e) => {
+/**
+ * Tab changing
+ */
+doc.querySelectorAll(".ts").forEach(e => e.addEventListener("change", (e) => {
   openTab(e.target.id);
 }));
 
+/**
+ * eval() <script> tag contents
+ * @param {*} elementId 
+ */
 let evalContainerScriptTags = (elementId) => {
   DBG(me(), "eval running for", elementId);
 
@@ -124,28 +165,43 @@ let evalContainerScriptTags = (elementId) => {
   }
 }
 
+/**
+* Loads dynamic data from URL to the container in DOM
+ * @param {*} url 
+ * @param {*} containerId 
+ */
 let populateDynamicData = async (url, containerId) => {
   try {
     if (!DEV) {
       url = `${URLS}?r=${url.replace("tab-", "").replace(".html", "")}`
     }
+
     DBG(me(), "fetching", url, "for", containerId);
 
     let res = await getData(url, false);
+
     if (res.ok) {
       qs(containerId).innerHTML = res.data;
       evalContainerScriptTags(containerId);
+
     } else {
       qs(containerId).innerHTML = `Error getting data: ${res.txt}`;
     }
+
     DBG(me(), "done for", containerId);
+
   } catch (err) {
     DBG(me(), "error", err);
     console.error(err);
   }
 }
 
-
+/**
+ * Fetches data as json or plain text
+ * @param {*} url 
+ * @param {*} isJson 
+ * @returns 
+ */
 let getData = async (url, isJson = true) => {
   try {
     let res = await fetch(url);
@@ -192,60 +248,94 @@ let getData = async (url, isJson = true) => {
   }
 }
 
+/**
+ * Formats Date to string as dd.mm.yyyy
+ * @param {*} date 
+ * @returns 
+ */
 let formatDate = (date) => {
   return `${(date.getDate().toString().padStart(2, "0"))}.${(date.getMonth() + 1).toString().padStart(2, "0")}.${date.getFullYear()}`;
 }
 
-let formatTime = (date, showSeconds = true, showMilliseconds = false) => {
-  return `${(date.getHours().toString().padStart(2, "0"))}:${date.getMinutes().toString().padStart(2, "0")}${(showSeconds ? `:${date.getSeconds().toString().padStart(2, "0")}` : "")}${(showMilliseconds ? `.${date.getMilliseconds().toString().padStart(3, "0")}` : "")}`;
+/**
+ * Formats Date to time string as hh:mm[:ss]
+ * @param {*} date 
+ * @param {*} showSeconds true = add seconds
+ * @returns 
+ */
+let formatTime = (date, showSeconds = true) => {
+  return `${(date.getHours().toString().padStart(2, "0"))}:${date.getMinutes().toString().padStart(2, "0")}${(showSeconds ? `:${date.getSeconds().toString().padStart(2, "0")}` : "")}`;
 }
 
-let formatDateTime = (date, showSeconds = true, showMilliseconds = false) => {
-  return `${formatDate(date)} ${formatTime(date, showSeconds, showMilliseconds)}`;
+/**
+ * Formats Date to datetime string
+ * @param {*} date 
+ * @param {*} showSeconds true = add seconds
+ * @returns 
+ */
+let formatDateTime = (date, showSeconds = true) => {
+  return `${formatDate(date)} ${formatTime(date, showSeconds)}`;
 }
 
-let updateLoop = async (instChanged) => {
-  //if (instChanged) {
-    clearTimeout(loopTimer);
-  //}
-
+/**
+ * Called by setTimeout every 5 seconds
+ * 
+ * Can be also called manually when instance has been changed (instChanged)
+ * 
+ * @param {*} instChanged true if instance has been changed 
+ */
+let updateLoop = async () => {
+  console.log("INSTANCE", inst);
+  clearTimeout(loopTimer);
   DBG(me(), "Updating");
-  qs("#spin").style.visibility = "visible";
+  qs("spin").style.visibility = "visible";
 
   try {
     let res = await getData(`${URLS}?r=s&i=${inst}`);
 
     if (res.ok) {
       state = res.data;
-      qs("#inst").querySelectorAll("option").forEach((o, i) => o.innerHTML = `Ohjaus #${(i + 1)}: ${state.c.names[i]}`);
-      
+
+      //Updating title
+      doc.title = (state.s.dn ? state.s.dn + " -" : "") + "Pörssisähkö";
+
+      //Updating instances to dropdown
+      qs("inst").innerHTML = state.c.names.map((n, i) => `<option value="${i}">Ohjaus #${(i + 1)}: ${n}</option>`)
+      qs("inst").value = inst;
+
       //If status 503 the shelly is just now busy running the logic -> do nothing
     } else if (res.code !== 503) {
+      //A real error
       state = null;
     }
 
-    console.log("active:", activeTab);
-    CBS.forEach(cb => cb(instChanged));
+    CBS.forEach(cb => cb());
 
   } catch (err) {
     console.error(err);
     state = null;
 
   } finally {
-    qs("#spin").style.visibility = "hidden";
+    qs("spin").style.visibility = "hidden";
     loopTimer = setTimeout(updateLoop, 5000);
   }
 }
 
-qs("#inst").addEventListener("change", (e) => {
-  inst = Number(e.target.value);
-  state = undefined;
-  CBS.forEach(cb => cb(true));
-  updateLoop(true);
-});
+/**
+ * Adding event handler to instance dropdown
+ */
+qs("inst").addEventListener("change", (e) => {
+  //Instance has changed by user
+  inst = parseInt(e.target.value);
 
-if (DEV) {
-  reqJs("dev.js");
-} else {
+  //Reset state as it's no longer valid
+  state = undefined;
+
+  //Running callbacks so that pages know instance has changed (no new data yet)
+  CBS.forEach(cb => cb(true));
+
+  //Run loop immediately
   updateLoop();
-}
+
+  openTab(activeTab);
+});

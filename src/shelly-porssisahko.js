@@ -10,10 +10,10 @@
  */
 /** Constants etc. */
 const CNST = {
-  /** Number of instances */
-  INST_COUNT: 3,
-  /** Number of history rows per instance */
-  HIST_LEN: 8,
+  /** Number of instances (if INSTANCE_COUNT is set, use it instead) */
+  INST_COUNT: typeof INSTANCE_COUNT === 'undefined' ? 3 : INSTANCE_COUNT,
+  /** Maximum total number of history rows - this is later divided by enabled instance count (3 enabled instances -> 8 history per each)*/
+  HIST_LEN: 24,
   /** How many errors with getting prices until to have a break */
   ERR_LIMIT: 3,
   /** How long to wait after multiple errors (>= ERR_LIMIT) before trying again (s) */
@@ -139,6 +139,8 @@ let _ = {
     tz: "+02:00",
     /** Active time zone hour difference*/
     tzh: 0,
+    /** Enabled instance count */
+    enCnt: 0,
     /** price info [0] = today, [1] = tomorrow */
     p: [
       {
@@ -182,25 +184,34 @@ let _ = {
 };
 
 /**
+ * Common variables to prevent strange stack issues..
+ */
+let _i = 0;
+let _j = 0;
+let _k = 0;
+let _inc = 0;
+let _cnt = 0;
+let _start = 0;
+let _end = 0;
+let cmd = []; // Active commands for each instances (internal)
+
+/**
  * True if loop is currently running 
  * (new one is not started + HTTP requests are not handled)
  */
 let loopRunning = false;
 
-/** 
- * Active command (internal)
- * Here because some weird issues if it was inside logic()... 
- * memory/stack issues?
+/**
+ * Returns KVS key name for settings
+ * 
+ * @param {*} inst instance number 0..x or -1 = common
+ * @returns 
  */
-let cmd = [];
-
 function getKvsKey(inst) {
-  let key = "porssi-config-";
+  let key = "porssi";
 
-  if (inst < 0) {
-    key = key + "common";
-  } else {
-    key = key + (inst + 1);
+  if (inst >= 0) {
+    key = key + "-" + (inst + 1);
   }
 
   return key;
@@ -233,23 +244,6 @@ function limit(min, value, max) {
  */
 function epoch(date) {
   return Math.floor((date ? date.getTime() : Date.now()) / 1000.0);
-}
-
-/**
- * Similar as String.padStart() which is missing from Shelly
- * 
- * @param {string} str String to add characters
- * @param {number} targetLength The length of the resulting string
- * @param {string} padString The string to pad the current str with. (optional - default is " ")
- */
-function padStart(num, targetLength, padString) {
-  let str = num.toString();
-
-  while (str.length < targetLength) {
-    str = padString ? padString + str : " " + str;
-  }
-
-  return str;
 }
 
 /**
@@ -303,16 +297,20 @@ function updateTz(now) {
  * 
  * @param {string} str String to log
  */
-function log(data) {
-  let now = new Date();
-  console.log(now.toString().substring(16, 24) + ":", data);
+function log(str) {
+  console.log("shelly-porssisahko: " + str);
 }
 
 /**
  * Adds command to history
  */
 function addHistory(inst) {
-  while (CNST.HIST_LEN > 0 && _.h[inst].length >= CNST.HIST_LEN) {
+  //Calculate history max length (based on instance count)
+  let max = _.s.enCnt > 0
+    ? CNST.HIST_LEN / _.s.enCnt
+    : CNST.HIST_LEN;
+
+  while (CNST.HIST_LEN > 0 && _.h[inst].length >= max) {
     _.h[inst].splice(0, 1);
   }
   _.h[inst].push([epoch(), cmd ? 1 : 0, _.si[inst].st]);
@@ -328,6 +326,15 @@ function updateState() {
   _.s.timeOK = now.getFullYear() > 2000 ? 1 : 0;
   _.s.dn = Shelly.getComponentConfig("sys").device.name;
 
+  //Instance stuff
+  _.s.enCnt = 0;
+
+  for (_i = 0; _i < CNST.INST_COUNT; _i++) {
+    if (_.c.i[_i].en) {
+      _.s.enCnt++; //Enabled instance count
+    }
+  }
+
   if (!_.s.upTs && _.s.timeOK) {
     _.s.upTs = epoch(now);
   }
@@ -337,20 +344,20 @@ function updateState() {
  * Checks configuration
  * If a config key is missings, adds a new one with default value
  */
-function chkConfig(inst, cb) {
+function chkConfig(inst, callback) {
   let count = 0;
-  //If config already checked, do nothing
+
+  //If config is already checked, do nothing (default configs removed from memory)
   if (!CNST.DEF_CFG.COM && !CNST.DEF_CFG.INST) {
-    if (cb) {
-      cb(true);
-    }
+    callback(true);
     return;
   }
 
-  //Note: Hard-coded to max 2 levels
+  //Are we checking instance or common config
   let source = inst < 0 ? CNST.DEF_CFG.COM : CNST.DEF_CFG.INST;
   let target = inst < 0 ? _.c.c : _.c.i[inst];
 
+  //Note: Hard-coded to max 2 levels
   for (let prop in source) {
 
     if (typeof target[prop] === "undefined") {
@@ -369,7 +376,6 @@ function chkConfig(inst, cb) {
 
   //Deleting default config after 1st check to save memory
   if (inst >= CNST.INST_COUNT - 1) {
-    log("default config deleted");
     CNST.DEF_CFG.COM = null;
     CNST.DEF_CFG.INST = null;
   }
@@ -377,30 +383,28 @@ function chkConfig(inst, cb) {
   if (count > 0) {
     let key = getKvsKey(inst);
 
-    Shelly.call("KVS.Set", { key: key, value: JSON.stringify(target) }, function (res, err, msg, cb) {
-      if (err !== 0) {
-        log("chkConfig() - error:" + err + " - " + msg);
+    Shelly.call("KVS.Set", { key: key, value: JSON.stringify(target) }, function (res, err, msg, callback) {
+      if (err) {
+        log("failed to set config: " + err + " - " + msg);
       }
-      if (cb) {
-        cb(err === 0);
-      }
-    }, cb);
+      callback(err == 0);
 
-  } else {
-    if (cb) {
-      cb(true);
-    }
+    }, callback);
+    return;
   }
+
+  //All settings OK
+  callback(true);
 }
 
 /**
- * Reads config from KVS
+ * Reads config from KVS.
+ * Afterwards, sets loopRunning to false and starts another loop
  */
-function getConfig(inst, isLoop) {
+function getConfig(inst) {
   let key = getKvsKey(inst);
 
-  Shelly.call('KVS.Get', { key: key }, function (res, err, msg, isLoop) {
-
+  Shelly.call('KVS.Get', { key: key }, function (res, err, msg) {
     if (inst < 0) {
       _.c.c = res ? JSON.parse(res.value) : {};
     } else {
@@ -412,24 +416,24 @@ function getConfig(inst, isLoop) {
     }
 
     chkConfig(inst, function (ok) {
+      //Common config or instance
       if (inst < 0) {
         _.s.configOK = ok ? 1 : 0;
       } else {
+        log("config for #" + inst + " read, enabled: " + _.c.i[inst].en);
+
         _.si[inst].configOK = ok ? 1 : 0;
         _.si[inst].chkTs = 0; //To run the logic again with new settings
       }
 
-      if (isLoop) {
-        loopRunning = false;
-        Timer.set(1000, false, loop);
-      }
+      loopRunning = false;
+      Timer.set(500, false, loop);
     });
-
-  }, isLoop);
+  });
 }
 
 /**
- * Background process loop that is called every x seconds
+ * Background process loop
  */
 function loop() {
   //try {
@@ -442,7 +446,7 @@ function loop() {
 
   if (!_.s.configOK) {
     //Common config
-    getConfig(-1, true);
+    getConfig(-1);
 
   } else if (pricesNeeded(0)) {
     //Prices for today
@@ -454,19 +458,24 @@ function loop() {
 
   } else {
     //Instances
+    //Separate loops to make sure configs are read first and in all cases
     for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
       if (!_.si[inst].configOK) {
         //We need to update config to this instance
-        getConfig(inst, true);
+        getConfig(inst);
         return;
+      }
+    }
 
-      } else if (logicRunNeeded(inst)) {
+    for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
+      if (logicRunNeeded(inst)) {
         //We need to run logic for this instance
         //Running using a timer to prevent stack issues
         Timer.set(500, false, logic, inst);
         return;
       }
     }
+
     //If we are here, there is nothing to 
     loopRunning = false;
   }
@@ -475,13 +484,11 @@ function loop() {
       //Shouldn't happen
       log("loop() - error:" + err);
       loopRunning = false;
-  
-      console.log(err);
     }*/
 }
 
 /**
- * Returns true if we need prices for given day
+ * Returns true if we need to fetch prices for selected day
  * 
  * @param {number} dayIndex 0 = today, 1 = tomorrow
  */
@@ -512,30 +519,6 @@ function pricesNeeded(dayIndex) {
       _.p[1] = [];
     }
 
-    /*
-    -----------------
-    The following commented code moves tomorrow prices to today
-    This way we don't need to get prices from Elering again
-
-    If using this, comment out the if (dateChanged) { ... } above
-    -----------------
-
-    if (dateChanged && _.s.p[1].ts > 0 && getDate(new Date(_.s.p[1].ts * 1000)) !== getDate(now)) {
-      //Copy tomorrow data
-      _.p[0] = _.p[1];
-
-      _.s.p[0] = Object.assign({}, _.s.p[1]);
-      _.s.p[0].ts = epoch();
-
-      //Clear tomorrow
-      _.s.p[1].ts = 0;
-      _.p[1] = [];
-
-      //No need to fetch from server
-      dateChanged = false;
-    }
-    */
-
     res = _.s.timeOK && (_.s.p[0].ts == 0 || dateChanged);
   }
 
@@ -552,50 +535,60 @@ function pricesNeeded(dayIndex) {
 }
 
 /**
+ * 
+ */
+/**
  * Returns true if we should run the logic now
+ * for the selected instance
+ * 
+ * @param {*} inst instance number 0..x
  */
 function logicRunNeeded(inst) {
+  //Shortcuts
   let st = _.si[inst];
   let cfg = _.c.i[inst];
 
+  //If not enabled, do nothing
   if (cfg.en != 1) {
+    //clear history
+    _.h[inst] = [];
     return false;
-  }
-
-  if (st.chkTs == 0) {
-    return true;
   }
 
   let now = new Date();
   let chk = new Date(st.chkTs * 1000);
 
   //for debugging (run every minute)
-  return (chk.getMinutes() !== now.getMinutes()
-    || chk.getFullYear() !== now.getFullYear())
+  return st.chkTs == 0
+    || (chk.getMinutes() !== now.getMinutes()
+      || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
     || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
 
 
   /*
     Logic should be run if
+    - never run before
     - hour has changed
     - year has changed (= time has been received)
     - manually forced command is active and time has passed
     - user wants the output to be commanded only for x first minutes of the hour which has passed (and command is not yet reset)
   */
-  return (chk.getHours() !== now.getHours()
-    || chk.getFullYear() !== now.getFullYear())
+  return st.chkTs == 0
+    || (chk.getHours() !== now.getHours()
+      || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
     || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
 }
 
 /**
- * Gets prices and then runs the logic if needed
+ * Gets prices for selected day
  * 
  * @param {number} dayIndex 0 = today, 1 = tomorrow
  */
 function getPrices(dayIndex) {
   try {
+    log("fetching prices for day " + dayIndex)
     let now = new Date();
     updateTz(now);
 
@@ -605,9 +598,9 @@ function getPrices(dayIndex) {
 
     let start = date.getFullYear()
       + "-"
-      + padStart(date.getMonth() + 1, 2, "0")
+      + (date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : (date.getMonth() + 1))
       + "-"
-      + padStart(getDate(date), 2, "0")
+      + (getDate(date) < 10 ? "0" + getDate(date) : getDate(date))
       + "T00:00:00"
       + _.s.tz.replace("+", "%2b"); //URL encode the + character
 
@@ -668,6 +661,7 @@ function getPrices(dayIndex) {
             //price
             activePos = res.body_b64.indexOf(";\"", activePos) + 2;
             row[1] = Number(res.body_b64.substring(activePos, res.body_b64.indexOf("\"", activePos)).replace(",", "."));
+
             //Converting price to c/kWh and adding VAT to price
             row[1] = row[1] / 10.0 * (100 + (row[1] > 0 ? _.c.c.vat : 0)) / 100.0;
 
@@ -710,42 +704,43 @@ function getPrices(dayIndex) {
             //Let's assume that if we have data for at least 23 hours everything is OK
             //This should take DST saving changes in account
             //If we get less the prices may not be updated yet to elering API?
-            throw new Error("huomisen hintoja ei saatu");
+            throw new Error("no prices tomorrow");
           }
         } else {
-          throw new Error("error: " + err + "(" + msg + ") - " + JSON.stringify(res));
+          throw new Error(err + "(" + msg + ") - " + JSON.stringify(res));
         }
 
       } catch (err) {
-        log("getPrices() - error:" + err);
+        log("error getting prices: " + err);
         _.s.errCnt += 1;
         _.s.errTs = epoch();
 
         _.s.p[dayIndex].ts = 0;
         _.p[dayIndex] = [];
       }
-
-      if (dayIndex == 1) {
-        loopRunning = false;
-        return;
-      }
-
-      //Today's prices -> run instance 1 logic asap
-      Timer.set(500, false, logic, 0);
+      /*
+            if (dayIndex == 1) {
+              loopRunning = false;
+              return;
+            }
+      */
+      loopRunning = false;
+      Timer.set(500, false, loop);
     });
 
   } catch (err) {
-    log("getPrices() - error:" + err);
+    log("error getting prices: " + err);
     _.s.p[dayIndex].ts = 0;
     _.p[dayIndex] = [];
-
-    if (dayIndex == 1) {
-      loopRunning = false;
-      return;
-    }
-
-    //Today prices -> run instance 1 logic asap
-    Timer.set(500, false, logic, 0);
+    /*
+        if (dayIndex == 1) {
+          loopRunning = false;
+          return;
+        }
+    
+        //Today prices -> run instance 1 logic asap
+        Timer.set(500, false, logic, 0);*/
+    loopRunning = false;
   }
 }
 
@@ -754,18 +749,18 @@ function getPrices(dayIndex) {
  * If callback given, its called with success status, like cb(true)
  * 
  * @param {number} output output number
- * @param {Function} cb callback (optional)
+ * @param {Function} callback callback to call after done
  */
-function setRelay(output, cb) {
+function setRelay(output, callback) {
   let prm = "{id:" + output + ",on:" + (cmd ? "true" : "false") + "}";
 
   Shelly.call("Switch.Set", prm, function (res, err, msg, cb) {
     if (err != 0) {
-      log("setRelay() - output #" + output + " failed: " + err + " - " + msg);
+      log("setting output " + output + " failed: " + err + " - " + msg);
     }
 
-    cb(err == 0);
-  }, cb);
+    callback(err == 0);
+  }, callback);
 }
 
 /**
@@ -773,8 +768,6 @@ function setRelay(output, cb) {
  */
 function logic(inst) {
   try {
-    console.log("logic", inst);
-
     //This is a good time to update config if any overrides exist
     if (typeof USER_CONFIG == 'function') {
       //TODO
@@ -788,10 +781,6 @@ function logic(inst) {
 
     let st = _.si[inst];
     let cfg = _.c.i[inst];
-
-    log("running logic instance " + inst);
-
-
 
 
     if (cfg.mode === 0) {
@@ -883,10 +872,11 @@ function logic(inst) {
       if (cfg.i) {
         cmd[inst] = !cmd[inst];
       }
+      log("logic for #" + inst + " done, cmd: " + finalCmd + " -> output: " + cmd[inst]);
 
       if (cfg.oc == 1 && st.cmd == cmd[inst]) {
         //No need to write 
-        log("logic(): lähtö on jo oikeassa tilassa");
+        log("outputs already set for #" + inst);
         addHistory(inst);
         st.cmd = cmd[inst] ? 1 : 0;
         st.chkTs = epoch();
@@ -911,6 +901,9 @@ function logic(inst) {
               addHistory(inst);
               st.cmd = cmd[inst] ? 1 : 0;
               st.chkTs = epoch();
+
+              //We can continue almost immediately as everything went nicely
+              Timer.set(500, false, loop);
             }
 
             loopRunning = false;
@@ -928,7 +921,7 @@ function logic(inst) {
     }
 
   } catch (err) {
-    log("logic() - error:" + JSON.stringify(err));
+    log("error running logic: " + JSON.stringify(err));
     loopRunning = false;
   }
 }
@@ -937,21 +930,13 @@ function logic(inst) {
 /**
  * Returns true if current hour is one of the cheapest
  * 
- * DEV. NOTE: 
- * Variables are intentionally in global scope outside isCheapestHour()
- * 
- * There were memory issues with for-loops (random values)
- * Perhaps the stack was getting too full or something because of multiple for() loops
- * 
- * This fixes the operation 
+ * NOTE: Variables starting with _ are intentionally in global scope
+ * to fix memory/stack issues
  */
-let _i = 0;
-let _j = 0;
-let _k = 0;
-let _inc = 0;
-let _cnt = 0;
-let _start = 0;
-let _end = 0;
+let _avg = 999;
+let _startIndex = 0;
+let _sum = 0;
+
 function isCheapestHour(inst) {
   let cfg = _.c.i[inst];
 
@@ -1005,25 +990,25 @@ function isCheapestHour(inst) {
     if (cfg.m2.s) {
       //Find cheapest in a sequence
       //Loop through each possible starting index and compare average prices
-      let avg = 999;
-      let startIndex = 0;
+      _avg = 999;
+      _startIndex = 0;
 
       for (_j = 0; _j <= order.length - _cnt; _j++) {
-        let sum = 0;
-
+        _sum = 0;
+        
         //Calculate sum of these sequential hours
         for (_k = _j; _k < _j + _cnt; _k++) {
-          sum += _.p[0][order[_k]][1];
+          _sum += _.p[0][order[_k]][1];
         };
 
         //If average price of these sequential hours is lower -> it's better
-        if (sum / _cnt < avg) {
-          avg = sum / _cnt;
-          startIndex = _j;
+        if (_sum / _cnt < _avg) {
+          _avg = _sum / _cnt;
+          _startIndex = _j;
         }
       }
 
-      for (_j = startIndex; _j < startIndex + _cnt; _j++) {
+      for (_j = _startIndex; _j < _startIndex + _cnt; _j++) {
         cheapest.push(order[_j]);
       }
 
@@ -1191,14 +1176,15 @@ function onServerRequest(request, response) {
 
     } else if (params.r === "r") {
       //r = reload settings
+      log("config changed for #" + inst);
       _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
       _.si[inst].configOK = false;
 
       if (!loopRunning) {
         loopRunning = true;
-        getConfig(inst, true);
+        getConfig(inst);
       }
-      
+
       _.s.p[0].ts = 0; //get prices
       _.s.p[1].ts = 0; //get prices
       response.code = 204;
@@ -1263,7 +1249,7 @@ function onServerRequest(request, response) {
       response.headers.push(["Content-Encoding", "gzip"]);
     }
   } catch (err) {
-    log("http - error:" + err);
+    log("server error: " + err);
     response.code = 500;
   }
   response.send();
@@ -1277,7 +1263,7 @@ function initialize() {
     _.si.push(Object.assign({}, CNST.DEF_INST_ST));
     _.c.i.push(Object.assign({}, CNST.DEF_CFG.INST));
 
-    _.c.c.names.push("(tyhja)");
+    _.c.c.names.push("-");
     _.h.push([]);
 
     cmd.push(false);
@@ -1287,7 +1273,7 @@ function initialize() {
 }
 
 //Startup
-log("shelly-porssisahko v." + _.s.v);
+log("v." + _.s.v);
 log("URL: http://" + (Shelly.getComponentStatus("wifi").sta_ip ?? "192.168.33.1") + "/script/" + Shelly.getCurrentScriptId());
 
 initialize();

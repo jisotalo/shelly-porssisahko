@@ -520,7 +520,7 @@ Elering tuntui päivittävän ne rajapintansa puoli kolmen kieppeillä, joten ai
   * Shellyyn asennattava skripti on "kääntöprosessin" tulos, jotta skripti saadaan mahtumaan mahdollisimman pieneen tilaan
   * Koodissa on jonkin verran outoja ja rumia temppuja, mitä en tekisi muualla
     - Näiden syy on usein minimoida skriptin kokoa, joko suoraan tai helpottamalla minimointikirjastojen toimintaa
-    - Esim: `document.querySelector()` on korvattu `qs()` jolloin säästetään paljon tilaa
+    - Esim: `doc.querySelector()` on korvattu `qs()` jolloin säästetään paljon tilaa
     - Esim: typerät mahdollisimman lyhyet muuttujanimet ja kentät
   * Staattiset web-serverin tiedostot (html, css, js) minimoidaan, pakataan gzip-muotoon ja base64-enkoodataan
     * Nämä tiedostot sisällytetään `shelly-porssisahko.js`-skriptiin
