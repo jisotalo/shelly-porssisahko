@@ -3,13 +3,20 @@
 [![GitHub](https://img.shields.io/badge/View%20on-GitHub-brightgreen)](https://github.com/jisotalo/shelly-porssisahko)
 [![Support](https://img.shields.io/badge/Support_with-PayPal-yellow)](https://www.paypal.com/donate/?business=KUWBXXCVGZZME&no_recurring=0&currency_code=EUR)
  
- 
-
 Shelly-laitteisiin selaimella ohjattava ilmainen ja avoimen lähdekoodin pörssisähkösovellus. Skripti pyörittää käyttöliittymää omalla web-serverillä ja tallentaa asetukset Shellyn muistiin.
 
 Tämän skriptin avulla voi ohjata Shellyn relekytkintä sähkön hinnan mukaan, ilman rekisteröitymistä mihinkään palveluun.
 
 Skripti käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard.elering.ee/api) rajapintaa, eli välissä ei ole muita palveluita. Näin ollen rekisteröitymistä ei tarvita, vaan kaikki toimii "suoraan paketista".
+
+---
+
+**HUOMIO - 02.11.2024:**
+
+Uuden v3 testiversio on julkaistu. Se mahdollistaa jopa kolmen yhtäaikaisen ohjauksen eri asetuksilla eri lähdöille.
+[https://github.com/jisotalo/shelly-porssisahko/tree/dev-v3](https://github.com/jisotalo/shelly-porssisahko/tree/dev-v3)
+
+---
 
 ![g0MPiID21U](https://github.com/jisotalo/shelly-porssisahko/assets/13457157/2caa27f4-f1ec-4d22-b9c9-408ed01b13d0)
 
