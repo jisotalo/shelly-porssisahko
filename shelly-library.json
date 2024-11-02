@@ -2,36 +2,6 @@
   {
     "fname": "dist/shelly-porssisahko.js",
     "title": "Pörssisähköohjaus (shelly-porssisahko.js)",
-    "description": "Pörssisähköohjaus Shellyyn. Klikaa Import code -painiketta skriptin asentamiseksi. Github-sivu: https://github.com/jisotalo/shelly-porssisahko"
-  },
-  {
-    "fname": "dist/shelly-porssisahko-override-avg-price.js",
-    "title": "ESIMERKKI: Ohjauksen muutos keskiarvon avulla",
-    "description": "Tämä esimerkki näyttää kuinka voi hyödyntää hintatietoja ohjauksen hienosäätöön (lue README)"
-  },
-  {
-    "fname": "dist/shelly-porssisahko-addon-temp-hours.js",
-    "title": "Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (Shelly Plus Add-On ja DS18B20)",
-    "description": "Tämä esimerkki näyttää, kuinka voi hyödyntää mitattua ulkolämpötilaa ohjaustuntien hienosäädössä (lue README)"
-  },
-  {
-    "fname": "dist/shelly-porssisahko-ht-sensor-temp.js",
-    "title": "Esimerkki: Ohjaustuntien asetus lämpötilan perusteella (erillinen Shelly H&T)",
-    "description": "Tämä esimerkki näyttää, kuinka voi hyödyntää Shelly H&T:n lämpötilamittausta ohjaustuntien hienosäädössä (lue README)"
-  },
-  {
-    "fname": "dist/shelly-porssisahko-addon-temp.js",
-    "title": "Esimerkki: Ohjauksen rajoitus lämpötilan avulla (Shelly Plus Add-On ja DS18B20)",
-    "description": "Tämä esimerkki näyttää, kuinka voi hyödyntää lämpötilamittausta ohjauksen rajoituksessa siten, että ei lämmitetä turhaan mutta ei myöskään päästetä liian kylmäksi (lue README)"
-  },
-  {
-    "fname": "dist/shelly-porssisahko-open-meteo-api.js",
-    "title": "Esimerkki: Ulkolämpötilan hakeminen Open-Meteo-sääpalvelusta ja sen hyödyntäminen",
-    "description": "Tämä esimerkki hakee koordinaattien perusteella kuluvan vuorokauden alhaisimman lämpötilan Open-Meteo-sääpalvelun API-rajapinnasta ja muuttaa sen perusteella ohjaustunteja. (lue README)"
-  },
-  {
-    "fname": "dist/shelly-porssisahko-user-config.js",
-    "title": "Esimerkki: Asetusten määrittäminen skriptissä",
-    "description": "Sisältää esimerkkikoodin, miten asetukset voidaan määrittää suoraan skriptissä (lue README)"
+    "description": "v. 3.0.0-beta1 (testiversio)"
   }
 ]

@@ -7,43 +7,95 @@
  * License: GNU Affero General Public License v3.0 
  */
 {
+  /** 
+   * Flag indicating if config is already read
+   * If not, inputs are updated
+   */
   let configRead = false;
+
+  /** 
+   * Helper to convert value to number 
+   */
   let n = (v) => Number(v);
 
+  /**
+   * Helper to show/hide custom period inputs
+   * 
+   * @param {*} value 
+   */
   let checkCustomPeriodDisplay = (value) => {
     doc.querySelectorAll(".m2-c").forEach(e => e.style.display = n(value) < 0 ? "table-row" : "none");
     doc.querySelectorAll(".m2-c2").forEach(e => e.style.display = n(value) < -1 ? "table-row" : "none");
   }
 
+  /**
+   * Helper to set radio button value
+   * 
+   * @param {*} name 
+   * @param {*} value 
+   */
   let setRadio = (name, value) => {
     doc.querySelectorAll(`[name=${name}]`).forEach(e => e.checked = e.value == value);
   }
 
+  /**
+   * Helper to create a radio button row
+   * @param {*} name 
+   * @param {*} value 
+   * @returns 
+   */
   let radioRow = (name, value) => `<td><input type="radio" name="${name}" value="${value}"></td>`;
 
+  /**
+   * Helper to limit value between min...max
+   * 
+   * @param {*} min 
+   * @param {*} value 
+   * @param {*} max 
+   * @returns 
+   */
+  const limit = (min, value, max) => Math.min(max, Math.max(min, value));
+
+  /**
+   * Helper that converts the value to number unless is "avg"
+   * @param {*} e 
+   * @returns 
+   */
+  let avgn = (e) => qs(e).value == "avg" ? "avg" : n(qs(e).value);
+
+  /**
+   * Callback called by main loop
+   * 
+   * @param {*} instChanged true = instance has changed (reset data)
+   * @returns 
+   */
   let onUpdate = async (instChanged) => {
     try {
-      if (instChanged) {
+      if (instChanged || !state) {
+        configRead = false;
         qs("cfg-l").innerHTML = 'Ladataan...';
         qs("cfg").style.display = 'none';
-        configRead = false;
-      }
-      if (state === undefined || configRead || !state) {
         return;
       }
-      
+
+      if (configRead) {
+        return;
+      }
+
+      /** common config */
+      let c = state.c;
+      /** instance config */
+      let ci = state.ci;
+
       qs("cfg-l").innerHTML = '';
       qs("cfg").style.display = 'block';
-
-      let c = state.c;
-      let ci = state.ci;
 
       qs("g").value = c.g;
       qs("vat").value = c.vat;
       qs("day").value = c.day;
       qs("night").value = c.night;
 
-      qs("ci").innerHTML = (inst+1);
+      qs("ci").innerHTML = (inst + 1);
 
       qs("en").checked = ci.en ? "checked" : "";
       qs("n").value = c.names[inst];
@@ -52,24 +104,26 @@
       qs("outs").value = ci.o.join(",");
       qs("inv").checked = ci.i ? "checked" : "";
 
-      let hours = "";
+      //building backup hours
+      let bk = "";
       for (let i = 0; i < 24; i++) {
-        hours += `<label for="X${i}"><input type="checkbox" id="X${i}">${("" + i).padStart(2, "0")}</label> `
+        bk += `<label><input type="checkbox" id="b${i}">${("" + i).padStart(2, "0")}</label> `
       }
-      qs("bk").innerHTML = hours.replaceAll("X", "b");
+      qs("bk").innerHTML = bk;
 
-      //Forced hours
+      //building forced hours
       let fh = `<tr><td>Tunti</td><td>OFF</td><td>-</td><td>ON</td></tr>`;
       for (let i = 0; i < 24; i++) {
-        fh += `<tr><td>${("" + i).padStart(2, "0")}</td>${radioRow(`X${i}`, 0)}${radioRow(`X${i}`, -1)}${radioRow(`X${i}`, 1)}</tr>`;
+        fh += `<tr><td>${("" + i).padStart(2, "0")}</td>${radioRow(`f${i}`, 0)}${radioRow(`f${i}`, -1)}${radioRow(`f${i}`, 1)}</tr>`;
       }
-      qs("fh").innerHTML = fh.replaceAll("X", "f");
+      qs("fh").innerHTML = fh;
 
+      //set values of backup and forced hours
       for (let i = 0; i < 24; i++) {
         qs(`b${i}`).checked = (c.b & (1 << i)) == (1 << i);
         setRadio(`f${i}`, (c.f & (1 << i)) == (1 << i) ? (c.fc & (1 << i)) == (1 << i) ? 1 : 0 : -1);
       }
-      
+
       qs("min").value = ci.m;
       qs("oc").value = ci.oc;
       qs("err").checked = ci.e ? "checked" : "";
@@ -88,21 +142,22 @@
       checkCustomPeriodDisplay(ci.m2.p);
 
       configRead = true;
+
     } catch (err) {
       console.error(err);
-
+      qs("cfg-l").innerHTML = err;
     }
   };
 
-  let save = async (e) => {
-    e.preventDefault();
-
-    const limit = (min, value, max) => Math.min(max, Math.max(min, value));
-
+  /**
+   * Save settings butto click
+   */
+  let save = async () => {
     try {
+      /** common config */
       let c = state.c;
+      /** instance config */
       let ci = state.ci;
-      let avgn = (e) => qs(e).value == "avg" ? "avg" : n(qs(e).value);
 
       c.g = qs("g").value;
       c.vat = n(qs("vat").value);
@@ -122,7 +177,7 @@
         if (qs(`b${i}`).checked) {
           ci.b = ci.b | (1 << i);
         }
-        
+
         let val = doc.querySelector(`[name=f${i}]:checked`).value;
 
         if (val != -1) {
@@ -154,46 +209,50 @@
 
       DBG(me(), "Settings to save:", c, ci);
 
-      let res = await getData(`${URL}/rpc/KVS.Set?key="porssi-${(inst + 1)}"&value="${encodeURIComponent(JSON.stringify(ci))}"`);
+      //Saving settings (both common and instance)
+      let res = await getData(`${URL}/rpc/KVS.Set?key="porssi-${(inst + 1)}"&value="${encodeURIComponent(JSON.stringify(ci))}"`);     
       let res2 = await getData(`${URL}/rpc/KVS.Set?key="porssi"&value="${encodeURIComponent(JSON.stringify(c))}"`);
 
-      if (res.code == 200 && res2.code == 200) {
-        getData(`${URLS}?r=r&i=${inst}`)
-          .then(res => {
-            alert(`Tallennettu!`);
-            configRead = false;
-          })
-          .catch(err => {
-            alert(`Virhe: ${err})`);
-          });
-
-      } else {
-        alert(`Virhe: ${res.txt})`);
+      if (res.code != 200 || res2.code != 200) {
+        throw new Error(res.txt + " | " + res2.txt);
       }
+
+      await getData(`${URLS}?r=r&i=${inst}`);
+
+      alert(`Tallennettu!`);
+      configRead = false;
+
     } catch (err) {
-      throw err;
-      alert("Virhe: " + err.message);
+      console.error(err)
+      alert("Virhe: " + err);
     }
   };
 
+  /**
+   * Manual force button click
+   */
   let force = async () => {
-    let hours = prompt("Pakko-ohjauksen kesto tunteina? (0 = peru nykyinen)");
-    
+    let hours = prompt(`Pakko-ohjaus (#${inst+1}) - kesto tunteina? (0 = peru nykyinen)`);
+
     if (hours != null) {
       hours = Number(hours);
 
-      let cmd = hours > 0 ? parseInt(prompt("Pakko-ohjataanko ohjaus päälle (1) vai pois (0)?", "1")) : 0;
+      let cmd = hours > 0
+        ? parseInt(prompt("Pakko-ohjataanko ohjaus päälle (1) vai pois (0)?", "1"))
+        : 0;
+      
       if (isNaN(cmd)) {
         return;
       }
 
-      let res = await getData(`${URLS}?r=f&ts=${hours > 0 ? Math.floor(Date.now() / 1000 + hours * 60 * 60) : 0}&c=${cmd}`);
+      let res = await getData(`${URLS}?r=f&i=${inst}&ts=${hours > 0 ? Math.floor(Date.now() / 1000 + hours * 60 * 60) : 0}&c=${cmd}`);
       alert(res.code == 204 ? "OK!" : `Virhe: ${res.txt}`);
     }
   }
 
   onUpdate();
   CBS.push(onUpdate);
+
   qs("save").addEventListener("click", save);
   qs("force").addEventListener("click", force);
   qs("m2-per").addEventListener("change", (e) => checkCustomPeriodDisplay(e.target.value));

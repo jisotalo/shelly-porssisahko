@@ -50,7 +50,7 @@ const CNST = {
       day: 0,
       /** Night (22...07) transfer price [c/kWh] */
       night: 0,
-      /** TODO */
+      /** instance names */
       names: []
     },
 
@@ -122,7 +122,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.0.0-dev1",
+    v: "3.0.0-beta1",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -313,7 +313,7 @@ function addHistory(inst) {
   while (CNST.HIST_LEN > 0 && _.h[inst].length >= max) {
     _.h[inst].splice(0, 1);
   }
-  _.h[inst].push([epoch(), cmd ? 1 : 0, _.si[inst].st]);
+  _.h[inst].push([epoch(), cmd[inst] ? 1 : 0, _.si[inst].st]);
 }
 
 /**
@@ -559,12 +559,12 @@ function logicRunNeeded(inst) {
   let chk = new Date(st.chkTs * 1000);
 
   //for debugging (run every minute)
-  return st.chkTs == 0
+  /*return st.chkTs == 0
     || (chk.getMinutes() !== now.getMinutes()
       || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
     || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
-
+*/
 
   /*
     Logic should be run if
@@ -751,8 +751,8 @@ function getPrices(dayIndex) {
  * @param {number} output output number
  * @param {Function} callback callback to call after done
  */
-function setRelay(output, callback) {
-  let prm = "{id:" + output + ",on:" + (cmd ? "true" : "false") + "}";
+function setRelay(inst, output, callback) {
+  let prm = "{id:" + output + ",on:" + (cmd[inst] ? "true" : "false") + "}";
 
   Shelly.call("Switch.Set", prm, function (res, err, msg, cb) {
     if (err != 0) {
@@ -770,8 +770,7 @@ function logic(inst) {
   try {
     //This is a good time to update config if any overrides exist
     if (typeof USER_CONFIG == 'function') {
-      //TODO
-      //_.c = USER_CONFIG(_.c, _, false);
+      //TODO _.c = USER_CONFIG(_.c, _, false);
     }
 
     cmd[inst] = false;
@@ -888,7 +887,7 @@ function logic(inst) {
       let success = 0;
 
       for (let i = 0; i < cfg.o.length; i++) {
-        setRelay(cfg.o[i], function (res) {
+        setRelay(inst, cfg.o[i], function (res) {
           cnt++;
 
           if (res) {
@@ -914,11 +913,15 @@ function logic(inst) {
 
 
     //User script
+    //TODO
+    logicFinalize(cmd[inst]);
+    /*
     if (typeof USER_OVERRIDE == 'function') {
       USER_OVERRIDE(cmd[inst], _, logicFinalize);
     } else {
       logicFinalize(cmd[inst]);
     }
+    */
 
   } catch (err) {
     log("error running logic: " + JSON.stringify(err));
@@ -1121,6 +1124,7 @@ function onServerRequest(request, response) {
     //Parsing parameters (key=value&key2=value2) to object
     let params = parseParams(request.query);
     let inst = parseInt(params.i);
+    
     request = null;
 
     let MIME_TYPE = "application/json"; //default
@@ -1131,11 +1135,13 @@ function onServerRequest(request, response) {
     let MIME_JS = "text/javascript";
     let MIME_CSS = "text/css";
 
-    if (params.r === "s") {
+    //TODO improve this
+    if (!isNaN(inst) && (inst < 0 || inst >= CNST.INST_COUNT)) {
+      response.code = 400;
+      
+    } else if (params.r === "s") {
       //s = get state
       updateState();
-
-      let inst = parseInt(params.i);
 
       if (inst >= 0 && inst < CNST.INST_COUNT) {
         //Building status object for certain instance
@@ -1168,7 +1174,6 @@ function onServerRequest(request, response) {
 
     } else if (params.r === "h") {
       //h = get history
-
       if (inst >= 0 && inst < CNST.INST_COUNT) {
         response.body = JSON.stringify(_.h[inst]);
       }
@@ -1192,9 +1197,10 @@ function onServerRequest(request, response) {
 
     } else if (params.r === "f" && params.ts) {
       //f = force
-      _.s.fCmdTs = Number(params.ts);
-      _.s.fCmd = Number(params.c);
-      _.s.chkTs = 0;
+      _.si[inst].fCmdTs = Number(params.ts);
+      _.si[inst].fCmd = Number(params.c);
+      _.si[inst].chkTs = 0;
+
       response.code = 204;
       GZIP = false;
 

@@ -217,7 +217,7 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
         comments: "some" //leaving @license comment
       },
       mangle: {
-        toplevel: false,
+        toplevel: false, //if mangling toplevel, we get some rrors
         reserved: [
           //Some issues atm. with global constants -> setting so that names will not be mangled
           "CNST",

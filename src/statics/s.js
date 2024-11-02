@@ -103,7 +103,7 @@ let openTab = async (tab) => {
   if (tab === undefined || tab === "") {
     tab = "tab-status";
   }
-  console.log(inst);
+
   window.location.hash = `${tab}/${inst + 1}`;
   activeTab = tab;
 
@@ -237,12 +237,12 @@ let getData = async (url, isJson = true) => {
 
     }
   } catch (err) {
-    console.error(`${url}: (${JSON.stringify(err)})`);
+    console.error(url, err);
 
     return {
       ok: false,
       code: -1,
-      txt: `${url}: (${JSON.stringify(err)})`,
+      txt: JSON.stringify(err, Object.getOwnPropertyNames(err)) + " :" + url,
       data: null
     };
   }
@@ -285,7 +285,6 @@ let formatDateTime = (date, showSeconds = true) => {
  * @param {*} instChanged true if instance has been changed 
  */
 let updateLoop = async () => {
-  console.log("INSTANCE", inst);
   clearTimeout(loopTimer);
   DBG(me(), "Updating");
   qs("spin").style.visibility = "visible";

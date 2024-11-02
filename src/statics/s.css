@@ -60,7 +60,8 @@ body {
   float: left;
 }
 
-.ts, .h {
+.ts,
+.h {
   display: none;
 }
 
@@ -78,7 +79,7 @@ body {
   z-index: 1;
   top: 2.75em;
   left: 0;
-  padding: 1rem ;
+  padding: 1rem;
   background: #fff;
   color: #2c3e50;
   opacity: 0;
@@ -117,7 +118,9 @@ body {
   }
 }
 
-table.cc>tbody>tr>td:first-child, .bg, table.sm tr:first-child {
+table.cc>tbody>tr>td:first-child,
+.bg,
+table.sm tr:first-child {
   font-weight: bold;
   vertical-align: top;
   background: #1abc9c;
@@ -128,19 +131,23 @@ table.cc>tbody>tr>td:first-child, .bg, table.sm tr:first-child {
 }
 
 @media(max-width: 480px) {
+  #copy {
+    font-size: 0.6em;
+    text-align: left;
+    margin-top: -8px;
+  }
+
   .top {
     grid-template-columns: 1fr auto;
   }
 
-  .top > :nth-child(3) { /* Target the last column and make it full width */
+  .top> :nth-child(3) {
+    /* Making the 3rd column go to next line*/
     grid-column: 1 / -1;
   }
 
-  #copy {
-    text-align: center;
-  }
-
-  table.m>tbody>tr>td, #bk>label {
+  table.m>tbody>tr>td,
+  #bk>label {
     display: block;
     width: 100%;
   }
@@ -219,7 +226,7 @@ table.sm {
 }
 
 table.sm td {
-  padding:3px;
+  padding: 3px;
   text-align: center;
 }
 

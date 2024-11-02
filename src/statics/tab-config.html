@@ -8,44 +8,44 @@
 * License: GNU Affero General Public License v3.0 
 */
 -->
-<div class="tc b" style="font-size: 1.2em;">YLEISET ASETUKSET</div>
-<table class="m cc">
-  <tr>
-    <td>Maa</td>
-    <td>
-      <select id="g">
-        <option value="fi">Suomi</option>
-        <option value="ee">Viro</option>
-        <option value="lv">Latvia</option>
-        <option value="lt">Liettua</option>
-      </select>
-    </td>
-  </tr>
-  <tr>
-    <td class="w180">Sähkön ALV</td>
-    <td>
-      <input type="text" id="vat" size="2"> %
-    </td>
-  </tr>
-  <tr>
-    <td>Siirtomaksut</td>
-    <td>
-      07-22: <input type="text" id="day" size="2"> c/kWh
-      <div class="mt10">
-        22-07: <input type="text" id="night" size="2"> c/kWh
-      </div>
-    </td>
-  </tr>
-</table>
-
-<div class="tc mt10 b" style="font-size: 1.2em;">OHJAUS #<span id="ci"></span></div>
 <div id="cfg-l" class="tc">Ladataan...</div>
 <div id="cfg" style="display: none;">
+  <div class="tc b" style="font-size: 1.2em;">YLEISET ASETUKSET</div>
+  <table class="m cc">
+    <tr>
+      <td>Maa</td>
+      <td>
+        <select id="g">
+          <option value="fi">Suomi</option>
+          <option value="ee">Viro</option>
+          <option value="lv">Latvia</option>
+          <option value="lt">Liettua</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td class="w180">Sähkön ALV</td>
+      <td>
+        <input type="text" id="vat" size="2"> %
+      </td>
+    </tr>
+    <tr>
+      <td>Siirtomaksut</td>
+      <td>
+        07-22: <input type="text" id="day" size="2"> c/kWh
+        <div class="mt10">
+          22-07: <input type="text" id="night" size="2"> c/kWh
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="tc mt10 b" style="font-size: 1.2em;">OHJAUS #<span id="ci"></span></div>
   <table class="m cc">
     <tr>
       <td class="w180">Käytössä</td>
       <td>
-        <input type="checkbox" id="en"> <label for="en">ON/OFF</label>
+        <label><input type="checkbox" id="en"> ON/OFF</label>
       </td>
     </tr>
     <tr>
@@ -95,7 +95,7 @@
     <tr>
       <td>Hätätilaohjaus</td>
       <td>
-        <input type="checkbox" id="err"> <label for="err">ON/OFF</label>
+        <label><input type="checkbox" id="err"> ON/OFF</label>
       </td>
     </tr>
     <tr>
@@ -114,7 +114,7 @@
     <tr>
       <td class="w180">Ohjaus</td>
       <td>
-        <input type="checkbox" id="m0-cmd"> <label for="m0-cmd">ON/OFF</label>
+        <label><input type="checkbox" id="m0-cmd"> ON/OFF</label>
       </td>
     </tr>
   </table>
@@ -197,11 +197,12 @@
   <div class="tc mt10">
     <input id="save" type="button" value="Tallenna">
   </div>
-</div>
-<div class="tc mt10 b">TOIMINNOT</div>
-<div class="tc">
-  <input class="mt10" type="button" id="force" value="Pakko-ohjaus"><br>
-  <input class="mt10" type="button" onclick="window.open(`/`)" value="Shellyn hallinta">
+
+  <div class="tc mt10 b">TOIMINNOT</div>
+  <div class="tc">
+    <input class="mt10" type="button" id="force" value="Pakko-ohjaus"><br>
+    <input class="mt10" type="button" onclick="window.open(`/`)" value="Shellyn hallinta">
+  </div>
 </div>
 
 <script>
