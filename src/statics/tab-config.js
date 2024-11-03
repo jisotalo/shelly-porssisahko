@@ -120,8 +120,8 @@
 
       //set values of backup and forced hours
       for (let i = 0; i < 24; i++) {
-        qs(`b${i}`).checked = (c.b & (1 << i)) == (1 << i);
-        setRadio(`f${i}`, (c.f & (1 << i)) == (1 << i) ? (c.fc & (1 << i)) == (1 << i) ? 1 : 0 : -1);
+        qs(`b${i}`).checked = (ci.b & (1 << i)) == (1 << i);
+        setRadio(`f${i}`, (ci.f & (1 << i)) == (1 << i) ? (ci.fc & (1 << i)) == (1 << i) ? 1 : 0 : -1);
       }
 
       qs("min").value = ci.m;
