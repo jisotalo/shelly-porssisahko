@@ -7,7 +7,7 @@
 **HUOM: TÄMÄ ON V.3 TESTIVERSIO**
 
 ```
-## [3.0.0-beta2] - 03.11.2024
+[3.0.0-beta2] - 03.11.2024
 - Bugikorjaus: Varmuustuntien ja pakko-ohjattujen tuntien asetukset eivät vastanneet todellisia asetuksia
 
 [3.0.0-beta1] - 02.11.2024
