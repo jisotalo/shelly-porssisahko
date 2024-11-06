@@ -7,6 +7,12 @@
 **HUOM: TÄMÄ ON V.3 TESTIVERSIO**
 
 ```
+[3.0.0-beta3] - 06.11.2024
+- Näytetään ohjausrivillä ***, jos kyseessä on pakko-ohjaus
+- Jos sivun lataaminen epäonnistuu, mahdollistetaan uudelleenyritys
+- Lisätti oma versio, jossa vain yksi ohjaus ja ei historiaa (pienempi muistin käyttö)
+- Pieniä fiksejä
+
 [3.0.0-beta2] - 03.11.2024
 - Bugikorjaus: Varmuustuntien ja pakko-ohjattujen tuntien asetukset eivät vastanneet todellisia asetuksia
 
@@ -337,6 +343,14 @@ Muuta skriptin asetuksista `ohjattavat lähdöt` kyseiseen arvoon, jolloin ohjau
 ### Milloin seuraavan päivän hinnat haetaan? Miksi hintoja ei näy vaikka kello on 14?
 
 Seuraavan päivän hinnat haetaan kello 15. Elering tarjoaa uudet hinnat n. 14:30 alkaen.
+
+### Mihin asetukset tallentuvat?
+
+Asetukset tallentuvat Shellyn KVS-muistiin (Advanced -> KVS). 
+Asetukset ovat JSON-muodossa ja voit muokata niitä vapaasti myös Shellyn hallinnan kautta. 
+Skripti täytyy käynnistää uudestaan, jotta asetukset tulevat voimaan.
+
+![alt text](img/kvs.png)
 
 ## Teknistä tietoa ja kehitysympäristö
 
