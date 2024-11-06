@@ -2,6 +2,11 @@
   {
     "fname": "dist/shelly-porssisahko.js",
     "title": "Pörssisähköohjaus (shelly-porssisahko.js)",
-    "description": "v. 3.0.0-beta2 (testiversio)"
+    "description": "Pääskripti. Max. kolme ohjausta."
+  },
+  {
+    "fname": "dist/shelly-porssisahko-1-instance-no-history.js",
+    "title": "Pörssisähköohjaus | Yksi ohjaus, ilman historaa",
+    "description": "Vain yksi ohjaus ja ilman historiaa (pienempi muistin käyttö)"
   }
 ]

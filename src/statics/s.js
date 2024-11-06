@@ -113,7 +113,16 @@ let openTab = async (tab) => {
   }
 
   if (qs(`c-${tab}`).innerHTML === "") {
-    await populateDynamicData(`${tab}.html`, `c-${tab}`);
+    try {
+      await populateDynamicData(`${tab}.html`, `c-${tab}`);
+
+    } catch (err) {
+      DBG(me(), "error", err);
+      console.error(err);
+      if (confirm(`Sivun avaus epäonnistui - kokeile uudelleen? (${err.message})`)) {
+        openTab(tab);
+      }
+    }
   }
 
   updateLoop(true);
@@ -171,29 +180,22 @@ let evalContainerScriptTags = (elementId) => {
  * @param {*} containerId 
  */
 let populateDynamicData = async (url, containerId) => {
-  try {
-    if (!DEV) {
-      url = `${URLS}?r=${url.replace("tab-", "").replace(".html", "")}`
-    }
-
-    DBG(me(), "fetching", url, "for", containerId);
-
-    let res = await getData(url, false);
-
-    if (res.ok) {
-      qs(containerId).innerHTML = res.data;
-      evalContainerScriptTags(containerId);
-
-    } else {
-      qs(containerId).innerHTML = `Error getting data: ${res.txt}`;
-    }
-
-    DBG(me(), "done for", containerId);
-
-  } catch (err) {
-    DBG(me(), "error", err);
-    console.error(err);
+  if (!DEV) {
+    url = `${URLS}?r=${url.replace("tab-", "").replace(".html", "")}`
   }
+  DBG(me(), "fetching", url, "for", containerId);
+
+  let res = await getData(url, false);
+
+  if (res.ok) {
+    qs(containerId).innerHTML = res.data;
+    evalContainerScriptTags(containerId);
+
+  } else {
+    throw new Error(res.txt);
+  }
+
+  DBG(me(), "done for", containerId);
 }
 
 /**
@@ -296,7 +298,7 @@ let updateLoop = async () => {
       state = res.data;
 
       //Updating title
-      doc.title = (state.s.dn ? state.s.dn + " -" : "") + "Pörssisähkö";
+      doc.title = (state.s.dn ? state.s.dn + " - " : "") + "Pörssisähkö";
 
       //Updating instances to dropdown
       qs("inst").innerHTML = state.c.names.map((n, i) => `<option value="${i}">Ohjaus #${(i + 1)}: ${n}</option>`)

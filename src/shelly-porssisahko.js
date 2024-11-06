@@ -13,7 +13,7 @@ const CNST = {
   /** Number of instances (if INSTANCE_COUNT is set, use it instead) */
   INST_COUNT: typeof INSTANCE_COUNT === 'undefined' ? 3 : INSTANCE_COUNT,
   /** Maximum total number of history rows - this is later divided by enabled instance count (3 enabled instances -> 8 history per each)*/
-  HIST_LEN: 24,
+  HIST_LEN: typeof HIST_LEN === 'undefined' ? 24 : HIST_LEN,
   /** How many errors with getting prices until to have a break */
   ERR_LIMIT: 3,
   /** How long to wait after multiple errors (>= ERR_LIMIT) before trying again (s) */
@@ -122,7 +122,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.0.0-beta2",
+    v: "3.0.0-beta3",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -420,7 +420,7 @@ function getConfig(inst) {
       if (inst < 0) {
         _.s.configOK = ok ? 1 : 0;
       } else {
-        log("config for #" + inst + " read, enabled: " + _.c.i[inst].en);
+        log("config for #" + (inst + 1) + " read, enabled: " + _.c.i[inst].en);
 
         _.si[inst].configOK = ok ? 1 : 0;
         _.si[inst].chkTs = 0; //To run the logic again with new settings
@@ -436,55 +436,54 @@ function getConfig(inst) {
  * Background process loop
  */
 function loop() {
-  //try {
-  if (loopRunning) {
-    return;
-  }
-  loopRunning = true;
-
-  updateState();
-
-  if (!_.s.configOK) {
-    //Common config
-    getConfig(-1);
-
-  } else if (pricesNeeded(0)) {
-    //Prices for today
-    getPrices(0);
-
-  } else if (pricesNeeded(1)) {
-    //Prices for tomorrow
-    getPrices(1);
-
-  } else {
-    //Instances
-    //Separate loops to make sure configs are read first and in all cases
-    for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
-      if (!_.si[inst].configOK) {
-        //We need to update config to this instance
-        getConfig(inst);
-        return;
-      }
+  try {
+    if (loopRunning) {
+      return;
     }
+    loopRunning = true;
 
-    for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
-      if (logicRunNeeded(inst)) {
-        //We need to run logic for this instance
-        //Running using a timer to prevent stack issues
-        Timer.set(500, false, logic, inst);
-        return;
+    updateState();
+
+    if (!_.s.configOK) {
+      //Common config
+      getConfig(-1);
+
+    } else if (pricesNeeded(0)) {
+      //Prices for today
+      getPrices(0);
+
+    } else if (pricesNeeded(1)) {
+      //Prices for tomorrow
+      getPrices(1);
+
+    } else {
+      //Instances
+      //Separate loops to make sure configs are read first and in all cases
+      for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
+        if (!_.si[inst].configOK) {
+          //We need to update config to this instance
+          getConfig(inst);
+          return;
+        }
       }
-    }
 
-    //If we are here, there is nothing to 
+      for (let inst = 0; inst < CNST.INST_COUNT; inst++) {
+        if (logicRunNeeded(inst)) {
+          //We need to run logic for this instance
+          //Running using a timer to prevent stack issues
+          Timer.set(500, false, logic, inst);
+          return;
+        }
+      }
+
+      //If we are here, there is nothing to 
+      loopRunning = false;
+    }
+  } catch (err) {
+    //Shouldn't happen
+    log("error at main loop:" + err);
     loopRunning = false;
   }
-  /*
-    } catch (err) {
-      //Shouldn't happen
-      log("loop() - error:" + err);
-      loopRunning = false;
-    }*/
 }
 
 /**
@@ -871,11 +870,11 @@ function logic(inst) {
       if (cfg.i) {
         cmd[inst] = !cmd[inst];
       }
-      log("logic for #" + inst + " done, cmd: " + finalCmd + " -> output: " + cmd[inst]);
+      log("logic for #" + (inst + 1) + " done, cmd: " + finalCmd + " -> output: " + cmd[inst]);
 
       if (cfg.oc == 1 && st.cmd == cmd[inst]) {
         //No need to write 
-        log("outputs already set for #" + inst);
+        log("outputs already set for #" + (inst + 1));
         addHistory(inst);
         st.cmd = cmd[inst] ? 1 : 0;
         st.chkTs = epoch();
@@ -998,7 +997,7 @@ function isCheapestHour(inst) {
 
       for (_j = 0; _j <= order.length - _cnt; _j++) {
         _sum = 0;
-        
+
         //Calculate sum of these sequential hours
         for (_k = _j; _k < _j + _cnt; _k++) {
           _sum += _.p[0][order[_k]][1];
@@ -1116,7 +1115,7 @@ function onServerRequest(request, response) {
       request = null;
       response.code = 503;
       //NOTE: Uncomment the next line for local development or remote API access (allows cors)
-      response.headers = [["Access-Control-Allow-Origin", "*"]];
+      //response.headers = [["Access-Control-Allow-Origin", "*"]];
       response.send();
       return;
     }
@@ -1124,7 +1123,7 @@ function onServerRequest(request, response) {
     //Parsing parameters (key=value&key2=value2) to object
     let params = parseParams(request.query);
     let inst = parseInt(params.i);
-    
+
     request = null;
 
     let MIME_TYPE = "application/json"; //default
@@ -1135,11 +1134,7 @@ function onServerRequest(request, response) {
     let MIME_JS = "text/javascript";
     let MIME_CSS = "text/css";
 
-    //TODO improve this
-    if (!isNaN(inst) && (inst < 0 || inst >= CNST.INST_COUNT)) {
-      response.code = 400;
-      
-    } else if (params.r === "s") {
+    if (params.r === "s") {
       //s = get state
       updateState();
 
@@ -1152,9 +1147,6 @@ function onServerRequest(request, response) {
           ci: _.c.i[inst],
           p: _.p
         });
-
-      } else {
-        response.body = JSON.stringify(_);
       }
       GZIP = false;
 
@@ -1171,35 +1163,40 @@ function onServerRequest(request, response) {
 
       GZIP = false;
 
-
     } else if (params.r === "h") {
       //h = get history
       if (inst >= 0 && inst < CNST.INST_COUNT) {
         response.body = JSON.stringify(_.h[inst]);
       }
+
       GZIP = false;
 
     } else if (params.r === "r") {
       //r = reload settings
-      log("config changed for #" + inst);
-      _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
-      _.si[inst].configOK = false;
+      if (inst >= 0 && inst < CNST.INST_COUNT) {
+        log("config changed for #" + (inst + 1));
+        _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
+        _.si[inst].configOK = false;
 
-      if (!loopRunning) {
-        loopRunning = true;
-        getConfig(inst);
+        if (!loopRunning) {
+          loopRunning = true;
+          getConfig(inst);
+        }
+
+        _.s.p[0].ts = 0; //get prices
+        _.s.p[1].ts = 0; //get prices
+        response.code = 204;
       }
 
-      _.s.p[0].ts = 0; //get prices
-      _.s.p[1].ts = 0; //get prices
-      response.code = 204;
       GZIP = false;
 
     } else if (params.r === "f" && params.ts) {
       //f = force
-      _.si[inst].fCmdTs = Number(params.ts);
-      _.si[inst].fCmd = Number(params.c);
-      _.si[inst].chkTs = 0;
+      if (inst >= 0 && inst < CNST.INST_COUNT) {
+        _.si[inst].fCmdTs = Number(params.ts);
+        _.si[inst].fCmd = Number(params.c);
+        _.si[inst].chkTs = 0;
+      }
 
       response.code = 204;
       GZIP = false;
@@ -1249,7 +1246,7 @@ function onServerRequest(request, response) {
     response.headers = [["Content-Type", MIME_TYPE]];
 
     //NOTE: Uncomment the next line for local development or remote API access (allows cors)
-    response.headers.push(["Access-Control-Allow-Origin", "*"]);
+    //response.headers.push(["Access-Control-Allow-Origin", "*"]);
 
     if (GZIP) {
       response.headers.push(["Content-Encoding", "gzip"]);

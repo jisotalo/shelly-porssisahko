@@ -243,14 +243,19 @@
         for (let i = 0; i < d.p[dayIndex].length; i++) {
           let row = d.p[dayIndex][i];
           let date = new Date(row[0] * 1000);
-          let cmd =
 
+          //Forced hour on
+          let fon = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == (1 << i));
+          //Forced hour off
+          let foff = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == 0);
+
+          let cmd =
             ((ci.mode === 0 && ci.m0.cmd)
               || (ci.mode === 1 && row[1] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
               || (ci.mode === 2 && cheapest.includes(i) && row[1] <= (ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m))
               || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l))
-              || ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == (1 << i)))
-            && !((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == 0);
+              || fon)
+            && !foff;
 
           //Invert
           if (ci.inv) {
@@ -275,7 +280,7 @@
           `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
             <td class="fit">${formatTime(date, false)}</td>
             <td>${row[1].toFixed(2)} c/kWh</td>
-            <td>${cmd ? "&#x2714;" : ""}</td>
+            <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
           </tr>`;
         }
 
