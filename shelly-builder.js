@@ -238,7 +238,12 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
       throw new Error(`createDistFile(): Minifying script "${filePath}" failed: ${minified.error}`);
     }
 
+    
     outputBuffer = minified.code;
+    
+    if (isShellyScript) {
+      outputBuffer += "\n//end";
+    }
 
     if (GZIP && !isShellyScript) {
       const gzip = promisify(zlib.gzip);
@@ -291,6 +296,7 @@ const createDistFile = async (filePath, distPath, isShellyScript) => {
   //log(minified.code);
 
   log(`createDistFile(): Creating dist file for "${filePath}" done`);
+
   await fs.writeFile(distPath, GZIP && !isShellyScript ? gzippedBuffer : outputBuffer);
 
   if (GZIP && !isShellyScript) {
