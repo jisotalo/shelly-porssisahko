@@ -2,7 +2,7 @@
   {
     "fname": "dist/shelly-porssisahko.js",
     "title": "Pörssisähköohjaus (shelly-porssisahko.js)",
-    "description": "Pääskripti. Max. kolme ohjausta."
+    "description": "Pääskripti - asenna tämä jos et ole varma. Github: https://github.com/jisotalo/shelly-porssisahko"
   },
   {
     "fname": "dist/shelly-porssisahko-1-instance-no-history.js",
