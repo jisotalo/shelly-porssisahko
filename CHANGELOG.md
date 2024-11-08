@@ -4,12 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0-beta3] - 06.11.2024
+## [3.0.0-beta4] - 08.11.2024
 **HUOM:** Tämä on julkinen testiversio. Skriptissä voi olla vielä ongelmia ja se voi vaikka kaatua yllättäen.
+
+- Parannettu toimintaa vikatilanteissa (jos hinnat puuttuvat / virheelliset)
+- Ajetaan kaikki ohjaukset aina hintojen saannin / virheellisen hintadatan jälkeen
+- Kun asetukset tallennetaan, ajetaan kaikki ohjaukset läpi
+  - Saadaan kaikki ohjaukset varmasti ajan tasalle
+
+## [3.0.0-beta3] - 06.11.2024
 
 - Näytetään ohjausrivillä ***, jos kyseessä on pakko-ohjaus
 - Jos sivun lataaminen epäonnistuu, mahdollistetaan uudelleenyritys
-- Lisätti oma versio, jossa vain yksi ohjaus ja ei historiaa (pienempi muistin käyttö)
+- Lisätty oma versio, jossa vain yksi ohjaus ja ei historiaa (pienempi muistin käyttö)
 - Pieniä fiksejä
 
 ## [3.0.0-beta2] - 03.11.2024

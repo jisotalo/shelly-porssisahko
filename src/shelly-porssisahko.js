@@ -122,7 +122,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.0.0-beta3",
+    v: "3.0.0-beta4",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -314,6 +314,15 @@ function addHistory(inst) {
     _.h[inst].splice(0, 1);
   }
   _.h[inst].push([epoch(), cmd[inst] ? 1 : 0, _.si[inst].st]);
+}
+
+/**
+ * Request all logics to run
+ */
+function reqLogic() {
+  for (let i = 0; i < CNST.INST_COUNT; i++) {
+    _.si[i].chkTs = 0;
+  }
 }
 
 /**
@@ -699,11 +708,11 @@ function getPrices(dayIndex) {
           _.s.p[dayIndex].avg = _.p[dayIndex].length > 0 ? (_.s.p[dayIndex].avg / _.p[dayIndex].length) : 0;
           _.s.p[dayIndex].ts = epoch(now);
 
-          if (dayIndex == 1 && _.p[dayIndex].length < 23) {
+          if (_.p[dayIndex].length < 23) {
             //Let's assume that if we have data for at least 23 hours everything is OK
             //This should take DST saving changes in account
             //If we get less the prices may not be updated yet to elering API?
-            throw new Error("no prices tomorrow");
+            throw new Error("invalid data received");
           }
         } else {
           throw new Error(err + "(" + msg + ") - " + JSON.stringify(res));
@@ -713,33 +722,35 @@ function getPrices(dayIndex) {
         log("error getting prices: " + err);
         _.s.errCnt += 1;
         _.s.errTs = epoch();
-
         _.s.p[dayIndex].ts = 0;
         _.p[dayIndex] = [];
       }
-      /*
-            if (dayIndex == 1) {
-              loopRunning = false;
-              return;
-            }
-      */
+
+      //Done (success or not)
+      //Run all logic again if prices are for today
+      if (dayIndex == 0) {
+        reqLogic();
+      }
+
       loopRunning = false;
       Timer.set(500, false, loop);
     });
 
   } catch (err) {
     log("error getting prices: " + err);
+    _.s.errCnt += 1;
+    _.s.errTs = epoch();
     _.s.p[dayIndex].ts = 0;
     _.p[dayIndex] = [];
-    /*
-        if (dayIndex == 1) {
-          loopRunning = false;
-          return;
-        }
-    
-        //Today prices -> run instance 1 logic asap
-        Timer.set(500, false, logic, 0);*/
+
+    //Done (error)
+    //Run all logic again if prices are for today
+    if (dayIndex == 0) {
+      reqLogic();
+    }
+
     loopRunning = false;
+    Timer.set(500, false, loop);
   }
 }
 
@@ -1178,6 +1189,8 @@ function onServerRequest(request, response) {
         _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
         _.si[inst].configOK = false;
 
+        reqLogic();
+        
         if (!loopRunning) {
           loopRunning = true;
           getConfig(inst);
@@ -1185,6 +1198,7 @@ function onServerRequest(request, response) {
 
         _.s.p[0].ts = 0; //get prices
         _.s.p[1].ts = 0; //get prices
+        
         response.code = 204;
       }
 
