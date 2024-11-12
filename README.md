@@ -191,7 +191,6 @@ Nämä asetukset ovat samat kaikille ohjauksille.
 | Sähkön ALV   | Käytettävä ALV-% sähkön hinnalle. [%]                                                                                                                                                                         | `25.5`                  |
 | Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]<br><br>Esim. jos haluat ottaa erisuuruiset siirtomaksut huomioon tuntien valinnassa. | päivä: `4` <br> yö: `3` |
 
-Nämä asetukset ovat voimassa kaikilla ohjaustavoilla.
 
 ### Ohjauskohtaiset asetukset
 
@@ -314,6 +313,13 @@ Skriptiä voi jatkojalostaa omalla koodilla. Alla olevat esimerkit löytyvät va
 
 ## Kysymyksiä ja vastauksia
 
+### Onko skripti kuinka toimintavarma?
+
+Tavoite on, että skripti on mahdollisimman toimintavarma ja sen voi unohtaa ajoon.
+Versio 2 on pyörinyt itsellä yhtäjaksoisesti yli 100 päivää ilman ongelmia. 
+
+![alt text](img/uptime.png)
+
 ### Miksi välillä tulee HTTP error 503?
 
 Kun skripti hakee hintoja tai suorittaa ohjauslogiikkaa, vastataan kaikkiin HTTP-pyyntöihin 503 (Service Unavailable) muistin säästämiseksi.
@@ -371,7 +377,6 @@ Kokonaishistoriaa tallennetaan ainoastaan 24 ohjauksen verran muistin säästäm
 - Jos vain yksi ohjaus on käytössä, sen historiassa näkyy 24 viime ohjausta.
 - Jos kaksi ohjausta on käytössä, niiden historiassa näkyy 12 viime ohjausta.
 - Jos kolme ohjausta on käytössä, niiden historiassa näkyy 8 viime ohjausta.
-
 
 ## Teknistä tietoa
 
