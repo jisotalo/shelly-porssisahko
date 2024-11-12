@@ -4,33 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0-beta4] - 08.11.2024
-**HUOM:** Tämä on julkinen testiversio. Skriptissä voi olla vielä ongelmia ja se voi vaikka kaatua yllättäen.
+## [3.0.0] - 12.11.2024
+**HUOM:** Päivittäessä v.2 -> v.3 asetukset nollaantuvat.
 
-- Parannettu toimintaa vikatilanteissa (jos hinnat puuttuvat / virheelliset)
-- Ajetaan kaikki ohjaukset aina hintojen saannin / virheellisen hintadatan jälkeen
-- Kun asetukset tallennetaan, ajetaan kaikki ohjaukset läpi
-  - Saadaan kaikki ohjaukset varmasti ajan tasalle
-
-## [3.0.0-beta3] - 06.11.2024
-
-- Näytetään ohjausrivillä ***, jos kyseessä on pakko-ohjaus
-- Jos sivun lataaminen epäonnistuu, mahdollistetaan uudelleenyritys
-- Lisätty oma versio, jossa vain yksi ohjaus ja ei historiaa (pienempi muistin käyttö)
-- Pieniä fiksejä
-
-## [3.0.0-beta2] - 03.11.2024
-- Bugikorjaus: Varmuustuntien ja pakko-ohjattujen tuntien asetukset eivät vastanneet todellisia asetuksia
-
-## [3.0.0-beta1] - 02.11.2024
 - Tuki kolmelle yhtäaikaiselle ohjaukselle
   - Jokaiselle voidaan määrittää omat asetukset ja lähdöt
   - Käyttöliittymässä valitaan, minkä ohjuksen tilaa, historiaa ja asetuksia käytetään.
-- Maan valinta (tulevaa englanninkielistä versiota varten)
+- Näytetään ohjausrivillä ***, jos kyseessä on pakko-ohjaus
+- Parannettu toimintaa vikatilanteissa (jos hinnat puuttuvat / virheelliset)
+- Jos sivun lataaminen epäonnistuu, mahdollistetaan uudelleenyritys
 - Oletus-ALV muutettu 25.5%
-- Pieniä parannuksia ja optimointeja konepellin alla
-
-Lisätoiminnot ja omat skriptit eivät ole vielä tuettuna.
+- Maan valinta
+- Paljon parannuksia ja optimointeja konepellin alla
+- Asetukset tallennetaan JSON-muodossa (voi muokata käsin KVS alta)
 
 ## [2.13.0] - 14.07.2024
 - Muutos: Kun vuorokausi vaihtuu, hinnat haetaan aina varalta uudelleen ([Katso issue #26](https://github.com/jisotalo/shelly-porssisahko/issues/26))

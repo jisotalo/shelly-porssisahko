@@ -122,7 +122,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.0.0-beta4",
+    v: "3.0.0",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -216,6 +216,7 @@ function getKvsKey(inst) {
 
   return key;
 }
+
 /**
  * Returns true if hour in epoch timestamp is current hour
  * 
@@ -421,7 +422,7 @@ function getConfig(inst) {
     }
 
     if (typeof USER_CONFIG == 'function') {
-      //TODO _.c = USER_CONFIG(_.c, _, true);
+      USER_CONFIG(inst, true);
     }
 
     chkConfig(inst, function (ok) {
@@ -485,8 +486,13 @@ function loop() {
         }
       }
 
-      //If we are here, there is nothing to 
-      loopRunning = false;
+      //If we are here, there is nothing to
+      //Is there a user script?
+      if (typeof USER_LOOP == 'function') {
+        USER_LOOP();
+      } else {
+        loopRunning = false;
+      }
     }
   } catch (err) {
     //Shouldn't happen
@@ -780,7 +786,7 @@ function logic(inst) {
   try {
     //This is a good time to update config if any overrides exist
     if (typeof USER_CONFIG == 'function') {
-      //TODO _.c = USER_CONFIG(_.c, _, false);
+      USER_CONFIG(inst, false);
     }
 
     cmd[inst] = false;
@@ -921,24 +927,18 @@ function logic(inst) {
       }
     }
 
-
     //User script
-    //TODO
-    logicFinalize(cmd[inst]);
-    /*
     if (typeof USER_OVERRIDE == 'function') {
-      USER_OVERRIDE(cmd[inst], _, logicFinalize);
+      USER_OVERRIDE(inst, cmd[inst], logicFinalize);
     } else {
       logicFinalize(cmd[inst]);
     }
-    */
 
   } catch (err) {
     log("error running logic: " + JSON.stringify(err));
     loopRunning = false;
   }
 }
-
 
 /**
  * Returns true if current hour is one of the cheapest
@@ -1185,23 +1185,31 @@ function onServerRequest(request, response) {
     } else if (params.r === "r") {
       //r = reload settings
       if (inst >= 0 && inst < CNST.INST_COUNT) {
+        //Just one instance
         log("config changed for #" + (inst + 1));
-        _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
         _.si[inst].configOK = false;
 
-        reqLogic();
-        
-        if (!loopRunning) {
-          loopRunning = true;
-          getConfig(inst);
+      } else {
+        //For all
+        log("config changed");
+        for (let i = 0; i < CNST.INST_COUNT; i++) {
+          _.si[i].configOK = false;
         }
-
-        _.s.p[0].ts = 0; //get prices
-        _.s.p[1].ts = 0; //get prices
-        
-        response.code = 204;
       }
 
+      _.s.configOK = false; //reload settings (prevent getting prices before new settings loaded )
+
+      reqLogic();
+
+      if (!loopRunning) {
+        loopRunning = true;
+        getConfig(inst);
+      }
+
+      _.s.p[0].ts = 0; //get prices
+      _.s.p[1].ts = 0; //get prices
+
+      response.code = 204;
       GZIP = false;
 
     } else if (params.r === "f" && params.ts) {

@@ -77,7 +77,7 @@
 
         //Extended status for instance (by user scripts)
         if (si.str != "") {
-          qs("s-st").innerHTML += `<br><br>${s.str}`;
+          qs("s-st").innerHTML += `<br><br>${si.str}`;
         }
 
         qs("s-info").innerHTML = si.chkTs > 0
