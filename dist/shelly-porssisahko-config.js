@@ -376,3 +376,7 @@ function chkConfig(inst) {
 }
 
 chkConfig(-1);
+
+//-------------------------------------
+// HUOM: Asetukset löytyvät ylhäältä
+//-------------------------------------
