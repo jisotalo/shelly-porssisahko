@@ -20,7 +20,7 @@
     "description": "Esimerkki: Muuttaa halvimpien tuntien lukumäärää Shelly Plus Addonin mittaaman lämpötilan perusteella"
   },
   {
-    "fname": "dist/shelly-porssisahko-addon-temp-temp.js",
+    "fname": "dist/shelly-porssisahko-addon-temp.js",
     "title": "Pörssisähköohjaus | Esimerkki Plus Addonin käytöstä",
     "description": "Esimerkki: Ylikirjoittaa ohjauksen tarvittaessa Shelly Plus Addonin mittaaman lämpötilan perusteella"
   },
