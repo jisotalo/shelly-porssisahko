@@ -15,17 +15,17 @@
     "description": "Esimerkki: Hakee vuorokauden kylmimmän lämpötilan ja muuttaa sen perusteella halvimpien tuntien lukumäärää."
   },
   {
-    "fname": "dist/sshelly-porssisahko-addon-temp-hours.js",
+    "fname": "dist/shelly-porssisahko-addon-temp-hours.js",
     "title": "Pörssisähköohjaus | Esimerkki Plus Addonin käytöstä",
     "description": "Esimerkki: Muuttaa halvimpien tuntien lukumäärää Shelly Plus Addonin mittaaman lämpötilan perusteella"
   },
   {
-    "fname": "dist/sshelly-porssisahko-addon-temp-temp.js",
+    "fname": "dist/shelly-porssisahko-addon-temp-temp.js",
     "title": "Pörssisähköohjaus | Esimerkki Plus Addonin käytöstä",
     "description": "Esimerkki: Ylikirjoittaa ohjauksen tarvittaessa Shelly Plus Addonin mittaaman lämpötilan perusteella"
   },
   {
-    "fname": "dist/sdist/shelly-porssisahko-ht-sensor-temp.js",
+    "fname": "dist/shelly-porssisahko-ht-sensor-temp.js",
     "title": "Pörssisähköohjaus | Esimerkki H&T:n käytöstä",
     "description": "Esimerkki: Muuttaa halvimpien tuntien lukumäärää Shelly H&T:n mittaaman lämpötilan perusteella"
   }
