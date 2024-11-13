@@ -1,12 +1,32 @@
 [
   {
     "fname": "dist/shelly-porssisahko.js",
-    "title": "Pörssisähköohjaus (shelly-porssisahko.js)",
-    "description": "Pääskripti - asenna tämä jos et ole varma. Github: https://github.com/jisotalo/shelly-porssisahko"
+    "title": "Pörssisähköohjaus | Pääskripti (shelly-porssisahko.js)",
+    "description": "Asenna lähtökohtaisesti tämä - tukee useampaa ohjausta. Github: https://github.com/jisotalo/shelly-porssisahko"
   },
   {
     "fname": "dist/shelly-porssisahko-1-instance-no-history.js",
     "title": "Pörssisähköohjaus | Yksi ohjaus, ilman historaa",
     "description": "Vain yksi ohjaus ja ilman historiaa (pienempi muistin käyttö)"
+  },
+  {
+    "fname": "dist/shelly-porssisahko-open-meteo-api.js.js",
+    "title": "Pörssisähköohjaus | Esimerkki sääennusteen hyödyntämisestä",
+    "description": "Esimerkki: Hakee vuorokauden kylmimmän lämpötilan ja muuttaa sen perusteella halvimpien tuntien lukumäärää."
+  },
+  {
+    "fname": "shelly-porssisahko-addon-temp-hours.js",
+    "title": "Pörssisähköohjaus | Esimerkki Plus Addonin käytöstä",
+    "description": "Esimerkki: Muuttaa halvimpien tuntien lukumäärää Shelly Plus Addonin mittaaman lämpötilan perusteella"
+  },
+  {
+    "fname": "shelly-porssisahko-addon-temp-temp.js",
+    "title": "Pörssisähköohjaus | Esimerkki Plus Addonin käytöstä",
+    "description": "Esimerkki: Ylikirjoittaa ohjauksen tarvittaessa Shelly Plus Addonin mittaaman lämpötilan perusteella"
+  },
+  {
+    "fname": "dist/shelly-porssisahko-ht-sensor-temp.js",
+    "title": "Pörssisähköohjaus | Esimerkki H&T:n käytöstä",
+    "description": "Esimerkki: Muuttaa halvimpien tuntien lukumäärää Shelly H&T:n mittaaman lämpötilan perusteella"
   }
 ]
