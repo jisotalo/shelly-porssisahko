@@ -50,13 +50,13 @@ const CNST = {
       day: 0,
       /** Night (22...07) transfer price [c/kWh] */
       night: 0,
-      /** instance names */
+      /** Instance names */
       names: []
     },
 
     /** Default config for instance settings */
     INST: {
-      /** Enabled */
+      /** Enabled [0/1]*/
       en: 0,
       /**  
        * Active mode

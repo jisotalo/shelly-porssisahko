@@ -303,12 +303,28 @@ Tällöin ohjaus voisi mennä esimerkiksi seuraavasti:
 
 Skriptiä voi jatkojalostaa omalla koodilla. Alla olevat esimerkit löytyvät valmiina.
 
-| skripti                                                                                                                                            | selite                                                                                           |
-| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [`shelly-porssisahko-open-meteo-api.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-open-meteo-api.js)     | Hakee vuorokauden kylmimmän lämpötilan ja muuttaa sen perusteella halvimpien tuntien lukumäärää. |
-| [`shelly-porssisahko-addon-temp-hours.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp-hours.js) | Muuttaa halvimpien tuntien lukumäärää Shelly Plus Addonin mittaaman lämpötilan perusteella       |
-| [`shelly-porssisahko-addon-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js)             | Ylikirjoittaa ohjauksen tarvittaessa Shelly Plus Addonin mittaaman lämpötilan perusteella        |
-| [`shelly-porssisahko-ht-sensor-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temp.js)     | Muuttaa halvimpien tuntien lukumäärää Shelly H&T:n mittaaman lämpötilan perusteella              |
+| skripti                                                                                                                                            | selite                                                                                                                                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`shelly-porssisahko-open-meteo-api.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-open-meteo-api.js)     | Hakee vuorokauden kylmimmän lämpötilan ja muuttaa sen perusteella halvimpien tuntien lukumäärää.                                                                                                                                     |
+| [`shelly-porssisahko-addon-temp-hours.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp-hours.js) | Muuttaa halvimpien tuntien lukumäärää Shelly Plus Addonin mittaaman lämpötilan perusteella                                                                                                                                           |
+| [`shelly-porssisahko-addon-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js)             | Ylikirjoittaa ohjauksen tarvittaessa Shelly Plus Addonin mittaaman lämpötilan perusteella                                                                                                                                            |
+| [`shelly-porssisahko-ht-sensor-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temp.js)     | Muuttaa halvimpien tuntien lukumäärää Shelly H&T:n mittaaman lämpötilan perusteella                                                                                                                                                  |
+| [`shelly-porssisahko-config.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-config.js)                     | Rinnalle asennettava skripti, jonka avulla voi muuttaa pörssisähköohjauksen asetuksia ilman web-käyttöliittymää (esim. etänä puhelimella). Tsekkaa [Asetusten muokkaaminen skriptin kautta (etänä)](#asetusten-muokkaaminen-skriptin-kautta-etänä) |
+
+
+### Asetusten muokkaaminen skriptin kautta (etänä)
+
+Tämä voi olla kätevä, jos skriptin asetuksia täytyy muuttaa ilman pääsyä skriptin omaan hallintaan.
+Esimerkiksi Shellyn sovelluksen kautta etänä.
+
+
+1. Asenna käsin tai library-painikkeen avulla [`shelly-porssisahko-config.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-config.js) pääskriptin **rinnalle** (pidä pääskripti päällä kuten ennenkin)
+2. Ota kommentit (`//`) pois koodista niiden asetusten kohdalta, joita haluat muokata. Muut pysyvät ennallaan. 
+3. Paina **save** ja käynnistä skripti. Se sammuu automaattisesti.
+
+Esim. alla muutetaan etänä halpojen tuntien lukumäärä arvoon `8h` yhdestä ohjauksesta.
+
+![alt text](img/config-script.png)
 
 
 ## Kysymyksiä ja vastauksia

@@ -28,5 +28,10 @@
     "fname": "dist/shelly-porssisahko-ht-sensor-temp.js",
     "title": "Pörssisähköohjaus | Esimerkki H&T:n käytöstä",
     "description": "Esimerkki: Muuttaa halvimpien tuntien lukumäärää Shelly H&T:n mittaaman lämpötilan perusteella"
+  },
+  {
+    "fname": "dist/shelly-porssisahko-config.js",
+    "title": "Asetusskripti | Rinnakkainen skripti asetusten muuttamiseen",
+    "description": "Tämän avulla voi muuttaa asetuksia skriptin kautta (esim. etänä puhelimella). Asenna pääskriptin rinnalle, muuta asetuksia ja aja skripti läpi"
   }
 ]
