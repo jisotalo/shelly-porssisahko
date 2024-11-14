@@ -50,6 +50,12 @@ function USER_CONFIG(inst, initialized) {
   const state = _;
   const config = state.c.i[inst];
 
+  //Jos asetuksia ei vielä ole, skipataan (uusi asennus)
+  if (typeof config.m2 == "undefined") {
+    console.log("Tallenna asetukset kerran käyttäjäskriptiä varten");
+    return;
+  }
+
   //Tallenentaan alkuperäiset asetukset muistiin
   if (initialized) {
     originalConfig.hours = config.m2.c;
@@ -91,10 +97,10 @@ function USER_CONFIG(inst, initialized) {
         } else if (data.temp <= -5) {
           hours = 6;
           minutes = 45;
-          
+
         } else {
           //Ei tehdä mitään --> käytetään käyttöliittymän asetuksia
-        } 
+        }
 
         //------------------------------
         // Toimintalogiikka päättyy
@@ -150,7 +156,7 @@ function onHttpRequest(request, response) {
       console.log("Lämpötilatiedot päivitetty, pyydetään pörssisähkölogiikan ajoa. Data:", data);
 
       _.si[INSTANCE].chkTs = 0; //Requesting to run logic again
-      
+
       response.code = 200;
 
     } else {

@@ -26,6 +26,12 @@ function USER_CONFIG(inst, initialized) {
   const state = _;
   const config = state.c.i[inst];
 
+  //Jos asetuksia ei vielä ole, skipataan (uusi asennus)
+  if (typeof config.m2 == "undefined") {
+    console.log("Tallenna asetukset kerran käyttäjäskriptiä varten");
+    return;
+  }
+
   //Tallenentaan alkuperäiset asetukset muistiin
   if (initialized) {
     originalConfig.hours = config.m2.c;

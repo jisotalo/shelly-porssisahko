@@ -9,6 +9,16 @@ Skripti käyttää suoraan Viron kantaverkkoyhtiö [Eleringin](https://dashboard
 
 Jos haluat ohjata Shelly Plug Plus -laitteen valon väriä sähkön hinnan mukaan, tsekkaa [shelly-plug-nordpool-light](https://github.com/jisotalo/shelly-plug-nordpool-light).
 
+--- 
+
+**IN ENGLISH** 
+
+There is an English version of the script available at [https://github.com/jisotalo/shelly-porssisahko-en](https://github.com/jisotalo/shelly-porssisahko-en). 
+
+It can be used to control Shelly devices by Nordpool electricity spot prices in Finland, Estonia, Latvia and Lithuania.
+
+---
+
 ![alt text](img/shelly-porssisahko.gif)
 
 ## Ominaisuudet
@@ -48,6 +58,7 @@ Jos haluat ohjata Shelly Plug Plus -laitteen valon väriä sähkön hinnan mukaa
     - [Jakson halvimmat tunnit - omavalintaiset jaksot](#jakson-halvimmat-tunnit---omavalintaiset-jaksot)
     - [Toiminnot](#toiminnot)
   - [Lisätoiminnot ja käyttäjäskriptit](#lisätoiminnot-ja-käyttäjäskriptit)
+    - [Ominaisuudet](#ominaisuudet-1)
     - [Asetusten muokkaaminen skriptin kautta (etänä)](#asetusten-muokkaaminen-skriptin-kautta-etänä)
   - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
     - [Onko skripti kuinka toimintavarma?](#onko-skripti-kuinka-toimintavarma)
@@ -76,9 +87,11 @@ Tarvittaessa vanhat skriptiversiot löytyvät [Releases](https://github.com/jiso
 Jos haluat käyttää edellistä (edelleen pomminvarmaa) v.2-versiota, se löytyy alta:
 - v.2.13.0 release
   - [https://github.com/jisotalo/shelly-porssisahko/releases/tag/v.2.13.0](https://github.com/jisotalo/shelly-porssisahko/releases/tag/v.2.13.0)
-- v.2 GitHubissa
+- v.2.13.0 GitHubissa
   - [https://github.com/jisotalo/shelly-porssisahko/tree/4566fc40cfb819cf582881f81acf823e7c104bd9](https://github.com/jisotalo/shelly-porssisahko/tree/4566fc40cfb819cf582881f81acf823e7c104bd9)
-- v.2 Archivessa
+  - README:ssa oleva library-linkki ei enää toimi
+  - Toimiva library-linkki v.2.13.0: `https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/4566fc40cfb819cf582881f81acf823e7c104bd9/shelly-library.json` 
+- v.2.13.0 Archivessa
   - http://archive.today/2024.11.11-175653/https://jisotalo.fi/shelly-porssisahko/
 
 ## Tukeminen
@@ -189,7 +202,7 @@ Nämä asetukset ovat samat kaikille ohjauksille.
 
 | Asetus       | Selite                                                                                                                                                                                                        | Esim. (kuva yllä)       |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| Maa          | Maa, jonka sähkön hinnat haetaan                                                                                                                                                                              | `Suomi`                 |
+| Maa          | Maa, jonka sähkön hinnat haetaan (Suomi, Viro, Latvia, Liettua).                                                                                                                                                                              | `Suomi`                 |
 | Sähkön ALV   | Käytettävä ALV-% sähkön hinnalle. [%]                                                                                                                                                                         | `25.5`                  |
 | Siirtomaksut | Jos haluat että siirtomaksut otetaan huomioon, voit syöttää ne päivä- ja yöajalle. Nämä lisätään tuntihintoihin. [c/kWh]<br><br>Esim. jos haluat ottaa erisuuruiset siirtomaksut huomioon tuntien valinnassa. | päivä: `4` <br> yö: `3` |
 
@@ -301,18 +314,29 @@ Tällöin ohjaus voisi mennä esimerkiksi seuraavasti:
 
 ## Lisätoiminnot ja käyttäjäskriptit
 
-*Huom - tämä kappale on kesken v3 osalta!*
-
 Skriptiä voi jatkojalostaa omalla koodilla. Alla olevat esimerkit löytyvät valmiina.
 
-| skripti                                                                                                                                            | selite                                                                                                                                                                                                                               |
-| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`shelly-porssisahko-open-meteo-api.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-open-meteo-api.js)     | Hakee vuorokauden kylmimmän lämpötilan ja muuttaa sen perusteella halvimpien tuntien lukumäärää.                                                                                                                                     |
-| [`shelly-porssisahko-addon-temp-hours.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp-hours.js) | Muuttaa halvimpien tuntien lukumäärää Shelly Plus Addonin mittaaman lämpötilan perusteella                                                                                                                                           |
-| [`shelly-porssisahko-addon-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js)             | Ylikirjoittaa ohjauksen tarvittaessa Shelly Plus Addonin mittaaman lämpötilan perusteella                                                                                                                                            |
-| [`shelly-porssisahko-ht-sensor-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temp.js)     | Muuttaa halvimpien tuntien lukumäärää Shelly H&T:n mittaaman lämpötilan perusteella                                                                                                                                                  |
+| Skripti                                                                                                                                            | Selitys                                                                                                                                                                                                                                            |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`shelly-porssisahko-open-meteo-api.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-open-meteo-api.js)     | Hakee vuorokauden kylmimmän lämpötilan ja muuttaa sen perusteella halvimpien tuntien lukumäärää.                                                                                                                                                   |
+| [`shelly-porssisahko-addon-temp-hours.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp-hours.js) | Muuttaa halvimpien tuntien lukumäärää Shelly Plus Addonin mittaaman lämpötilan perusteella                                                                                                                                                         |
+| [`shelly-porssisahko-addon-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-addon-temp.js)             | Ylikirjoittaa ohjauksen tarvittaessa Shelly Plus Addonin mittaaman lämpötilan perusteella                                                                                                                                                          |
+| [`shelly-porssisahko-ht-sensor-temp.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-ht-sensor-temp.js)     | Muuttaa halvimpien tuntien lukumäärää Shelly H&T:n mittaaman lämpötilan perusteella                                                                                                                                                                |
 | [`shelly-porssisahko-config.js`](https://github.com/jisotalo/shelly-porssisahko/blob/master/dist/shelly-porssisahko-config.js)                     | Rinnalle asennettava skripti, jonka avulla voi muuttaa pörssisähköohjauksen asetuksia ilman web-käyttöliittymää (esim. etänä puhelimella). Tsekkaa [Asetusten muokkaaminen skriptin kautta (etänä)](#asetusten-muokkaaminen-skriptin-kautta-etänä) |
 
+### Ominaisuudet
+
+Skripti kutsuu seuraavia funktiota eri tilanteissa, mikäli ne ovat määritelty. Katso esimerkkejä niiden käytöstä yllä olevista skripteistä.
+
+<small>
+
+| Funktio         | Määrittely                                                                       | Parametrit                                                                                                 | Selitys                                                                                                                                                           |
+| --------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `USER_CONFIG`   | `USER_CONFIG(inst: number, initialized: boolean) => void`                        | `inst` = ohjauksen numero (`0, 1, 2`)<br>`initialized` = asetukset ovat muuttuneet                         | Kutsutaan kun asetukset ovat muuttuneet tai juuri ennen logiikan suoritusta. Funktion sisällä voidaan ylikirjoittaa asetuksia.                                    |
+| `USER_OVERRIDE` | `USER_OVERRIDE(inst: number, cmd: boolean, callback: function(boolean)) => void` | `inst` = ohjauksen numero (`0, 1, 2`)<br>`cmd` = logiikan määrittämä komento<br>`callback` = takaisinkutsu | Kutsutaan kun ohjauslogiikka on suoritettu. Tässä voi vielä ylikirjoittaa skriptin ohjauksen. `callback()`-funktiota **pitää** kutsua halutulla komennon arvolla. |
+| `USER_LOOP`     | `USER_LOOP() => void`                                                            |                                                                                                            | Kutsutaan ohjelman ajastinsilmukassa mikäli ei ole muuta tehtävää (10s välein). Funktion **pitää** kirjoittaa `loopRunning = false` kun valmis.                   |
+
+</small>
 
 ### Asetusten muokkaaminen skriptin kautta (etänä)
 
