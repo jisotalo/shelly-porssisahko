@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 22.11.2024
+- Lisätty tarkistus kellonajan muuttumiselle
+  - Jos aika muuttuu yllättäen yli 5 min, haetaan hinnat ja suoritetaan logiikat uusiksi
+  - Esim. pitkään ilman nettiyhteyttä ja kello alkaa näyttää väärin
+- Bugikorjaus: Shellyn käynnistyessä päivämäärä ja aika saattoivat olla hetken aikaa menneisyydestä
+  - Aiemmissa firmiksissä vuosi oli aina 1970 jos aika ei ollut tiedossa, ei enää
+  - Muutettu käyttämään toista tapaa varmistamaan, että onko kellonaika tiedossa
+  - Liittyy [issue #33](https://github.com/jisotalo/shelly-porssisahko/issues/33)
+- Bugikorjaus: Jos nykyistä tuntia ei löydy hintatiedoista, hylätään hinnat ja haetaan ne uusiksi
+  - Liittyy [issue #33](https://github.com/jisotalo/shelly-porssisahko/issues/33)
+- Bugikorjaus: Jos maksimihinta oli pienempi kuin aina päällä -raja, näytettiin ohjauksia väärin tilasivulla.
+  - Ohjaus kuitenkin toimi kuten suunniteltu
+  - [Katso issue #31](https://github.com/jisotalo/shelly-porssisahko/issues/31)
+
+Samalla lisätty ohjeet `shelly-porssisahko-ht-sensor-temp.js` -skriptiin, miten käyttää sitä uudempien H&T-mallien kanssa.
+
 ## [3.0.0] - 12.11.2024
 **HUOM:** Päivittäessä v.2 -> v.3 asetukset nollaantuvat.
 

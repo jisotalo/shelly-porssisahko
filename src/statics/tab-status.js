@@ -249,11 +249,13 @@
           //Forced hour off
           let foff = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == 0);
 
+          let mode2MaxPrice = ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m;
+
           let cmd =
             ((ci.mode === 0 && ci.m0.cmd)
               || (ci.mode === 1 && row[1] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-              || (ci.mode === 2 && cheapest.includes(i) && row[1] <= (ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m))
-              || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l))
+              || (ci.mode === 2 && cheapest.includes(i) && row[1] <= mode2MaxPrice)
+              || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row[1] <= mode2MaxPrice)
               || fon)
             && !foff;
 

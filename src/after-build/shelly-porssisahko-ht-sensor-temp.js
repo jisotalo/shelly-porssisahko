@@ -1,17 +1,27 @@
 //__REPLACED_WITH_MAIN_CODE__
 
 /**
- * Tämä käyttäjäskripti hyödyntää Shelly H&T:n lähettämää lämpötilaa pörssisähköohjausten asetuksissa
+ * Tämä käyttäjäskripti hyödyntää Shelly H&T:n (Gen 1, Plus, Gen 3) lähettämää lämpötilaa pörssisähköohjausten asetuksissa
  * Mitä kylmempi lämpötila, sitä useampi halvempi tunti ohjataan ja samalla myös ohjausminuuttien määrää kasvatetaan.
  * 
  * Tämä muuttaa ainoastaan #1 ohjauksen asetuksia, muihin ei kosketa.
  * 
  * Käyttöönotto:
  * -----
- * Lisää Shelly H&T-asetuksiin "actions -> sensor reports" -osoitteisiin osoite
+ * Shelly H&T gen 1
+ * -----
+ * Lisää Shelly H&T-asetuksiin "actions >- sensor reports" -osoitteisiin osoite
  *    http://ip-osoite/script/1/update-temp
  * missä ip-osoite on tämän shellyn osoite. 
  * Muista myös ottaa "sensor reports" -ominaisuus käyttöön
+ * 
+ * -----
+ * Shelly H&T Plus ja H&T gen 3
+ * -----
+ * Lisää uusi Action->Temperature
+ * Laita Then Do -kohdalla alle uusi osoite
+ *    http://ip-osoite/script/1/update-temp?temp=$temperature
+ * missä ip-osoite on tämän Shellyn osoite. 
  */
 
 //Mitä ohjausta hienosäädetään (0 = ohjaus #1, 1 = ohjaus #2 jne.)

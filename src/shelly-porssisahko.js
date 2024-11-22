@@ -2,12 +2,15 @@
  * @license
  * 
  * shelly-porssisahko
+ * shelly-porssisahko-en
  * 
  * (c) Jussi isotalo - http://jisotalo.fi
  * https://github.com/jisotalo/shelly-porssisahko
+ * https://github.com/jisotalo/shelly-porssisahko-en
  * 
  * License: GNU Affero General Public License v3.0 
  */
+
 /** Constants etc. */
 const CNST = {
   /** Number of instances (if INSTANCE_COUNT is set, use it instead) */
@@ -122,7 +125,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.0.0",
+    v: "3.1.0",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -195,6 +198,12 @@ let _start = 0;
 let _end = 0;
 let cmd = []; // Active commands for each instances (internal)
 
+/**
+ * Previous epoch time
+ * Used to see changes in system time
+ */
+let prevEpoch = 0;
+  
 /**
  * True if loop is currently running 
  * (new one is not started + HTTP requests are not handled)
@@ -333,8 +342,26 @@ function reqLogic() {
  */
 function updateState() {
   let now = new Date();
-  _.s.timeOK = now.getFullYear() > 2000 ? 1 : 0;
+
+  //Using unixtime from sys component to detect if NTP is synced (= time OK)
+  //Previously used only Date() but after some firmware update it started to display strange dates at boot
+  _.s.timeOK = Shelly.getComponentStatus("sys").unixtime != null && now.getFullYear() > 2000;
   _.s.dn = Shelly.getComponentConfig("sys").device.name;
+
+  //Detecting if time has changed and getting prices again
+  let epochNow = epoch(now);
+
+  if (_.s.timeOK && Math.abs(epochNow - prevEpoch) > 300) {
+    log("Time changed 5 min+ -> refresh");
+    
+    _.s.p[0].ts = 0; 
+    _.s.p[0].now = 0; 
+    _.s.p[1].ts = 0; 
+    _.p[0] = [];
+    _.p[1] = [];
+  }
+
+  prevEpoch = epochNow;
 
   //Instance stuff
   _.s.enCnt = 0;
@@ -1072,10 +1099,11 @@ function isCheapestHour(inst) {
  */
 function updateCurrentPrice() {
   if (!_.s.timeOK || _.s.p[0].ts == 0) {
+    _.s.p[0].ts == 0;
     _.s.p[0].now = 0;
     return;
   }
-
+  
   let now = epoch();
 
   for (let i = 0; i < _.p[0].length; i++) {
@@ -1086,14 +1114,14 @@ function updateCurrentPrice() {
     }
   }
 
-  //If no price found it might be error OR because of timezone we don't have prices yet
-  //If number of hours is less than 24 -> get prices again
-  if (_.p[0].length < 24) {
-    _.s.p[0].ts = 0;
-  }
-
-  _.s.p[0].now = 0;
-  return false;
+  //If we are here the active hour wasn't found
+  //This means that Shelly clock is wrong or we have prices for wrong date (Shelly clock _was_ wrong, but no longer)
+  //All we can do is clear active prices and try again
+  //Let's also increase error counter to prevent flooding Elering if things go terribly wrong
+  _.s.timeOK = false;
+  _.s.p[0].ts = 0;
+  _.s.errCnt += 1;
+  _.s.errTs = epoch();
 }
 
 /**
@@ -1295,6 +1323,8 @@ function initialize() {
   }
 
   CNST.DEF_INST_ST = null; //No longer needed
+
+  prevEpoch = epoch();
 }
 
 //Startup
