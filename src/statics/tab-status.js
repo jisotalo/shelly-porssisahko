@@ -1,10 +1,10 @@
 /**
  * shelly-porssisahko
- * 
+ *
  * (c) Jussi isotalo - http://jisotalo.fi
  * https://github.com/jisotalo/shelly-porssisahko
- * 
- * License: GNU Affero General Public License v3.0 
+ *
+ * License: GNU Affero General Public License v3.0
  */
 {
   /**
@@ -33,9 +33,9 @@
 
   /**
    * Callback called by main loop
-   * 
+   *
    * @param {*} instChanged true = instance has changed (reset data)
-   * @returns 
+   * @returns
    */
   const onUpdate = async (instChanged) => {
     try {
@@ -44,7 +44,7 @@
         qs("s-cmd").innerHTML = "Ladataan...";
         return;
       }
-      
+
       if (!state) {
         throw new Error("ei saatu dataa");
       }
@@ -70,10 +70,10 @@
         qs("s-now").innerHTML = d.p.length > 0
           ? `${s.p[0].now.toFixed(2)} c/kWh`
           : "";
-        
+
         qs("s-st").innerHTML = si.st === 9
           ? STATE_STR[si.st].replace("%s", formatDateTime(new Date(si.fCmdTs * 1000), false))
-          : STATE_STR[si.st] + (ci.inv ? " (käänteinen)" : "");
+          : STATE_STR[si.st] + (ci.i ? " (käänteinen)" : "");
 
         //Extended status for instance (by user scripts)
         if (si.str != "") {
@@ -131,7 +131,7 @@
       qs("s-pi1").innerHTML = buildPriceTable(s.p[1]);
 
       /**
-       * Helper that builds price/cmd table for today or tomorrow 
+       * Helper that builds price/cmd table for today or tomorrow
        */
       const buildPriceList = (dayIndex, element) => {
         let header = ` <tr><td class="t bg">Aika</td><td class="t bg">Hinta</td><td class="t bg">Ohjaus</td></tr>`;
@@ -139,12 +139,12 @@
         if (s.p[dayIndex].ts == 0) {
           element.innerHTML = `${header}${notYetKnown}`;;
           return;
-        }  
+        }
 
         //------------------------------
         // Cheapest hours logic
         // This needs match 1:1 the Shelly script side
-        //------------------------------      
+        //------------------------------
         let cheapest = [];
         if (ci.mode === 2) {
           //Select increment (a little hacky - to support custom periods too)
@@ -165,7 +165,7 @@
             let end = (i + ci.m2.p);
 
             if (ci.m2.p < 0 && i == 0) {
-              //Custom period 1 
+              //Custom period 1
               start = ci.m2.ps;
               end = ci.m2.pe;
 
@@ -235,7 +235,7 @@
 
         //------------------------------
         // Building the price list
-        //------------------------------      
+        //------------------------------
         element.innerHTML = header;
 
         let per = 0;
@@ -260,7 +260,7 @@
             && !foff;
 
           //Invert
-          if (ci.inv) {
+          if (ci.i) {
             cmd = !cmd;
           }
 
@@ -272,13 +272,13 @@
             && ((ci.m2.p < 0 && (i == ci.m2.ps || i == ci.m2.pe))
               || (ci.m2.p == -2 && (i == ci.m2.ps2 || i == ci.m2.pe2))
               || (ci.m2.p > 0 && i >= per + ci.m2.p))) {
-            
+
             //Period changed
             per += ci.m2.p;
             bg = !bg;
           }
 
-          element.innerHTML += 
+          element.innerHTML +=
           `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
             <td class="fit">${formatTime(date, false)}</td>
             <td>${row[1].toFixed(2)} c/kWh</td>
