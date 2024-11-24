@@ -125,7 +125,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.1.0",
+    v: "3.1.1",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -203,7 +203,7 @@ let cmd = []; // Active commands for each instances (internal)
  * Used to see changes in system time
  */
 let prevEpoch = 0;
-  
+
 /**
  * True if loop is currently running 
  * (new one is not started + HTTP requests are not handled)
@@ -353,10 +353,10 @@ function updateState() {
 
   if (_.s.timeOK && Math.abs(epochNow - prevEpoch) > 300) {
     log("Time changed 5 min+ -> refresh");
-    
-    _.s.p[0].ts = 0; 
-    _.s.p[0].now = 0; 
-    _.s.p[1].ts = 0; 
+
+    _.s.p[0].ts = 0;
+    _.s.p[0].now = 0;
+    _.s.p[1].ts = 0;
     _.p[0] = [];
     _.p[1] = [];
   }
@@ -1103,7 +1103,7 @@ function updateCurrentPrice() {
     _.s.p[0].now = 0;
     return;
   }
-  
+
   let now = epoch();
 
   for (let i = 0; i < _.p[0].length; i++) {
