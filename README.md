@@ -355,6 +355,17 @@ Esim. alla muutetaan etänä halpojen tuntien lukumäärä arvoon `8h` yhdestä 
 
 ## Kysymyksiä ja vastauksia
 
+### Miksi hintatietoja ei saada?
+
+Joskus Eleringillä voi olla ongelmia. Tämän takia on tärkeää aina asettaa varmuustunnit.
+
+Tarkista Shellyn Diagnostics-loki virheilmoitusten varalta. 
+Voit koittaa avata lokissa näkyvän Elering-osoitteen omassa selaimessa ja katsoa näkyykö ladatattavassa csv-tiedostossa kaikki hinnat. Jos ei näy, ei skriptikään saa niitä luettua. 
+
+Osoite on muotoa: [https://dashboard.elering.ee/api/nps/price/csv?fields=fi&start=2024-12-05T00:00:00%2b02:00&end=2024-12-05T23:59:59%2b02:00](https://dashboard.elering.ee/api/nps/price/csv?fields=fi&start=2024-12-05T00:00:00%2b02:00&end=2024-12-05T23:59:59%2b02:00)
+
+Tarkista myös, että näkyykö hinnat Eleringin sivuilla: [https://dashboard.elering.ee/et/nps/price](https://dashboard.elering.ee/et/nps/price). Jos ei näy, ei skriptikään saa niitä luettua.
+
 ### Onko skripti kuinka toimintavarma?
 
 Tavoite on, että skripti on mahdollisimman toimintavarma ja sen voi unohtaa ajoon.
@@ -404,13 +415,6 @@ Asetukset ovat JSON-muodossa ja voit muokata niitä vapaasti myös Shellyn halli
 Skripti täytyy käynnistää uudestaan, jotta asetukset tulevat voimaan.
 
 ![alt text](img/kvs.png)
-
-### Miksi hintatietoja ei saada?
-
-Joskus Eleringillä voi olla ongelmia. Tämän takia on tärkeää asettaa varmuustunnit.
-
-Tarkista Shellyn Diagnostics-loki virheilmoitusten varalta. 
-Voit koittaa avata lokissa näkyvän Elering-osoitteen omassa selaimessa ja katsoa, toimiiko se.
 
 ### Miksi historia on niin lyhyt?
 
