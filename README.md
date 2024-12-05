@@ -61,6 +61,7 @@ It can be used to control Shelly devices by Nordpool electricity spot prices in 
     - [Ominaisuudet](#ominaisuudet-1)
     - [Asetusten muokkaaminen skriptin kautta (etänä)](#asetusten-muokkaaminen-skriptin-kautta-etänä)
   - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
+    - [Miksi hintatietoja ei saada?](#miksi-hintatietoja-ei-saada)
     - [Onko skripti kuinka toimintavarma?](#onko-skripti-kuinka-toimintavarma)
     - [Miksi välillä tulee HTTP error 503?](#miksi-välillä-tulee-http-error-503)
     - [Miten ohjaan ainoastaan yön halvimmilla tunneilla?](#miten-ohjaan-ainoastaan-yön-halvimmilla-tunneilla)
@@ -69,7 +70,6 @@ It can be used to control Shelly devices by Nordpool electricity spot prices in 
     - [Kuinka saa skriptin toimimaan Switch Add-Onin kanssa?](#kuinka-saa-skriptin-toimimaan-switch-add-onin-kanssa)
     - [Milloin seuraavan päivän hinnat haetaan? Miksi hintoja ei näy vaikka kello on 14?](#milloin-seuraavan-päivän-hinnat-haetaan-miksi-hintoja-ei-näy-vaikka-kello-on-14)
     - [Mihin asetukset tallentuvat?](#mihin-asetukset-tallentuvat)
-    - [Miksi hintatietoja ei saada?](#miksi-hintatietoja-ei-saada)
     - [Miksi historia on niin lyhyt?](#miksi-historia-on-niin-lyhyt)
   - [Teknistä tietoa](#teknistä-tietoa)
     - [Yleistä](#yleistä)
@@ -361,6 +361,8 @@ Joskus Eleringillä voi olla ongelmia. Tämän takia on tärkeää aina asettaa 
 
 Tarkista Shellyn Diagnostics-loki virheilmoitusten varalta. 
 Voit koittaa avata lokissa näkyvän Elering-osoitteen omassa selaimessa ja katsoa näkyykö ladatattavassa csv-tiedostossa kaikki hinnat. Jos ei näy, ei skriptikään saa niitä luettua. 
+
+![alt text](img/error-getting-prices.png)
 
 Osoite on muotoa: [https://dashboard.elering.ee/api/nps/price/csv?fields=fi&start=2024-12-05T00:00:00%2b02:00&end=2024-12-05T23:59:59%2b02:00](https://dashboard.elering.ee/api/nps/price/csv?fields=fi&start=2024-12-05T00:00:00%2b02:00&end=2024-12-05T23:59:59%2b02:00)
 
