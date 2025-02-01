@@ -23,7 +23,7 @@ function USER_CONFIG(inst, initialized) {
   }
 
   //Vähän apumuuttujia
-  const state = _;
+  const state = state;
   const config = state.c.i[inst];
 
   //Jos asetuksia ei vielä ole, skipataan (uusi asennus)
@@ -63,18 +63,18 @@ function USER_CONFIG(inst, initialized) {
     // muokkaa haluamaksesi
     //------------------------------
 
-    //Muutetaan lämpötilan perusteella lämmitystuntien määrää ja minuutteja
+    //Muutetaan lämpötilan perusteella lämmitystuntien määrää ja minuutteja, Jan ändrade sista tillbaks till -5
     if (temp.tC <= -15) {
-      hours = 8;
+      hours = 17;
       minutes = 60;
 
     } else if (temp.tC <= -10) {
-      hours = 7;
-      minutes = 45;
+      hours = 16;
+      minutes = 60;
 
     } else if (temp.tC <= -5) {
-      hours = 6;
-      minutes = 45;
+      hours = 15;
+      minutes = 60;
       
     } else {
       //Ei tehdä mitään --> käytetään käyttöliittymän asetuksia
