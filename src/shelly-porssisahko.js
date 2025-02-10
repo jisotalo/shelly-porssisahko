@@ -125,7 +125,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.1.1",
+    v: "3.2.0",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -605,7 +605,7 @@ function logicRunNeeded(inst) {
       || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
     || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
-*/
+  */
 
   /*
     Logic should be run if
@@ -917,9 +917,8 @@ function logic(inst) {
       log("logic for #" + (inst + 1) + " done, cmd: " + finalCmd + " -> output: " + cmd[inst]);
 
       if (cfg.oc == 1 && st.cmd == cmd[inst]) {
-        //No need to write 
+        //No need to write  
         log("outputs already set for #" + (inst + 1));
-        addHistory(inst);
         st.cmd = cmd[inst] ? 1 : 0;
         st.chkTs = epoch();
         loopRunning = false;
@@ -940,7 +939,10 @@ function logic(inst) {
           if (cnt == cfg.o.length) {
             //All done
             if (success == cnt) {
-              addHistory(inst);
+              if (st.cmd != cmd[inst]) {
+                addHistory(inst);
+              }
+
               st.cmd = cmd[inst] ? 1 : 0;
               st.chkTs = epoch();
 

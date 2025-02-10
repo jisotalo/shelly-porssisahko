@@ -46,7 +46,7 @@
       }
 
       if (!state) {
-        throw new Error("ei saatu dataa");
+        throw new Error("no data");
       }
 
       /** data (state) */

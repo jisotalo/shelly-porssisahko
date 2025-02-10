@@ -95,6 +95,11 @@ let me = () => "";
 let loopTimer = null;
 
 /**
+ * fetch() aborter for updateLoop()
+ */
+let aborter = new AbortController();
+
+/**
  * Opens tab with given name
  * @param {*} tab 
  * @returns 
@@ -136,11 +141,8 @@ window.onload = async () => {
   inst = (parseInt(hash[1]) || 1) - 1;
   openTab(hash[0].slice(1));
 
-  //At startup, run dev code or start immediately
   if (DEV) {
     reqJs("dev.js");
-  } else {
-    updateLoop();
   }
 };
 
@@ -204,9 +206,10 @@ let populateDynamicData = async (url, containerId) => {
  * @param {*} isJson 
  * @returns 
  */
-let getData = async (url, isJson = true) => {
+let getData = async (url, isJson = true, signal = null) => {
   try {
-    let res = await fetch(url);
+
+    let res = await fetch(url, { signal });
 
     if (res.ok) {
       let data = null;
@@ -287,13 +290,22 @@ let formatDateTime = (date, showSeconds = true) => {
  * @param {*} instChanged true if instance has been changed 
  */
 let updateLoop = async () => {
+  const instance = inst;
   clearTimeout(loopTimer);
   DBG(me(), "Updating");
   qs("spin").style.visibility = "visible";
 
   try {
-    let res = await getData(`${URLS}?r=s&i=${inst}`);
+    //Clear previous requests
+    aborter.abort();
 
+    aborter = new AbortController();
+    let res = await getData(`${URLS}?r=s&i=${inst}`, true, aborter.signal);
+
+    if (inst !== instance) {
+      //Instance has been changed, do nothing
+      return;
+    }
     if (res.ok) {
       state = res.data;
 
@@ -318,7 +330,11 @@ let updateLoop = async () => {
 
   } finally {
     qs("spin").style.visibility = "hidden";
-    loopTimer = setTimeout(updateLoop, 5000);
+    //Prevent multiple timers
+    if (inst === instance) {
+      clearTimeout(loopTimer);
+      loopTimer = setTimeout(updateLoop, 5000);
+    }
   }
 }
 

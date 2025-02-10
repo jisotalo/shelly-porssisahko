@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 10.02.2025
+- Historiaan tallennetaan rivi vain ohjauksen muuttuessa
+- Bugikorjaus: Käsiohjauksen tila näkyi väärin tilasivulla
+  - Kiitos [https://github.com/jpsarin](https://github.com/jpsarin)!
+- Bugikorjaus: Ohjausta vaihtaessa perutaan aina mahdollinen edellinen datan haku
+  - Toivottavasti korjaa [issue #45](https://github.com/jisotalo/shelly-porssisahko/issues/45)
+
 ## [3.1.1] - 24.11.2024
 - Bugikorjaus: Käänteinen ohjaus ei näkynyt oikein tilasivulla
   - Kiitos [https://github.com/joomoz](https://github.com/joomoz)!
