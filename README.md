@@ -11,6 +11,15 @@ Jos haluat ohjata Shelly Plug Plus -laitteen valon väriä sähkön hinnan mukaa
 
 --- 
 
+<span style="font-weight:bold;color:red;">-----> HUOMIO - VARTTIHINNAT <-----</span>
+
+Vanhat versiot eivät tue täysin uusia 15 minuutin hintoja.
+
+Päivitä skripti uusimpaan versioon (v3.3.0+) - tämä tukee uusia varttihintoja!
+
+Lisää keskustelua täällä: [https://github.com/jisotalo/shelly-porssisahko/issues/38](https://github.com/jisotalo/shelly-porssisahko/issues/38)
+
+--- 
 **IN ENGLISH** 
 
 There is an English version of the script available at [https://github.com/jisotalo/shelly-porssisahko-en](https://github.com/jisotalo/shelly-porssisahko-en). 
@@ -354,6 +363,12 @@ Esim. alla muutetaan etänä halpojen tuntien lukumäärä arvoon `8h` yhdestä 
 
 
 ## Kysymyksiä ja vastauksia
+
+### Miksi skripti ei toimi enää 30.09.2025
+
+Vanhat versiot lakkasivat toimimasta kun 15 minuutin välein vaihtuvat pörssisähkön hinnat tulivat käyttöön.
+
+Versio 3.3.0 toimii jatkossakin, mutta tuntikohtaisena hintana käytetään varttihintojen keskiarvoa.
 
 ### Miksi hintatietoja ei saada?
 

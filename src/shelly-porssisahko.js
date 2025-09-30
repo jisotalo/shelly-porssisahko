@@ -125,7 +125,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.2.0",
+    v: "3.3.0",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -315,6 +315,10 @@ function log(str) {
  * Adds command to history
  */
 function addHistory(inst) {
+  //TODO: Currently v.3.3.0 has no history
+  //We aren't sure yet about memory usage
+  return;
+
   //Calculate history max length (based on instance count)
   let max = _.s.enCnt > 0
     ? CNST.HIST_LEN / _.s.enCnt
@@ -680,6 +684,28 @@ function getPrices(dayIndex) {
           res.body_b64 = res.body_b64.substring(res.body_b64.indexOf("\n") + 1);
 
           let activePos = 0;
+          let valueCount = 0;
+          let activeHour = -1;
+          let activeData = [-1, 0];
+
+          //Helper that adds a new hour to the price list
+          function addHour() {
+              activeData[1] = activeData[1] / valueCount;
+
+              //Adding
+              _.p[dayIndex].push(activeData);
+
+              //Calcualting daily avg and highest/lowest
+              _.s.p[dayIndex].avg += activeData[1];
+
+              if (activeData[1] > _.s.p[dayIndex].high) {
+                _.s.p[dayIndex].high = activeData[1];
+              }
+
+              if (activeData[1] < _.s.p[dayIndex].low) {
+                _.s.p[dayIndex].low = activeData[1];
+              }
+          }
 
           while (activePos >= 0) {
             res.body_b64 = res.body_b64.substring(activePos);
@@ -690,6 +716,10 @@ function getPrices(dayIndex) {
 
             if (activePos === 0) {
               //" character not found -> end of data
+              if (valueCount > 0) {
+                addHour();
+              }
+
               break;
             }
 
@@ -717,21 +747,28 @@ function getPrices(dayIndex) {
               row[1] += _.c.c.night;
             }
 
-            //Adding and calculating stuff
-            _.p[dayIndex].push(row);
-
-            _.s.p[dayIndex].avg += row[1];
-
-            if (row[1] > _.s.p[dayIndex].high) {
-              _.s.p[dayIndex].high = row[1];
-            }
-
-            if (row[1] < _.s.p[dayIndex].low) {
-              _.s.p[dayIndex].low = row[1];
-            }
-
             //find next row
             activePos = res.body_b64.indexOf("\n", activePos);
+            
+            //If first row, set the epoch
+            if (activeHour < 0) {
+              activeData[0] = row[0];
+              activeHour = hour;
+            }
+
+            //If new hour (or EOF), we should handle the previous one
+            if (activeHour != hour || activePos < 0) {
+              addHour();
+
+              //Take starting epoch and reset total
+              activeData = [row[0], 0];
+
+              valueCount = 0;
+              activeHour = hour;
+            }
+
+            activeData[1] += row[1];
+            valueCount++;
           }
 
           //Again to save memory..

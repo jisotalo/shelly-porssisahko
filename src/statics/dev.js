@@ -9,7 +9,7 @@
  * This file is loaded only during local development
  */
 /** URL of the shelly */
-URL = "http://192.168.68.100";
+URL = "http://192.168.68.113";
 
 /** URL of the logic script */
 URLS = `${URL}/script/1`;

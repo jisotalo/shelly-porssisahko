@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 30.09.2025
+- Tuki 15 minuutin välein vaihtuvalle sähkön hinnalle
+  - Skripti laskee jokaiselle tunnille hinnan keskiarvon ja toimii tunneittain, kuten ennenkin
+- HUOM: Historia toistaiseksi pois käytöstä, kunnes max. muistin käyttö hahmottuu paremmin.
+
 ## [3.2.0] - 10.02.2025
 - Historiaan tallennetaan rivi vain ohjauksen muuttuessa
 - Bugikorjaus: Käsiohjauksen tila näkyi väärin tilasivulla
