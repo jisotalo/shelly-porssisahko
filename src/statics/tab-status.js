@@ -259,9 +259,24 @@
               })
 
               //Select the cheapest ones
-              for (let j = 0; j < cnt * cntMultiplier; j++) {
+              let cheapestCounter = 0;
+              for (let j = 0; j < entries.length; j++) {
                 let entry = entries[j];
-                cheapest[entry[1]][entry[2]] = true
+
+                //Respect hourly minute limit while selecting quarters
+                if (ci.m < 60 && cntMultiplier > 1) {
+                  if (Object.keys(cheapest[entry[1]]).length * 15 >= ci.m) {
+                    continue
+                  }
+                }
+
+                cheapest[entry[1]][entry[2]] = true;
+                cheapestCounter++;
+
+                if (cheapestCounter >= cnt * cntMultiplier) {
+                  // Sufficient amount of cheapest quarters found
+                  break;
+                }
               }
             }
 
