@@ -708,6 +708,11 @@ function getPrices(dayIndex) {
           function addHour() {
             let activeAverage = calculateAverage(activeData[1]);
 
+            // Save averaged values for tomorrow to save memory
+            if(dayIndex == 1) {
+              activeData[1] = activeAverage;
+            }
+
             //Adding
             _.p[dayIndex].push(activeData);
 

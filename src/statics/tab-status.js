@@ -298,11 +298,12 @@
             bg = !bg;
           }
 
+          let f = fon || foff ? `*` : "";
           element.innerHTML +=
             `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
             <td class="fit">${formatTime(date, false)}</td>
             <td>${row_1.toFixed(2)} c/kWh</td>
-            <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
+            <td>${f}${(cmd ? "&#x2714;" : "_").repeat(dayIndex === 0 ? 4 : 1)}${f}</td>
           </tr>`;
         }
 
