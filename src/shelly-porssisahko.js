@@ -238,6 +238,22 @@ function isCurrentHour(value, now) {
 }
 
 /**
+ * Calculate average of elements in array
+ *
+ * @param {Array[number]} container array of values
+ */
+function calculateAverage(container) {
+  let sum = 0
+  if (container.length !== 0) {
+    for (let i = 0; i < container.length; i++) {
+      sum += container[i];
+    }
+    sum /= container.length;
+  }
+  return sum;
+}
+
+/**
  * Limits the value to min..max range
  * @param {number} min 
  * @param {number} value 
@@ -686,25 +702,25 @@ function getPrices(dayIndex) {
           let activePos = 0;
           let valueCount = 0;
           let activeHour = -1;
-          let activeData = [-1, 0];
+          let activeData = [-1, []];
 
           //Helper that adds a new hour to the price list
           function addHour() {
-              activeData[1] = activeData[1] / valueCount;
+            let activeAverage = calculateAverage(activeData[1]);
 
-              //Adding
-              _.p[dayIndex].push(activeData);
+            //Adding
+            _.p[dayIndex].push(activeData);
 
-              //Calcualting daily avg and highest/lowest
-              _.s.p[dayIndex].avg += activeData[1];
+            //Calcualting daily avg and highest/lowest
+            _.s.p[dayIndex].avg += activeAverage;
 
-              if (activeData[1] > _.s.p[dayIndex].high) {
-                _.s.p[dayIndex].high = activeData[1];
-              }
+            if (activeAverage > _.s.p[dayIndex].high) {
+              _.s.p[dayIndex].high = activeAverage;
+            }
 
-              if (activeData[1] < _.s.p[dayIndex].low) {
-                _.s.p[dayIndex].low = activeData[1];
-              }
+            if (activeAverage < _.s.p[dayIndex].low) {
+              _.s.p[dayIndex].low = activeAverage;
+            }
           }
 
           while (activePos >= 0) {
@@ -761,13 +777,13 @@ function getPrices(dayIndex) {
               addHour();
 
               //Take starting epoch and reset total
-              activeData = [row[0], 0];
+              activeData = [row[0], []];
 
               valueCount = 0;
               activeHour = hour;
             }
 
-            activeData[1] += row[1];
+            activeData[1].push(row[1]);
             valueCount++;
           }
 
@@ -1077,8 +1093,8 @@ function isCheapestHour(inst) {
 
         //Calculate sum of these sequential hours
         for (_k = _j; _k < _j + _cnt; _k++) {
-          _sum += _.p[0][order[_k]][1];
-        };
+          _sum += calculateAverage(_.p[0][order[_k]][1]);
+        }
 
         //If average price of these sequential hours is lower -> it's better
         if (_sum / _cnt < _avg) {
@@ -1098,7 +1114,7 @@ function isCheapestHour(inst) {
       for (_k = 1; _k < order.length; _k++) {
         let temp = order[_k];
 
-        for (_j = _k - 1; _j >= 0 && _.p[0][temp][1] < _.p[0][order[_j]][1]; _j--) {
+        for (_j = _k - 1; _j >= 0 && calculateAverage(_.p[0][temp][1]) < calculateAverage(_.p[0][order[_j]][1]); _j--) {
           order[_j + 1] = order[_j];
         }
         order[_j + 1] = temp;
@@ -1148,7 +1164,7 @@ function updateCurrentPrice() {
   for (let i = 0; i < _.p[0].length; i++) {
     if (isCurrentHour(_.p[0][i][0], now)) {
       //This hour is active 
-      _.s.p[0].now = _.p[0][i][1];
+      _.s.p[0].now = calculateAverage(_.p[0][i][1]);
       return true;
     }
   }

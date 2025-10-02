@@ -32,6 +32,25 @@
   }
 
   /**
+   * Calculate average of elements in array like or no-operation
+   *
+   * @param {Array[number]|number} container array of values
+   */
+  function maybeCalculateAverage(container) {
+    if (typeof container !== "object") {
+      return container;
+    }
+    let sum = 0
+    if (container.length !== 0) {
+      for (let i = 0; i < container.length; i++) {
+        sum += container[i];
+      }
+      sum /= container.length;
+    }
+    return sum;
+  }
+
+  /**
    * Callback called by main loop
    *
    * @param {*} instChanged true = instance has changed (reset data)
@@ -104,7 +123,7 @@
       qs("s-info").innerHTML += ` - ${s.p[0].ts > 0
         ? `Hinnat päivitetty ${formatTime(new Date(Math.max(s.p[0].ts, s.p[1].ts) * 1000))}`
         : "Hintoja haetaan..."}`;
-      
+
       //Version info (footer)
       qs("s-v").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
 
@@ -194,8 +213,8 @@
 
                 //Calculate sum of these sequential hours
                 for (let k = j; k < j + cnt; k++) {
-                  sum += d.p[dayIndex][order[k]][1];
-                };
+                  sum += maybeCalculateAverage(d.p[dayIndex][order[k]][1]);
+                }
 
                 //If average price of these sequential hours is lower -> it's better
                 if (sum / cnt < avg) {
@@ -215,7 +234,7 @@
               for (let k = 1; k < order.length; k++) {
                 let temp = order[k];
 
-                for (j = k - 1; j >= 0 && d.p[dayIndex][temp][1] < d.p[dayIndex][order[j]][1]; j--) {
+                for (j = k - 1; j >= 0 && maybeCalculateAverage(d.p[dayIndex][temp][1]) < maybeCalculateAverage(d.p[dayIndex][order[j]][1]); j--) {
                   order[j + 1] = order[j];
                 }
                 order[j + 1] = temp;
@@ -242,6 +261,7 @@
         let bg = false;
         for (let i = 0; i < d.p[dayIndex].length; i++) {
           let row = d.p[dayIndex][i];
+          let row_1 = maybeCalculateAverage(row[1]);
           let date = new Date(row[0] * 1000);
 
           //Forced hour on
@@ -253,9 +273,9 @@
 
           let cmd =
             ((ci.mode === 0 && ci.m0.c)
-              || (ci.mode === 1 && row[1] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-              || (ci.mode === 2 && cheapest.includes(i) && row[1] <= mode2MaxPrice)
-              || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row[1] <= mode2MaxPrice)
+              || (ci.mode === 1 && row_1 <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
+              || (ci.mode === 2 && cheapest.includes(i) && row_1 <= mode2MaxPrice)
+              || (ci.mode === 2 && row_1 <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row_1 <= mode2MaxPrice)
               || fon)
             && !foff;
 
@@ -279,9 +299,9 @@
           }
 
           element.innerHTML +=
-          `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
+            `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
             <td class="fit">${formatTime(date, false)}</td>
-            <td>${row[1].toFixed(2)} c/kWh</td>
+            <td>${row_1.toFixed(2)} c/kWh</td>
             <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
           </tr>`;
         }
