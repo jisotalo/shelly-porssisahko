@@ -164,20 +164,23 @@
         // Cheapest hours logic
         // This needs match 1:1 the Shelly script side
         //------------------------------
-        let cheapest = [];
+        // Bucket of cheapest [hour][quarter] combinations
+        let cheapest = {};
         if (ci.mode === 2) {
           //Select increment (a little hacky - to support custom periods too)
           let inc = ci.m2.p < 0 ? 1 : ci.m2.p;
 
           for (let i = 0; i < d.p[dayIndex].length; i += inc) {
             let cnt = (ci.m2.p == -2 && i >= 1 ? ci.m2.c2 : ci.m2.c);
+            // Configuration is in hours and logic in quarters
+            let cntMultiplier = 4;
 
             //Safety check
             if (cnt <= 0)
               continue;
 
-            //Create array of indexes in selected period
-            let order = [];
+            //Create bucket of hourly prices
+            let order = {};
 
             //If custom period -> select hours from that range. Otherwise use this period
             let start = i;
@@ -194,12 +197,18 @@
               end = ci.m2.pe2;
             }
 
-            for (let j = start; j < end; j++) {
+            for (let hour = start; hour < end; hour++) {
               //If we have less hours than 24 then skip the rest from the end
-              if (j > d.p[dayIndex].length - 1)
+              if (hour > d.p[dayIndex].length - 1)
                 break;
 
-              order.push(j);
+              order[hour] = d.p[dayIndex][hour][1];
+              if (typeof order[hour] !== "object") {
+                // Wrap non quarterly prices to an array
+                order[hour] = [order[hour]];
+                cntMultiplier = 1;
+              }
+              cheapest[hour] = {};
             }
 
             if (ci.m2.s) {
@@ -207,13 +216,14 @@
               //Loop through each possible starting index and compare average prices
               let avg = 999;
               let startIndex = 0;
+              let hours = Object.keys(order);
 
-              for (let j = 0; j <= order.length - cnt; j++) {
+              for (let j = 0; j <= hours.length - cnt; j++) {
                 let sum = 0;
 
                 //Calculate sum of these sequential hours
                 for (let k = j; k < j + cnt; k++) {
-                  sum += maybeCalculateAverage(d.p[dayIndex][order[k]][1]);
+                  sum += maybeCalculateAverage(order[hours[k]]);
                 }
 
                 //If average price of these sequential hours is lower -> it's better
@@ -224,25 +234,34 @@
               }
 
               for (let j = startIndex; j < startIndex + cnt; j++) {
-                cheapest.push(order[j]);
+                // TODO: Add quarter support for cheapest sequence
+                cheapest[hours[j]] = {
+                  0: true,
+                  1: true,
+                  2: true,
+                  3: true,
+                }
               }
 
             } else {
-              //Sort indexes by price
-              let j = 0;
-
-              for (let k = 1; k < order.length; k++) {
-                let temp = order[k];
-
-                for (j = k - 1; j >= 0 && maybeCalculateAverage(d.p[dayIndex][temp][1]) < maybeCalculateAverage(d.p[dayIndex][order[j]][1]); j--) {
-                  order[j + 1] = order[j];
+              let entries = []
+              for (let hour in order) {
+                if (order.hasOwnProperty(hour)) {
+                  for (let quarter = 0; quarter < order[hour].length; quarter++) {
+                    entries.push([order[hour][quarter], hour, quarter])
+                  }
                 }
-                order[j + 1] = temp;
               }
 
+              //Sort entries by price
+              entries.sort(function (a, b) {
+                return a[0] - b[0];
+              })
+
               //Select the cheapest ones
-              for (let j = 0; j < cnt; j++) {
-                cheapest.push(order[j]);
+              for (let j = 0; j < cnt * cntMultiplier; j++) {
+                let entry = entries[j];
+                cheapest[entry[1]][entry[2]] = true
               }
             }
 
@@ -271,21 +290,31 @@
 
           let mode2MaxPrice = ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m;
 
-          let cmd =
-            ((ci.mode === 0 && ci.m0.c)
-              || (ci.mode === 1 && row_1 <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-              || (ci.mode === 2 && cheapest.includes(i) && row_1 <= mode2MaxPrice)
-              || (ci.mode === 2 && row_1 <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row_1 <= mode2MaxPrice)
-              || fon)
-            && !foff;
-
-          //Invert
-          if (ci.i) {
-            cmd = !cmd;
+          let qCmd = "";
+          let container = row[1];
+          if (typeof container !== "object") {
+            // Wrap to an array
+            container = [container];
           }
+          for (let j = 0; j < container.length; j++) {
+            let cmd =
+              ((ci.mode === 0 && ci.m0.c)
+                || (ci.mode === 1 && container[j] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
+                || (ci.mode === 2 && (cheapest[i] || {})[j] && container[j] <= mode2MaxPrice)
+                || (ci.mode === 2 && container[j] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && container[j] <= mode2MaxPrice)
+                || fon)
+              && !foff;
 
-          if (!ci.en) {
-            cmd = false;
+            //Invert
+            if (ci.i) {
+              cmd = !cmd;
+            }
+
+            if (!ci.en) {
+              cmd = false;
+            }
+
+            qCmd += cmd ? "&#x2714;" : "_";
           }
 
           if (ci.en && ci.mode === 2
@@ -303,7 +332,7 @@
             `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
             <td class="fit">${formatTime(date, false)}</td>
             <td>${row_1.toFixed(2)} c/kWh</td>
-            <td>${f}${(cmd ? "&#x2714;" : "_").repeat(dayIndex === 0 ? 4 : 1)}${f}</td>
+            <td>${f}${qCmd}${f}</td>
           </tr>`;
         }
 
