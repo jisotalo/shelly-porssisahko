@@ -1331,14 +1331,6 @@ function onServerRequest(request, response) {
       response.body = atob('#[tab-status.js]');
       MIME_TYPE = MIME_JS;
 
-    } else if (params.r === "history") {
-      response.body = atob('#[tab-history.html]');
-      MIME_TYPE = MIME_HTML;
-
-    } else if (params.r === "history.js") {
-      response.body = atob('#[tab-history.js]');
-      MIME_TYPE = MIME_JS;
-
     } else if (params.r === "config") {
       response.body = atob('#[tab-config.html]');
       MIME_TYPE = MIME_HTML;
