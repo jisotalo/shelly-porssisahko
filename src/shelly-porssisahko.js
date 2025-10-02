@@ -53,6 +53,8 @@ const CNST = {
       day: 0,
       /** Night (22...07) transfer price [c/kWh] */
       night: 0,
+      /** Quarter hourly features [0/1] */
+      q: 0,
       /** Instance names */
       names: []
     },
