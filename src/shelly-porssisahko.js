@@ -710,9 +710,10 @@ function getPrices(dayIndex) {
           function addHour() {
             let activeAverage = calculateAverage(activeData[1]);
 
-            // Save averaged values for tomorrow to save memory
-            if(dayIndex == 1) {
-              activeData[1] = activeAverage;
+            // Use averaged value if quarter hourly feature is not in use
+            // Always use averaged value for tomorrow to save memory
+            if (!_.c.c.q || dayIndex == 1) {
+              activeData[1] = [activeAverage];
             }
 
             //Adding
@@ -1166,12 +1167,18 @@ function updateCurrentPrice() {
     return;
   }
 
-  let now = epoch();
+  let date = new Date();
+  let now = epoch(date);
 
   for (let i = 0; i < _.p[0].length; i++) {
     if (isCurrentHour(_.p[0][i][0], now)) {
-      //This hour is active 
-      _.s.p[0].now = calculateAverage(_.p[0][i][1]);
+      //This hour is active
+      if (_.c.c.q) {
+        // Use price from current quarter
+        _.s.p[0].now = _.p[0][i][1][Math.floor(date.getMinutes() / 15.0)]
+      } else {
+        _.s.p[0].now = calculateAverage(_.p[0][i][1]);
+      }
       return true;
     }
   }

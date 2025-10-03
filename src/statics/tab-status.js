@@ -32,14 +32,11 @@
   }
 
   /**
-   * Calculate average of elements in array like or no-operation
+   * Calculate average of elements in array
    *
-   * @param {Array[number]|number} container array of values
+   * @param {Array[number]} container array of values
    */
-  function maybeCalculateAverage(container) {
-    if (typeof container !== "object") {
-      return container;
-    }
+  function calculateAverage(container) {
     let sum = 0
     if (container.length !== 0) {
       for (let i = 0; i < container.length; i++) {
@@ -164,6 +161,11 @@
         // Cheapest hours logic
         // This needs match 1:1 the Shelly script side
         //------------------------------
+
+        // Configuration is in hours and logic in quarters
+        // Tomorrow is always in hours to save memory
+        let cntMultiplier = c.q && dayIndex == 0 ? 4 : 1;
+
         // Bucket of cheapest [hour][quarter] combinations
         let cheapest = {};
         if (ci.mode === 2) {
@@ -172,8 +174,6 @@
 
           for (let i = 0; i < d.p[dayIndex].length; i += inc) {
             let cnt = (ci.m2.p == -2 && i >= 1 ? ci.m2.c2 : ci.m2.c);
-            // Configuration is in hours and logic in quarters
-            let cntMultiplier = 4;
 
             //Safety check
             if (cnt <= 0)
@@ -203,11 +203,6 @@
                 break;
 
               order[hour] = d.p[dayIndex][hour][1];
-              if (typeof order[hour] !== "object") {
-                // Wrap non quarterly prices to an array
-                order[hour] = [order[hour]];
-                cntMultiplier = 1;
-              }
               cheapest[hour] = {};
             }
 
@@ -223,7 +218,7 @@
 
                 //Calculate sum of these sequential hours
                 for (let k = j; k < j + cnt; k++) {
-                  sum += maybeCalculateAverage(order[hours[k]]);
+                  sum += calculateAverage(order[hours[k]]);
                 }
 
                 //If average price of these sequential hours is lower -> it's better
@@ -295,7 +290,6 @@
         let bg = false;
         for (let i = 0; i < d.p[dayIndex].length; i++) {
           let row = d.p[dayIndex][i];
-          let row_1 = maybeCalculateAverage(row[1]);
           let date = new Date(row[0] * 1000);
 
           //Forced hour on
@@ -306,17 +300,12 @@
           let mode2MaxPrice = ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m;
 
           let qCmd = "";
-          let container = row[1];
-          if (typeof container !== "object") {
-            // Wrap to an array
-            container = [container];
-          }
-          for (let j = 0; j < container.length; j++) {
+          for (let j = 0; j < row[1].length; j++) {
             let cmd =
               ((ci.mode === 0 && ci.m0.c)
-                || (ci.mode === 1 && container[j] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-                || (ci.mode === 2 && (cheapest[i] || {})[j] && container[j] <= mode2MaxPrice)
-                || (ci.mode === 2 && container[j] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && container[j] <= mode2MaxPrice)
+                || (ci.mode === 1 && row[1][j] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
+                || (ci.mode === 2 && (cheapest[i] || {})[j] && row[1][j] <= mode2MaxPrice)
+                || (ci.mode === 2 && row[1][j] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row[1][j] <= mode2MaxPrice)
                 || fon)
               && !foff;
 
@@ -346,7 +335,7 @@
           element.innerHTML +=
             `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
             <td class="fit">${formatTime(date, false)}</td>
-            <td>${row_1.toFixed(2)} c/kWh</td>
+            <td>~${calculateAverage(row[1]).toFixed(2)} c/kWh</td>
             <td>${f}${qCmd}${f}</td>
           </tr>`;
         }
