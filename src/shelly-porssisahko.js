@@ -946,7 +946,7 @@ function logic(inst) {
     //Final check - if user wants to set command only for first x minutes
     //This check is skipped when quarter hours are enabled and cheapest hours mode is active as minute limit is handled there
     //Manual force is only thing that overrides
-    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.m && !(_.c.c.q && cfg.mode === 2)) {
+    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.m && !(_.c.c.q && cfg.mode === 2 && !cfg.m2.s)) {
       st.st = 13;
       cmd[inst] = false;
     }
