@@ -633,12 +633,14 @@ function logicRunNeeded(inst) {
     Logic should be run if
     - never run before
     - hour has changed
+    - quarter feature is enabled quarter has changed
     - year has changed (= time has been received)
     - manually forced command is active and time has passed
     - user wants the output to be commanded only for x first minutes of the hour which has passed (and command is not yet reset)
   */
   return st.chkTs == 0
     || (chk.getHours() !== now.getHours()
+      || (_.c.c.q && Math.floor(chk.getMinutes() / 15.0) !== Math.floor(now.getMinutes() / 15.0))
       || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
     || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
