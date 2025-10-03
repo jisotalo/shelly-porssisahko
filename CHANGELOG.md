@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0a] - TBD
+- Tuki 15 minuutin välein vaihtuvalle ohjaukselle
+
 ## [3.3.0] - 30.09.2025
 - Tuki 15 minuutin välein vaihtuvalle sähkön hinnalle
   - Skripti laskee jokaiselle tunnille hinnan keskiarvon ja toimii tunneittain, kuten ennenkin
