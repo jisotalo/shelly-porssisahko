@@ -210,32 +210,37 @@
             if (ci.m2.s) {
               //Find cheapest in a sequence
               //Loop through each possible starting index and compare average prices
-              let avg = 999;
-              let startIndex = 0;
               let hours = Object.keys(order);
+              let sum = 0;
+              let quarterCounter = 0;
+              let avg = 999;
+              let startIndex = null;
+              let skipCounter = -1;
 
-              for (let j = 0; j <= hours.length - cnt; j++) {
-                let sum = 0;
+              for (let j = 0; j < hours.length; j++) {
+                for (let k = 0; k < order[hours[j]].length; k++) {
+                  // Add quarters to sum until required amount of quarters is achieved
+                  sum += order[hours[j]][k];
+                  quarterCounter++;
 
-                //Calculate sum of these sequential hours
-                for (let k = j; k < j + cnt; k++) {
-                  sum += calculateAverage(order[hours[k]]);
-                }
+                  if (quarterCounter >= cnt * cntMultiplier) {
+                    //If average price of these sequential quarters is lower -> it's better
+                    if (sum / (cnt * cntMultiplier) < avg) {
+                      avg = sum / (cnt * cntMultiplier);
+                      startIndex = skipCounter + 1;
+                    }
 
-                //If average price of these sequential hours is lower -> it's better
-                if (sum / cnt < avg) {
-                  avg = sum / cnt;
-                  startIndex = j;
+                    // Subtract earliest quarter from sum for next iteration
+                    skipCounter++;
+                    sum -= order[hours[Math.floor(skipCounter / cntMultiplier)]][skipCounter % cntMultiplier]
+                  }
                 }
               }
 
-              for (let j = startIndex; j < startIndex + cnt; j++) {
-                // TODO: Add quarter support for cheapest sequence
-                cheapest[hours[j]] = {
-                  0: true,
-                  1: true,
-                  2: true,
-                  3: true,
+              if (startIndex != null) {
+                // Set required amount of quarters to true after cheapest quarter start
+                for (let j = 0; j < cnt * cntMultiplier; j++) {
+                  cheapest[hours[Math.floor((j + startIndex) / cntMultiplier)]][(j + startIndex) % cntMultiplier] = true;
                 }
               }
 
