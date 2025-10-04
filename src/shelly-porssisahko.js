@@ -1091,8 +1091,10 @@ function isCheapestHour(inst) {
   //This is (and needs to be) 1:1 in both frontend and backend code
   //------------------------------
 
+  // Configuration is in hours and logic in quarters
   _cntMultiplier = c.q ? 4 : 1;
 
+  // Bucket of cheapest [hour][quarter] combinations
   _cheapest = {};
 
   //Select increment (a little hacky - to support custom periods too)
@@ -1105,9 +1107,8 @@ function isCheapestHour(inst) {
     if (_cnt <= 0)
       continue;
 
-    //Create bucket of hourly prices and array to sort them in
+    //Create bucket of hourly prices
     _order = {};
-    _entries = [];
 
     //If custom period -> select hours from that range. Otherwise use this period
     _start = _i;
@@ -1169,6 +1170,7 @@ function isCheapestHour(inst) {
       _order = {};
 
     } else {
+      _entries = [];
       for (_j in _order) {
         if (_order.hasOwnProperty(_j)) {
           for (_quarter = 0; _quarter < _order[_j].length; _quarter++) {

@@ -168,6 +168,7 @@
 
         // Bucket of cheapest [hour][quarter] combinations
         let cheapest = {};
+
         if (ci.mode === 2) {
           //Select increment (a little hacky - to support custom periods too)
           let inc = ci.m2.p < 0 ? 1 : ci.m2.p;
@@ -197,13 +198,13 @@
               end = ci.m2.pe2;
             }
 
-            for (let hour = start; hour < end; hour++) {
+            for (let j = start; j < end; j++) {
               //If we have less hours than 24 then skip the rest from the end
-              if (hour > d.p[dayIndex].length - 1)
+              if (j > d.p[dayIndex].length - 1)
                 break;
 
-              order[hour] = d.p[dayIndex][hour][1];
-              cheapest[hour] = {};
+              order[j] = d.p[dayIndex][j][1];
+              cheapest[j] = {};
             }
 
             if (ci.m2.s) {
@@ -239,19 +240,26 @@
               }
 
             } else {
-              let entries = []
-              for (let hour in order) {
-                if (order.hasOwnProperty(hour)) {
-                  for (let quarter = 0; quarter < order[hour].length; quarter++) {
-                    entries.push([order[hour][quarter], hour, quarter])
+              let entries = [];
+              for (let j in order) {
+                if (order.hasOwnProperty(j)) {
+                  for (let quarter = 0; quarter < order[j].length; quarter++) {
+                    entries.push([order[j][quarter], j, quarter])
                   }
                 }
               }
 
               //Sort entries by price
-              entries.sort(function (a, b) {
-                return a[0] - b[0];
-              })
+              let j = 0;
+
+              for (let k = 1; k < entries.length; k++) {
+                let temp = entries[k];
+
+                for (j = k - 1; j >= 0 && temp[0] < entries[j][0]; j--) {
+                  entries[j + 1] = entries[j];
+                }
+                entries[j + 1] = temp;
+              }
 
               //Select the cheapest ones
               let cheapestCounter = 0;
