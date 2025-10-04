@@ -669,7 +669,15 @@ function getPrices(dayIndex) {
       + "T00:00:00"
       + _.s.tz.replace("+", "%2b"); //URL encode the + character
 
-    let end = start.replace("T00:00:00", "T23:59:59");
+    // Fetch hourly prices in batches
+    let batchSize = 2;
+    // This map must contain all string replacements on batch edges
+    let replaceMap = {
+      "T00": "T12",
+      "T11": "T23"
+    }
+    // End of first batch must be set manually
+    let end = start.replace("T00:00:00", "T11:59:59");
 
     let req = {
       url: "https://dashboard.elering.ee/api/nps/price/csv?fields=" + _.c.c.g + "&start=" + start + "&end=" + end,
@@ -682,20 +690,18 @@ function getPrices(dayIndex) {
     start = null;
     end = null;
 
-    Shelly.call("HTTP.GET", req, function (res, err, msg) {
-      req = null;
+    _.p[dayIndex] = [];
+    _.s.p[dayIndex].avg = 0;
+    _.s.p[dayIndex].high = -999;
+    _.s.p[dayIndex].low = 999;
 
+    function callback(res, err, msg, callCount) {
       try {
         if (err === 0 && res != null && res.code === 200 && res.body_b64) {
           //Clearing some fields to save memory
           res.headers = null;
           res.message = null;
           msg = null;
-
-          _.p[dayIndex] = [];
-          _.s.p[dayIndex].avg = 0;
-          _.s.p[dayIndex].high = -999;
-          _.s.p[dayIndex].low = 999;
 
           //Converting base64 to text
           res.body_b64 = atob(res.body_b64);
@@ -775,7 +781,7 @@ function getPrices(dayIndex) {
 
             //find next row
             activePos = res.body_b64.indexOf("\n", activePos);
-            
+
             //If first row, set the epoch
             if (activeHour < 0) {
               activeData[0] = row[0];
@@ -799,6 +805,20 @@ function getPrices(dayIndex) {
 
           //Again to save memory..
           res = null;
+
+          callCount--;
+          if (callCount > 0) {
+            // Another batch to fetch
+            for (let old in replaceMap) {
+              if (replaceMap.hasOwnProperty(old)) {
+                req.url = req.url.replace(old, replaceMap[old]);
+              }
+            }
+            Shelly.call("HTTP.GET", req, callback, callCount);
+            return;
+          }
+
+          req = null;
 
           //Calculate average and update timestamp
           _.s.p[dayIndex].avg = _.p[dayIndex].length > 0 ? (_.s.p[dayIndex].avg / _.p[dayIndex].length) : 0;
@@ -830,7 +850,10 @@ function getPrices(dayIndex) {
 
       loopRunning = false;
       Timer.set(500, false, loop);
-    });
+    }
+
+    // Start with first batch
+    Shelly.call("HTTP.GET", req, callback, batchSize);
 
   } catch (err) {
     log("error getting prices: " + err);
