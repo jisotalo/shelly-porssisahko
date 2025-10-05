@@ -969,7 +969,7 @@ function logic(inst) {
     //Final check - if user wants to set command only for first x minutes
     //This check is skipped when quarter hours are enabled and cheapest hours mode is active as minute limit is handled there
     //Manual force is only thing that overrides
-    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.m && !(_.c.c.q && cfg.mode === 2 && !cfg.m2.s)) {
+    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.m && !(_.c.c.q && cfg.mode === 2)) {
       st.st = 13;
       cmd[inst] = false;
     }
@@ -1062,16 +1062,18 @@ function logic(inst) {
  * NOTE: Variables starting with _ are intentionally in global scope
  * to fix memory/stack issues
  */
-let _avg = 999;
-let _startIndex = 0;
-let _sum = 0;
 let _cntMultiplier = 1;
 let _cheapest = {};
 let _order = {};
-let _entries = [];
 let _hours = [];
-let _quarter = 0;
+let _sum = 0;
+let _quarterCounter = 0;
+let _avg = 999;
+let _startIndex = 0;
+let _skipCounter = -1;
 let _temp = null;
+let _quarter = 0;
+let _entries = [];
 let _cheapestCounter = 0;
 let _entry = {};
 
@@ -1137,32 +1139,58 @@ function isCheapestHour(inst) {
     if (cfg.m2.s) {
       //Find cheapest in a sequence
       //Loop through each possible starting index and compare average prices
-      _avg = 999;
-      _startIndex = 0;
       _hours = Object.keys(_order);
+      _sum = 0;
+      _quarterCounter = 0;
+      _avg = 999;
+      _startIndex = null;
+      _skipCounter = -1;
 
-      for (_j = 0; _j <= _hours.length - _cnt; _j++) {
-        _sum = 0;
+      for (_j = 0; _j <= _hours.length; _j++) {
+        for (_k = 0; _k < _order[_hours[_j]].length; _k++) {
+          // Add quarters to sum until required amount of quarters is achieved
+          _sum += _order[_hours[_j]][_k];
+          _quarterCounter++;
 
-        //Calculate sum of these sequential hours
-        for (_k = _j; _k < _j + _cnt; _k++) {
-          _sum += calculateAverage(_order[_hours[_k]]);
-        }
+          if (_quarterCounter >= _cnt * _cntMultiplier) {
+            //If average price of these sequential hours is lower -> it's better
+            if (_sum / (_cnt * _cntMultiplier) < _avg) {
+              _avg = _sum / (_cnt * _cntMultiplier);
+              _startIndex = _skipCounter + 1;
+            }
 
-        //If average price of these sequential hours is lower -> it's better
-        if (_sum / _cnt < _avg) {
-          _avg = _sum / _cnt;
-          _startIndex = _j;
+            // Subtract earliest quarter from sum for next iteration
+            _skipCounter++;
+            sum -= _order[_hours[Math.floor(_skipCounter / _cntMultiplier)]][_skipCounter % _cntMultiplier]
+          }
         }
       }
 
-      for (_j = _startIndex; _j < _startIndex + _cnt; _j++) {
-        // TODO: Add quarter support for cheapest sequence
-        _cheapest[_hours[_j]] = {
-          0: true,
-          1: true,
-          2: true,
-          3: true,
+      if (_startIndex != null) {
+        _temp = null;
+        _quarter = 0;
+        _quarterCounter = 0;
+
+        // Set required amount of quarters to true after cheapest quarter start
+        for (_j = 0; _j < _cnt * _cntMultiplier; _j++) {
+          if (_temp != _hours[Math.floor((_j + _startIndex) / _cntMultiplier)]) {
+            _quarterCounter = 0;
+          }
+
+          _temp = _hours[Math.floor((_j + _startIndex) / _cntMultiplier)];
+          _quarter = (_j + _startIndex) % _cntMultiplier;
+          _quarterCounter++;
+
+          //Respect hourly minute limit while selecting sequential quarters
+          //Prefer cheapest quarters which could mean that sequence has gaps
+          // but so did previous versions where command was set only for first x minutes
+          if (cfg.m < 60 && _cntMultiplier == 4) {
+            if (_quarterCounter * 15 > cfg.m) {
+              continue
+            }
+          }
+
+          _cheapest[_temp][_quarter] = true;
         }
       }
 
