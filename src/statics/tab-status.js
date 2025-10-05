@@ -238,9 +238,30 @@
               }
 
               if (startIndex != null) {
+                let hour = null;
+                let quarter = 0;
+                quarterCounter = 0;
+
                 // Set required amount of quarters to true after cheapest quarter start
                 for (let j = 0; j < cnt * cntMultiplier; j++) {
-                  cheapest[hours[Math.floor((j + startIndex) / cntMultiplier)]][(j + startIndex) % cntMultiplier] = true;
+                  if (hour != hours[Math.floor((j + startIndex) / cntMultiplier)]) {
+                    quarterCounter = 0;
+                  }
+
+                  hour = hours[Math.floor((j + startIndex) / cntMultiplier)];
+                  quarter = (j + startIndex) % cntMultiplier;
+                  quarterCounter++;
+
+                  //Respect hourly minute limit while selecting sequential quarters
+                  //Prefer cheapest quarters which could mean that sequence has gaps
+                  // but so did previous versions where command was set only for first x minutes
+                  if (ci.m < 60 && cntMultiplier == 4) {
+                    if (quarterCounter * 15 > ci.m) {
+                      continue
+                    }
+                  }
+
+                  cheapest[hour][quarter] = true;
                 }
               }
 
@@ -272,7 +293,7 @@
                 let entry = entries[j];
 
                 //Respect hourly minute limit while selecting quarters
-                if (ci.m < 60 && cntMultiplier > 1) {
+                if (ci.m < 60 && cntMultiplier == 4) {
                   if (Object.keys(cheapest[entry[1]]).length * 15 >= ci.m) {
                     continue
                   }
