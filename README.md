@@ -11,11 +11,11 @@ Jos haluat ohjata Shelly Plug Plus -laitteen valon väriä sähkön hinnan mukaa
 
 --- 
 
-<span style="font-weight:bold;color:red;">-----> HUOMIO - VARTTIHINNAT <-----</span>
+⚠️⚠️⚠️ **HUOMIO - VARTTIHINNAT** ⚠️⚠️⚠️
 
-Vanhat versiot eivät tue täysin uusia 15 minuutin hintoja.
+Vanhat versiot eivät toimi varttihintojen tultua voimaan. Päivitä skripti uusimpaan versioon niin se toimii jälleen!
 
-Päivitä skripti uusimpaan versioon (v3.3.0+) - tämä tukee uusia varttihintoja!
+Skripti laskee keskihinnan vuorokauden jokaiselle tunnille ja toimii muuten tuntipohjaisesti, kuten ennenkin.
 
 Lisää keskustelua täällä: [https://github.com/jisotalo/shelly-porssisahko/issues/38](https://github.com/jisotalo/shelly-porssisahko/issues/38)
 
@@ -50,7 +50,6 @@ It can be used to control Shelly devices by Nordpool electricity spot prices in 
   - [Ominaisuudet](#ominaisuudet)
   - [Sisällysluettelo](#sisällysluettelo)
   - [Muutoshistoria](#muutoshistoria)
-    - [Edellinen v.2-versio](#edellinen-v2-versio)
   - [Tukeminen](#tukeminen)
   - [Asennus](#asennus)
     - [Asennus kirjaston avulla (suositeltu tapa)](#asennus-kirjaston-avulla-suositeltu-tapa)
@@ -70,6 +69,10 @@ It can be used to control Shelly devices by Nordpool electricity spot prices in 
     - [Ominaisuudet](#ominaisuudet-1)
     - [Asetusten muokkaaminen skriptin kautta (etänä)](#asetusten-muokkaaminen-skriptin-kautta-etänä)
   - [Kysymyksiä ja vastauksia](#kysymyksiä-ja-vastauksia)
+    - [Onko skriptille jotain tukea tai ylläpitoa?](#onko-skriptille-jotain-tukea-tai-ylläpitoa)
+    - [Miksi käytössä oleva skriptini ei toimi enää 30.09.2025 alkaen?](#miksi-käytössä-oleva-skriptini-ei-toimi-enää-30092025-alkaen)
+    - [Miksi skripti ei toimi 15 minuutin välein?](#miksi-skripti-ei-toimi-15-minuutin-välein)
+    - [Saanko valittua halvimmat tunnit kello 22-06 väliltä?](#saanko-valittua-halvimmat-tunnit-kello-22-06-väliltä)
     - [Miksi hintatietoja ei saada?](#miksi-hintatietoja-ei-saada)
     - [Onko skripti kuinka toimintavarma?](#onko-skripti-kuinka-toimintavarma)
     - [Miksi välillä tulee HTTP error 503?](#miksi-välillä-tulee-http-error-503)
@@ -90,18 +93,6 @@ It can be used to control Shelly devices by Nordpool electricity spot prices in 
 Katso päivitysten sisältö [CHANGELOG.md-tiedostosta](https://github.com/jisotalo/shelly-porssisahko/blob/master/CHANGELOG.md).
 
 Tarvittaessa vanhat skriptiversiot löytyvät [Releases](https://github.com/jisotalo/shelly-porssisahko/releases)-sivulta. Lataa halutun version zip-tiedosto, ja kopioi `dist/shelly-porssisahko.js`-tiedoston sisältö.
-
-### Edellinen v.2-versio
-
-Jos haluat käyttää edellistä (edelleen pomminvarmaa) v.2-versiota, se löytyy alta:
-- v.2.13.0 release
-  - [https://github.com/jisotalo/shelly-porssisahko/releases/tag/v.2.13.0](https://github.com/jisotalo/shelly-porssisahko/releases/tag/v.2.13.0)
-- v.2.13.0 GitHubissa
-  - [https://github.com/jisotalo/shelly-porssisahko/tree/4566fc40cfb819cf582881f81acf823e7c104bd9](https://github.com/jisotalo/shelly-porssisahko/tree/4566fc40cfb819cf582881f81acf823e7c104bd9)
-  - README:ssa oleva library-linkki ei enää toimi
-  - Toimiva library-linkki v.2.13.0: `https://raw.githubusercontent.com/jisotalo/shelly-porssisahko/4566fc40cfb819cf582881f81acf823e7c104bd9/shelly-library.json` 
-- v.2.13.0 Archivessa
-  - http://archive.today/2024.11.11-175653/https://jisotalo.fi/shelly-porssisahko/
 
 ## Tukeminen
 
@@ -364,11 +355,27 @@ Esim. alla muutetaan etänä halpojen tuntien lukumäärä arvoon `8h` yhdestä 
 
 ## Kysymyksiä ja vastauksia
 
-### Miksi skripti ei toimi enää 30.09.2025
+### Onko skriptille jotain tukea tai ylläpitoa?
+
+Ei ole, käyttö ihan oman harkinnan mukaan. Totta kai Githubissa vastailen viesteihin kuin kerkeän ja usein myös muut käyttäjät vastailevat!
+
+### Miksi käytössä oleva skriptini ei toimi enää 30.09.2025 alkaen?
 
 Vanhat versiot lakkasivat toimimasta kun 15 minuutin välein vaihtuvat pörssisähkön hinnat tulivat käyttöön.
 
-Versio 3.3.0 toimii jatkossakin, mutta tuntikohtaisena hintana käytetään varttihintojen keskiarvoa.
+Versio 3.3.0 ja uudemmat toimivat jälleen. Tuntikohtaisena hintana käytetään varttihintojen perusteella laskettuja keskiarvoja.
+
+### Miksi skripti ei toimi 15 minuutin välein?
+
+Tällä hetkellä en ole kerennyt rakentamaan skriptiä toimimaan varttipohjaisesti. Mahdollisesti jossain kohti sen kuitenkin teen.
+
+Eräs ilmeisesti toimiva työversio löytyy täältä, joten ei muuta kuin kokeilemaan mikäli aihe kiinnostaa: [https://github.com/jisotalo/shelly-porssisahko/pull/54](https://github.com/jisotalo/shelly-porssisahko/pull/54)
+
+### Saanko valittua halvimmat tunnit kello 22-06 väliltä?
+
+Tämä ei valitettavasti onnistu, sillä skripti toimii ainoastaan yhden vuorokauden sisällä. Eli valinta 00-06 onnistuu.
+
+Yksi keino on myös valita 22-00 ja 00-06, jolloin lopputulema pitkässä juoksussa voi olla toivotun kaltaista.
 
 ### Miksi hintatietoja ei saada?
 
@@ -389,6 +396,8 @@ Tavoite on, että skripti on mahdollisimman toimintavarma ja sen voi unohtaa ajo
 Versio 2 on pyörinyt itsellä yhtäjaksoisesti yli 100 päivää ilman ongelmia. 
 
 ![alt text](img/uptime.png)
+
+Versio 3 oli kerran käytössä itsellä yhtäjaksoisesti ~200 päivää, mutta en muistanut ottaa kuvaa.
 
 ### Miksi välillä tulee HTTP error 503?
 
