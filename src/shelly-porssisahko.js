@@ -53,6 +53,8 @@ const CNST = {
       day: 0,
       /** Night (22...07) transfer price [c/kWh] */
       night: 0,
+      /** Quarter hourly features [0/1] */
+      q: 0,
       /** Instance names */
       names: []
     },
@@ -125,7 +127,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.3.0",
+    v: "3.4.0-a.1",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -235,6 +237,22 @@ function getKvsKey(inst) {
 function isCurrentHour(value, now) {
   let diff = now - value;
   return diff >= 0 && diff < (60 * 60);
+}
+
+/**
+ * Calculate average of elements in array
+ *
+ * @param {Array[number]} container array of values
+ */
+function calculateAverage(container) {
+  let sum = 0
+  if (container.length !== 0) {
+    for (let i = 0; i < container.length; i++) {
+      sum += container[i];
+    }
+    sum /= container.length;
+  }
+  return sum;
 }
 
 /**
@@ -615,12 +633,14 @@ function logicRunNeeded(inst) {
     Logic should be run if
     - never run before
     - hour has changed
+    - quarter feature is enabled quarter has changed
     - year has changed (= time has been received)
     - manually forced command is active and time has passed
     - user wants the output to be commanded only for x first minutes of the hour which has passed (and command is not yet reset)
   */
   return st.chkTs == 0
     || (chk.getHours() !== now.getHours()
+      || (_.c.c.q && Math.floor(chk.getMinutes() / 15.0) !== Math.floor(now.getMinutes() / 15.0))
       || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
     || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
@@ -649,7 +669,15 @@ function getPrices(dayIndex) {
       + "T00:00:00"
       + _.s.tz.replace("+", "%2b"); //URL encode the + character
 
-    let end = start.replace("T00:00:00", "T23:59:59");
+    // Fetch hourly prices in batches
+    let batchSize = 2;
+    // This map must contain all string replacements on batch edges
+    let replaceMap = {
+      "T00": "T12",
+      "T11": "T23"
+    }
+    // End of first batch must be set manually
+    let end = start.replace("T00:00:00", "T11:59:59");
 
     let req = {
       url: "https://dashboard.elering.ee/api/nps/price/csv?fields=" + _.c.c.g + "&start=" + start + "&end=" + end,
@@ -662,20 +690,18 @@ function getPrices(dayIndex) {
     start = null;
     end = null;
 
-    Shelly.call("HTTP.GET", req, function (res, err, msg) {
-      req = null;
+    _.p[dayIndex] = [];
+    _.s.p[dayIndex].avg = 0;
+    _.s.p[dayIndex].high = -999;
+    _.s.p[dayIndex].low = 999;
 
+    function callback(res, err, msg, callCount) {
       try {
         if (err === 0 && res != null && res.code === 200 && res.body_b64) {
           //Clearing some fields to save memory
           res.headers = null;
           res.message = null;
           msg = null;
-
-          _.p[dayIndex] = [];
-          _.s.p[dayIndex].avg = 0;
-          _.s.p[dayIndex].high = -999;
-          _.s.p[dayIndex].low = 999;
 
           //Converting base64 to text
           res.body_b64 = atob(res.body_b64);
@@ -686,25 +712,31 @@ function getPrices(dayIndex) {
           let activePos = 0;
           let valueCount = 0;
           let activeHour = -1;
-          let activeData = [-1, 0];
+          let activeData = [-1, []];
 
           //Helper that adds a new hour to the price list
           function addHour() {
-              activeData[1] = activeData[1] / valueCount;
+            let activeAverage = calculateAverage(activeData[1]);
 
-              //Adding
-              _.p[dayIndex].push(activeData);
+            // Use averaged value if quarter hourly feature is not in use
+            // Always use averaged value for tomorrow to save memory
+            if (!_.c.c.q || dayIndex == 1) {
+              activeData[1] = [activeAverage];
+            }
 
-              //Calcualting daily avg and highest/lowest
-              _.s.p[dayIndex].avg += activeData[1];
+            //Adding
+            _.p[dayIndex].push(activeData);
 
-              if (activeData[1] > _.s.p[dayIndex].high) {
-                _.s.p[dayIndex].high = activeData[1];
-              }
+            //Calcualting daily avg and highest/lowest
+            _.s.p[dayIndex].avg += activeAverage;
 
-              if (activeData[1] < _.s.p[dayIndex].low) {
-                _.s.p[dayIndex].low = activeData[1];
-              }
+            if (activeAverage > _.s.p[dayIndex].high) {
+              _.s.p[dayIndex].high = activeAverage;
+            }
+
+            if (activeAverage < _.s.p[dayIndex].low) {
+              _.s.p[dayIndex].low = activeAverage;
+            }
           }
 
           while (activePos >= 0) {
@@ -749,7 +781,7 @@ function getPrices(dayIndex) {
 
             //find next row
             activePos = res.body_b64.indexOf("\n", activePos);
-            
+
             //If first row, set the epoch
             if (activeHour < 0) {
               activeData[0] = row[0];
@@ -761,18 +793,32 @@ function getPrices(dayIndex) {
               addHour();
 
               //Take starting epoch and reset total
-              activeData = [row[0], 0];
+              activeData = [row[0], []];
 
               valueCount = 0;
               activeHour = hour;
             }
 
-            activeData[1] += row[1];
+            activeData[1].push(row[1]);
             valueCount++;
           }
 
           //Again to save memory..
           res = null;
+
+          callCount--;
+          if (callCount > 0) {
+            // Another batch to fetch
+            for (let old in replaceMap) {
+              if (replaceMap.hasOwnProperty(old)) {
+                req.url = req.url.replace(old, replaceMap[old]);
+              }
+            }
+            Shelly.call("HTTP.GET", req, callback, callCount);
+            return;
+          }
+
+          req = null;
 
           //Calculate average and update timestamp
           _.s.p[dayIndex].avg = _.p[dayIndex].length > 0 ? (_.s.p[dayIndex].avg / _.p[dayIndex].length) : 0;
@@ -804,7 +850,10 @@ function getPrices(dayIndex) {
 
       loopRunning = false;
       Timer.set(500, false, loop);
-    });
+    }
+
+    // Start with first batch
+    Shelly.call("HTTP.GET", req, callback, batchSize);
 
   } catch (err) {
     log("error getting prices: " + err);
@@ -918,8 +967,9 @@ function logic(inst) {
     }
 
     //Final check - if user wants to set command only for first x minutes
+    //This check is skipped when quarter hours are enabled and cheapest hours mode is active as minute limit is handled there
     //Manual force is only thing that overrides
-    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.m) {
+    if (cmd[inst] && _.s.timeOK && now.getMinutes() >= cfg.m && !(_.c.c.q && cfg.mode === 2)) {
       st.st = 13;
       cmd[inst] = false;
     }
@@ -1012,12 +1062,24 @@ function logic(inst) {
  * NOTE: Variables starting with _ are intentionally in global scope
  * to fix memory/stack issues
  */
+let _cntMultiplier = 1;
+let _cheapest = {};
+let _order = {};
+let _hours = [];
+let _sum = 0;
+let _quarterCounter = 0;
 let _avg = 999;
 let _startIndex = 0;
-let _sum = 0;
+let _skipCounter = -1;
+let _temp = null;
+let _quarter = 0;
+let _entries = [];
+let _cheapestCounter = 0;
+let _entry = {};
 
 function isCheapestHour(inst) {
   let cfg = _.c.i[inst];
+  let c = _.c.c;
 
   //Safety checks
   cfg.m2.ps = limit(0, cfg.m2.ps, 23);
@@ -1027,8 +1089,15 @@ function isCheapestHour(inst) {
   cfg.m2.c = limit(0, cfg.m2.c, cfg.m2.p > 0 ? cfg.m2.p : cfg.m2.pe - cfg.m2.ps);
   cfg.m2.c2 = limit(0, cfg.m2.c2, cfg.m2.pe2 - cfg.m2.ps2);
 
+  //------------------------------
   //This is (and needs to be) 1:1 in both frontend and backend code
-  let cheapest = [];
+  //------------------------------
+
+  // Configuration is in hours and logic in quarters
+  _cntMultiplier = c.q ? 4 : 1;
+
+  // Bucket of cheapest [hour][quarter] combinations
+  _cheapest = {};
 
   //Select increment (a little hacky - to support custom periods too)
   _inc = cfg.m2.p < 0 ? 1 : cfg.m2.p;
@@ -1040,8 +1109,8 @@ function isCheapestHour(inst) {
     if (_cnt <= 0)
       continue;
 
-    //Create array of indexes in selected period
-    let order = [];
+    //Create bucket of hourly prices
+    _order = {};
 
     //If custom period -> select hours from that range. Otherwise use this period
     _start = _i;
@@ -1063,71 +1132,131 @@ function isCheapestHour(inst) {
       if (_j > _.p[0].length - 1)
         break;
 
-      order.push(_j);
+      _order[_j] = _.p[0][_j][1];
+      _cheapest[_j] = {};
     }
 
     if (cfg.m2.s) {
       //Find cheapest in a sequence
       //Loop through each possible starting index and compare average prices
+      _hours = Object.keys(_order);
+      _sum = 0;
+      _quarterCounter = 0;
       _avg = 999;
-      _startIndex = 0;
+      _startIndex = null;
+      _skipCounter = -1;
 
-      for (_j = 0; _j <= order.length - _cnt; _j++) {
-        _sum = 0;
+      for (_j = 0; _j <= _hours.length; _j++) {
+        for (_k = 0; _k < _order[_hours[_j]].length; _k++) {
+          // Add quarters to sum until required amount of quarters is achieved
+          _sum += _order[_hours[_j]][_k];
+          _quarterCounter++;
 
-        //Calculate sum of these sequential hours
-        for (_k = _j; _k < _j + _cnt; _k++) {
-          _sum += _.p[0][order[_k]][1];
-        };
+          if (_quarterCounter >= _cnt * _cntMultiplier) {
+            //If average price of these sequential hours is lower -> it's better
+            if (_sum / (_cnt * _cntMultiplier) < _avg) {
+              _avg = _sum / (_cnt * _cntMultiplier);
+              _startIndex = _skipCounter + 1;
+            }
 
-        //If average price of these sequential hours is lower -> it's better
-        if (_sum / _cnt < _avg) {
-          _avg = _sum / _cnt;
-          _startIndex = _j;
+            // Subtract earliest quarter from sum for next iteration
+            _skipCounter++;
+            sum -= _order[_hours[Math.floor(_skipCounter / _cntMultiplier)]][_skipCounter % _cntMultiplier]
+          }
         }
       }
 
-      for (_j = _startIndex; _j < _startIndex + _cnt; _j++) {
-        cheapest.push(order[_j]);
+      if (_startIndex != null) {
+        _temp = null;
+        _quarter = 0;
+        _quarterCounter = 0;
+
+        // Set required amount of quarters to true after cheapest quarter start
+        for (_j = 0; _j < _cnt * _cntMultiplier; _j++) {
+          if (_temp != _hours[Math.floor((_j + _startIndex) / _cntMultiplier)]) {
+            _quarterCounter = 0;
+          }
+
+          _temp = _hours[Math.floor((_j + _startIndex) / _cntMultiplier)];
+          _quarter = (_j + _startIndex) % _cntMultiplier;
+          _quarterCounter++;
+
+          //Respect hourly minute limit while selecting sequential quarters
+          //Prefer cheapest quarters which could mean that sequence has gaps
+          // but so did previous versions where command was set only for first x minutes
+          if (cfg.m < 60 && _cntMultiplier == 4) {
+            if (_quarterCounter * 15 > cfg.m) {
+              continue
+            }
+          }
+
+          _cheapest[_temp][_quarter] = true;
+        }
       }
+
+      // Clear to save memory
+      _order = {};
 
     } else {
-      //Sort indexes by price
+      _entries = [];
+      for (_j in _order) {
+        if (_order.hasOwnProperty(_j)) {
+          for (_quarter = 0; _quarter < _order[_j].length; _quarter++) {
+            _entries.push([_order[_j][_quarter], _j, _quarter])
+          }
+        }
+      }
+
+      // Clear to save memory
+      _order = {};
+
+      //Sort entries by price
       _j = 0;
 
-      for (_k = 1; _k < order.length; _k++) {
-        let temp = order[_k];
+      for (_k = 1; _k < _entries.length; _k++) {
+        _temp = _entries[_k];
 
-        for (_j = _k - 1; _j >= 0 && _.p[0][temp][1] < _.p[0][order[_j]][1]; _j--) {
-          order[_j + 1] = order[_j];
+        for (_j = _k - 1; _j >= 0 && _temp[0] < _entries[_j][0]; _j--) {
+          _entries[_j + 1] = _entries[_j];
         }
-        order[_j + 1] = temp;
+        _entries[_j + 1] = _temp;
       }
 
       //Select the cheapest ones
-      for (_j = 0; _j < _cnt; _j++) {
-        cheapest.push(order[_j]);
+      _cheapestCounter = 0;
+      for (_j = 0; _j < _entries.length; _j++) {
+        _entry = _entries[_j];
+
+        //Respect hourly minute limit while selecting quarters
+        if (cfg.m < 60 && _cntMultiplier == 4) {
+          if (Object.keys(_cheapest[_entry[1]]).length * 15 >= cfg.m) {
+            continue
+          }
+        }
+        _cheapest[_entry[1]][_entry[2]] = true;
+        _cheapestCounter++;
+
+        if (_cheapestCounter >= _cnt * _cntMultiplier) {
+          // Sufficient amount of cheapest quarters found
+          break;
+        }
       }
     }
+
+    // Clear to save memory
+    _entries = [];
 
     //If custom period, quit when all periods are done (1 or 2 periods)
     if (cfg.m2.p == -1 || (cfg.m2.p == -2 && _i >= 1))
       break;
   }
 
-  //Check if current hour is cheap enough
-  let epochNow = epoch();
-  let res = false;
+  //Check if current hour and quarter combination is among cheap  ones
+  let now = new Date();
+  let res = (_cheapest[now.getHours()] || {})[Math.floor(now.getMinutes() / 15.0)] || false;
 
-  for (let i = 0; i < cheapest.length; i++) {
-    let row = _.p[0][cheapest[i]];
-
-    if (isCurrentHour(row[0], epochNow)) {
-      //This hour is active -> current hour is one of the cheapest
-      res = true;
-      break;
-    }
-  }
+  // Clear to save memory
+  _cheapest = {};
 
   return res;
 }
@@ -1143,12 +1272,18 @@ function updateCurrentPrice() {
     return;
   }
 
-  let now = epoch();
+  let date = new Date();
+  let now = epoch(date);
 
   for (let i = 0; i < _.p[0].length; i++) {
     if (isCurrentHour(_.p[0][i][0], now)) {
-      //This hour is active 
-      _.s.p[0].now = _.p[0][i][1];
+      //This hour is active
+      if (_.c.c.q) {
+        // Use price from current quarter
+        _.s.p[0].now = _.p[0][i][1][Math.floor(date.getMinutes() / 15.0)]
+      } else {
+        _.s.p[0].now = calculateAverage(_.p[0][i][1]);
+      }
       return true;
     }
   }
@@ -1308,14 +1443,6 @@ function onServerRequest(request, response) {
 
     } else if (params.r === "status.js") {
       response.body = atob('#[tab-status.js]');
-      MIME_TYPE = MIME_JS;
-
-    } else if (params.r === "history") {
-      response.body = atob('#[tab-history.html]');
-      MIME_TYPE = MIME_HTML;
-
-    } else if (params.r === "history.js") {
-      response.body = atob('#[tab-history.js]');
       MIME_TYPE = MIME_JS;
 
     } else if (params.r === "config") {

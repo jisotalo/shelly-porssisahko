@@ -32,6 +32,22 @@
   }
 
   /**
+   * Calculate average of elements in array
+   *
+   * @param {Array[number]} container array of values
+   */
+  function calculateAverage(container) {
+    let sum = 0
+    if (container.length !== 0) {
+      for (let i = 0; i < container.length; i++) {
+        sum += container[i];
+      }
+      sum /= container.length;
+    }
+    return sum;
+  }
+
+  /**
    * Callback called by main loop
    *
    * @param {*} instChanged true = instance has changed (reset data)
@@ -104,7 +120,7 @@
       qs("s-info").innerHTML += ` - ${s.p[0].ts > 0
         ? `Hinnat päivitetty ${formatTime(new Date(Math.max(s.p[0].ts, s.p[1].ts) * 1000))}`
         : "Hintoja haetaan..."}`;
-      
+
       //Version info (footer)
       qs("s-v").innerHTML = `Käynnistetty ${formatDateTime(new Date(s.upTs * 1000))} (käynnissä ${((new Date().getTime() - new Date(s.upTs * 1000).getTime()) / 1000.0 / 60.0 / 60.0 / 24.0).toFixed("1")} päivää) - versio ${s.v}`;
 
@@ -145,7 +161,14 @@
         // Cheapest hours logic
         // This needs match 1:1 the Shelly script side
         //------------------------------
-        let cheapest = [];
+
+        // Configuration is in hours and logic in quarters
+        // Tomorrow is always in hours to save memory
+        let cntMultiplier = c.q && dayIndex == 0 ? 4 : 1;
+
+        // Bucket of cheapest [hour][quarter] combinations
+        let cheapest = {};
+
         if (ci.mode === 2) {
           //Select increment (a little hacky - to support custom periods too)
           let inc = ci.m2.p < 0 ? 1 : ci.m2.p;
@@ -157,8 +180,8 @@
             if (cnt <= 0)
               continue;
 
-            //Create array of indexes in selected period
-            let order = [];
+            //Create bucket of hourly prices
+            let order = {};
 
             //If custom period -> select hours from that range. Otherwise use this period
             let start = i;
@@ -180,50 +203,109 @@
               if (j > d.p[dayIndex].length - 1)
                 break;
 
-              order.push(j);
+              order[j] = d.p[dayIndex][j][1];
+              cheapest[j] = {};
             }
 
             if (ci.m2.s) {
               //Find cheapest in a sequence
               //Loop through each possible starting index and compare average prices
+              let hours = Object.keys(order);
+              let sum = 0;
+              let quarterCounter = 0;
               let avg = 999;
-              let startIndex = 0;
+              let startIndex = null;
+              let skipCounter = -1;
 
-              for (let j = 0; j <= order.length - cnt; j++) {
-                let sum = 0;
+              for (let j = 0; j < hours.length; j++) {
+                for (let k = 0; k < order[hours[j]].length; k++) {
+                  // Add quarters to sum until required amount of quarters is achieved
+                  sum += order[hours[j]][k];
+                  quarterCounter++;
 
-                //Calculate sum of these sequential hours
-                for (let k = j; k < j + cnt; k++) {
-                  sum += d.p[dayIndex][order[k]][1];
-                };
+                  if (quarterCounter >= cnt * cntMultiplier) {
+                    //If average price of these sequential quarters is lower -> it's better
+                    if (sum / (cnt * cntMultiplier) < avg) {
+                      avg = sum / (cnt * cntMultiplier);
+                      startIndex = skipCounter + 1;
+                    }
 
-                //If average price of these sequential hours is lower -> it's better
-                if (sum / cnt < avg) {
-                  avg = sum / cnt;
-                  startIndex = j;
+                    // Subtract earliest quarter from sum for next iteration
+                    skipCounter++;
+                    sum -= order[hours[Math.floor(skipCounter / cntMultiplier)]][skipCounter % cntMultiplier]
+                  }
                 }
               }
 
-              for (let j = startIndex; j < startIndex + cnt; j++) {
-                cheapest.push(order[j]);
+              if (startIndex != null) {
+                let hour = null;
+                let quarter = 0;
+                quarterCounter = 0;
+
+                // Set required amount of quarters to true after cheapest quarter start
+                for (let j = 0; j < cnt * cntMultiplier; j++) {
+                  if (hour != hours[Math.floor((j + startIndex) / cntMultiplier)]) {
+                    quarterCounter = 0;
+                  }
+
+                  hour = hours[Math.floor((j + startIndex) / cntMultiplier)];
+                  quarter = (j + startIndex) % cntMultiplier;
+                  quarterCounter++;
+
+                  //Respect hourly minute limit while selecting sequential quarters
+                  //Prefer cheapest quarters which could mean that sequence has gaps
+                  // but so did previous versions where command was set only for first x minutes
+                  if (ci.m < 60 && cntMultiplier == 4) {
+                    if (quarterCounter * 15 > ci.m) {
+                      continue
+                    }
+                  }
+
+                  cheapest[hour][quarter] = true;
+                }
               }
 
             } else {
-              //Sort indexes by price
+              let entries = [];
+              for (let j in order) {
+                if (order.hasOwnProperty(j)) {
+                  for (let quarter = 0; quarter < order[j].length; quarter++) {
+                    entries.push([order[j][quarter], j, quarter])
+                  }
+                }
+              }
+
+              //Sort entries by price
               let j = 0;
 
-              for (let k = 1; k < order.length; k++) {
-                let temp = order[k];
+              for (let k = 1; k < entries.length; k++) {
+                let temp = entries[k];
 
-                for (j = k - 1; j >= 0 && d.p[dayIndex][temp][1] < d.p[dayIndex][order[j]][1]; j--) {
-                  order[j + 1] = order[j];
+                for (j = k - 1; j >= 0 && temp[0] < entries[j][0]; j--) {
+                  entries[j + 1] = entries[j];
                 }
-                order[j + 1] = temp;
+                entries[j + 1] = temp;
               }
 
               //Select the cheapest ones
-              for (let j = 0; j < cnt; j++) {
-                cheapest.push(order[j]);
+              let cheapestCounter = 0;
+              for (let j = 0; j < entries.length; j++) {
+                let entry = entries[j];
+
+                //Respect hourly minute limit while selecting quarters
+                if (ci.m < 60 && cntMultiplier == 4) {
+                  if (Object.keys(cheapest[entry[1]]).length * 15 >= ci.m) {
+                    continue
+                  }
+                }
+
+                cheapest[entry[1]][entry[2]] = true;
+                cheapestCounter++;
+
+                if (cheapestCounter >= cnt * cntMultiplier) {
+                  // Sufficient amount of cheapest quarters found
+                  break;
+                }
               }
             }
 
@@ -251,21 +333,26 @@
 
           let mode2MaxPrice = ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m;
 
-          let cmd =
-            ((ci.mode === 0 && ci.m0.c)
-              || (ci.mode === 1 && row[1] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-              || (ci.mode === 2 && cheapest.includes(i) && row[1] <= mode2MaxPrice)
-              || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row[1] <= mode2MaxPrice)
-              || fon)
-            && !foff;
+          let qCmd = "";
+          for (let j = 0; j < row[1].length; j++) {
+            let cmd =
+              ((ci.mode === 0 && ci.m0.c)
+                || (ci.mode === 1 && row[1][j] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
+                || (ci.mode === 2 && (cheapest[i] || {})[j] && row[1][j] <= mode2MaxPrice)
+                || (ci.mode === 2 && row[1][j] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row[1][j] <= mode2MaxPrice)
+                || fon)
+              && !foff;
 
-          //Invert
-          if (ci.i) {
-            cmd = !cmd;
-          }
+            //Invert
+            if (ci.i) {
+              cmd = !cmd;
+            }
 
-          if (!ci.en) {
-            cmd = false;
+            if (!ci.en) {
+              cmd = false;
+            }
+
+            qCmd += cmd ? "&#x2714;" : "_";
           }
 
           if (ci.en && ci.mode === 2
@@ -278,11 +365,12 @@
             bg = !bg;
           }
 
+          let f = fon || foff ? `*` : "";
           element.innerHTML +=
-          `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
+            `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
             <td class="fit">${formatTime(date, false)}</td>
-            <td>${row[1].toFixed(2)} c/kWh</td>
-            <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
+            <td>~${calculateAverage(row[1]).toFixed(2)} c/kWh</td>
+            <td>${f}${qCmd}${f}</td>
           </tr>`;
         }
 
