@@ -1,10 +1,10 @@
 /**
  * shelly-porssisahko
- * 
+ *
  * (c) Jussi isotalo - http://jisotalo.fi
  * https://github.com/jisotalo/shelly-porssisahko
- * 
- * License: GNU Affero General Public License v3.0 
+ *
+ * License: GNU Affero General Public License v3.0
  */
 
 /** 
@@ -313,7 +313,7 @@ let updateLoop = async () => {
       doc.title = (state.s.dn ? state.s.dn + " - " : "") + "Pörssisähkö";
 
       //Updating instances to dropdown
-      qs("inst").innerHTML = state.c.names.map((n, i) => `<option value="${i}">Ohjaus #${(i + 1)}: ${n}</option>`)
+      qs("inst").innerHTML = state.c.nms.map((n, i) => `<option value="${i}">Ohjaus #${(i + 1)}: ${n}</option>`)
       qs("inst").value = inst;
 
       //If status 503 the shelly is just now busy running the logic -> do nothing

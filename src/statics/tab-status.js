@@ -10,7 +10,7 @@
   /**
    * Table content if data not yet available
    */
-  let notYetKnown = `<tr><td colspan="3">Ei vielä tiedossa</td></tr>`;
+  const notK = `<tr><td colspan="3">Ei vielä tiedossa</td></tr>`;
 
   /**
    * Clears status page
@@ -59,6 +59,8 @@
       let si = d.si;
       /** instance config */
       let ci = d.ci;
+      /** slot size (seconds) */
+      let slot = d.slot || 3600;
 
       //If instance is enabled (otherwise just update price lists)
       if (ci.en) {
@@ -67,12 +69,12 @@
 
         qs("s-mode").innerHTML = MODE_STR[ci.mode];
 
-        qs("s-now").innerHTML = d.p.length > 0
+        qs("s-now").innerHTML = d.p[0].pv && d.p[0].pv.length > 0
           ? `${s.p[0].now.toFixed(2)} c/kWh`
           : "";
 
         qs("s-st").innerHTML = si.st === 9
-          ? STATE_STR[si.st].replace("%s", formatDateTime(new Date(si.fCmdTs * 1000), false))
+          ? STATE_STR[si.st].replace("%s", formatDateTime(new Date(si.fTs * 1000), false))
           : STATE_STR[si.st] + (ci.i ? " (käänteinen)" : "");
 
         //Extended status for instance (by user scripts)
@@ -80,8 +82,8 @@
           qs("s-st").innerHTML += `<br><br>${si.str}`;
         }
 
-        qs("s-info").innerHTML = si.chkTs > 0
-          ? `Ohjaus tarkistettu ${formatTime(new Date(si.chkTs * 1000))}`
+        qs("s-info").innerHTML = si.cTs > 0
+          ? `Ohjaus tarkistettu ${formatTime(new Date(si.cTs * 1000))}`
           : `Tarkistetaan ohjausta...`;
 
       } else {
@@ -94,8 +96,8 @@
 
       //Device name and instance
       let dn = s.dn ? s.dn : '<i>Ei asetettu</i>';
-      if (c.names[inst]) {
-        dn += ` | ${c.names[inst]}`
+      if (c.nms[inst]) {
+        dn += ` | ${c.nms[inst]}`
       }
       dn += ` (ohjaus #${(inst + 1)})`;
       qs("s-dn").innerHTML = dn;
@@ -112,10 +114,10 @@
        * Helper that builds price info table for today or tomorrow
        */
       const buildPriceTable = (priceInfo) => {
-        let header = `<tr><td class="t bg">Keskiarvo</td><td class="t bg">Halvin</td><td class="t bg">Kallein</td></tr>`;
+        const header = `<tr><td class="t bg">Keskiarvo</td><td class="t bg">Halvin</td><td class="t bg">Kallein</td></tr>`;
 
         if (priceInfo.ts == 0) {
-          return `${header}${notYetKnown}`;
+          return `${header}${notK}`;
         }
 
         return `${header}
@@ -131,27 +133,37 @@
       qs("s-pi1").innerHTML = buildPriceTable(s.p[1]);
 
       /**
-       * Helper that builds price/cmd table for today or tomorrow
-       */
+      * Helper that builds price/cmd table for today or tomorrow
+      *
+      * @param {number} dayIndex 0=today, 1=tomorrow
+      * @param {HTMLElement} element Target element
+      */
       const buildPriceList = (dayIndex, element) => {
-        let header = ` <tr><td class="t bg">Aika</td><td class="t bg">Hinta</td><td class="t bg">Ohjaus</td></tr>`;
+        const header = ` <tr><td class="t bg">Aika</td><td class="t bg">Hinta</td><td class="t bg">Ohjaus</td></tr>`;
 
-        if (s.p[dayIndex].ts == 0) {
-          element.innerHTML = `${header}${notYetKnown}`;;
+        // Get compact price data
+        const slotPrices = d.p[dayIndex].pv;
+        const startEpoch = d.p[dayIndex].ps;
+
+        if (s.p[dayIndex].ts == 0 || !slotPrices || slotPrices.length === 0 || !startEpoch) {
+          element.innerHTML = `${header}${notK}`;
           return;
         }
+
+        // Reusable loop variables
+        let i, j, k, temp, sum, avg, inc, cnt, start, end;
 
         //------------------------------
         // Cheapest hours logic
         // This needs match 1:1 the Shelly script side
         //------------------------------
         let cheapest = [];
-        if (ci.mode === 2) {
+        if (ci.mode === 2 && slotPrices && slotPrices.length > 0) {
           //Select increment (a little hacky - to support custom periods too)
-          let inc = ci.m2.p < 0 ? 1 : ci.m2.p;
+          inc = ci.m2.p < 0 ? 1 : ci.m2.p;
 
-          for (let i = 0; i < d.p[dayIndex].length; i += inc) {
-            let cnt = (ci.m2.p == -2 && i >= 1 ? ci.m2.c2 : ci.m2.c);
+          for (i = 0; i < slotPrices.length; i += inc) {
+            cnt = (ci.m2.p == -2 && i >= 1 ? ci.m2.c2 : ci.m2.c);
 
             //Safety check
             if (cnt <= 0)
@@ -160,9 +172,9 @@
             //Create array of indexes in selected period
             let order = [];
 
-            //If custom period -> select hours from that range. Otherwise use this period
-            let start = i;
-            let end = (i + ci.m2.p);
+            //If custom period -> select slots from that range. Otherwise use this period
+            start = i;
+            end = (i + ci.m2.p);
 
             if (ci.m2.p < 0 && i == 0) {
               //Custom period 1
@@ -175,54 +187,58 @@
               end = ci.m2.pe2;
             }
 
-            for (let j = start; j < end; j++) {
-              //If we have less hours than 24 then skip the rest from the end
-              if (j > d.p[dayIndex].length - 1)
+            for (j = start; j < end; j++) {
+              //If we have less slots than expected, skip the rest
+              if (j > slotPrices.length - 1)
                 break;
 
               order.push(j);
             }
 
+            //Skip if no valid slots in period
+            if (order.length === 0) continue;
+
             if (ci.m2.s) {
               //Find cheapest in a sequence
               //Loop through each possible starting index and compare average prices
-              let avg = 999;
+              avg = 999;
               let startIndex = 0;
 
-              for (let j = 0; j <= order.length - cnt; j++) {
-                let sum = 0;
+              for (j = 0; j <= order.length - cnt; j++) {
+                sum = 0;
 
-                //Calculate sum of these sequential hours
-                for (let k = j; k < j + cnt; k++) {
-                  sum += d.p[dayIndex][order[k]][1];
-                };
+                //Calculate sum of these sequential slots
+                for (k = j; k < j + cnt; k++) {
+                  sum += slotPrices[order[k]];
+                }
 
-                //If average price of these sequential hours is lower -> it's better
+                //If average price of these sequential slots is lower -> it's better
                 if (sum / cnt < avg) {
                   avg = sum / cnt;
                   startIndex = j;
                 }
               }
 
-              for (let j = startIndex; j < startIndex + cnt; j++) {
+              for (j = startIndex; j < startIndex + cnt; j++) {
                 cheapest.push(order[j]);
               }
 
             } else {
-              //Sort indexes by price
-              let j = 0;
+              //Sort indexes by price (insertion sort)
+              for (k = 1; k < order.length; k++) {
+                temp = order[k];
 
-              for (let k = 1; k < order.length; k++) {
-                let temp = order[k];
-
-                for (j = k - 1; j >= 0 && d.p[dayIndex][temp][1] < d.p[dayIndex][order[j]][1]; j--) {
+                // Find correct position by comparing prices
+                j = k - 1;
+                while (j >= 0 && slotPrices[temp] < slotPrices[order[j]]) {
                   order[j + 1] = order[j];
+                  j--;
                 }
                 order[j + 1] = temp;
               }
 
-              //Select the cheapest ones
-              for (let j = 0; j < cnt; j++) {
+              //Select the cheapest ones (with bounds check)
+              for (j = 0; j < cnt && j < order.length; j++) {
                 cheapest.push(order[j]);
               }
             }
@@ -236,13 +252,17 @@
         //------------------------------
         // Building the price list
         //------------------------------
-        element.innerHTML = header;
+        // Build array of rows, then join once (avoids repeated string concatenation)
+        let rows = [header];
 
         let per = 0;
         let bg = false;
-        for (let i = 0; i < d.p[dayIndex].length; i++) {
-          let row = d.p[dayIndex][i];
-          let date = new Date(row[0] * 1000);
+
+        for (i = 0; i < slotPrices.length; i++) {
+          // Calculate epoch for this slot on-the-fly
+          let slotEpoch = startEpoch + (i * slot);
+          let price = slotPrices[i];
+          let date = new Date(slotEpoch * 1000);
 
           //Forced hour on
           let fon = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == (1 << i));
@@ -253,9 +273,9 @@
 
           let cmd =
             ((ci.mode === 0 && ci.m0.c)
-              || (ci.mode === 1 && row[1] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-              || (ci.mode === 2 && cheapest.includes(i) && row[1] <= mode2MaxPrice)
-              || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row[1] <= mode2MaxPrice)
+              || (ci.mode === 1 && price <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
+              || (ci.mode === 2 && cheapest.includes(i) && price <= mode2MaxPrice)
+              || (ci.mode === 2 && price <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && price <= mode2MaxPrice)
               || fon)
             && !foff;
 
@@ -278,13 +298,17 @@
             bg = !bg;
           }
 
-          element.innerHTML +=
-          `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
-            <td class="fit">${formatTime(date, false)}</td>
-            <td>${row[1].toFixed(2)} c/kWh</td>
-            <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
-          </tr>`;
+          rows.push(
+            `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
+              <td class="fit">${formatTime(date, false)}</td>
+              <td>${price.toFixed(2)} c/kWh</td>
+              <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
+            </tr>`
+          );
         }
+
+        // Set innerHTML once with all rows joined
+        element.innerHTML = rows.join('');
 
         return s.p[dayIndex].ts;
       }

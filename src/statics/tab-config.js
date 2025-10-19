@@ -1,10 +1,10 @@
 /**
  * shelly-porssisahko
- * 
+ *
  * (c) Jussi isotalo - http://jisotalo.fi
  * https://github.com/jisotalo/shelly-porssisahko
- * 
- * License: GNU Affero General Public License v3.0 
+ *
+ * License: GNU Affero General Public License v3.0
  */
 {
   /** 
@@ -98,7 +98,7 @@
       qs("ci").innerHTML = (inst + 1);
 
       qs("en").checked = ci.en ? "checked" : "";
-      qs("n").value = c.names[inst];
+      qs("n").value = c.nms[inst];
       qs("mode").innerHTML = MODE_STR.map((m, i) => `<option value="${i}">${m}</option>`)
       qs("mode").value = ci.mode;
       qs("outs").value = ci.o.join(",");
@@ -165,7 +165,7 @@
       c.night = n(qs("night").value);
 
       ci.en = qs("en").checked ? 1 : 0;
-      c.names[inst] = qs("n").value;
+      c.nms[inst] = qs("n").value;
       ci.mode = n(qs("mode").value);
       ci.o = qs("outs").value.split(",").map(v => n(v));
       ci.i = qs("inv").checked ? 1 : 0;
