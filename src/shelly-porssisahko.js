@@ -18,7 +18,7 @@
  * NOTE: If you change SLOT you MUST also adapt getPrices()
  *       Current implementation assumes hourly aggregation in CSV.
  */
-const SLOT = 3600;
+let SLOT = 3600;
 
 /**
  * Main constants and default config/state objects (4 chars max for memory efficiency)
@@ -63,6 +63,8 @@ const CNST = {
       day: 0,
       /** Night (22...07) transfer price [c/kWh] */
       nite: 0,
+      /** Quarter‑hour feature toggle (0 = hourly, 1 = 15 min) */
+      q: 0,
       /** Instance names */
       nms: []
     },
@@ -134,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0",
+    v: "4.0.0-alpha.1",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -223,6 +225,25 @@ let pEp = 0;
  * (new one is not started + HTTP requests are not handled)
  */
 let lRun = false;
+
+/**
+ * Holds single loop timer ID to avoid stacking multiple Timer.set()
+ * Every time loop re-schedules, we clear the old one.
+ */
+let lTmr = null;
+
+/**
+ * Restarts background loop safely.
+ * Cancels any pending timer and sets new one.
+ */
+function restartLoop(delayMs) {
+  if (lTmr) {
+    Timer.clear(lTmr);
+    lTmr = null;
+  }
+
+  lTmr = Timer.set(delayMs, false, loop);
+}
 
 /**
  * Returns KVS key name for settings
@@ -360,6 +381,15 @@ function updateState() {
   //Previously used only Date() but after some firmware update it started to display strange dates at boot
   _.s.tOK = Shelly.getComponentStatus("sys").unixtime != null && now.getFullYear() > 2000;
   _.s.dn = Shelly.getComponentConfig("sys").device.name;
+  if (!_.s.dn) {
+    _.s.dn = Shelly.getDeviceInfo("info");
+    if (_.s.dn && _.s.dn.app && _.s.dn.mac) {
+      _.s.dn = _.s.dn.app + "-" + _.s.dn.mac;
+    }
+    else {
+      _.s.dn = "";
+    }
+  }
 
   //Detecting if time has changed and getting prices again
   let nEp = epoch(now);
@@ -464,13 +494,27 @@ function getConfig(inst) {
       //Common config or instance
       if (inst < 0) {
         _.s.cOK = ok ? 1 : 0;
+        if (SLOT !== (_.c.c.q === 1 ? 900 : 3600)) {
+          SLOT = (_.c.c.q === 1) ? 900 : 3600;
+          log("Slot length set to " + SLOT + "s (" + (SLOT === 900 ? "15 min" : "hourly") + ")");
+          clearPrice(0);
+          clearPrice(1);
+        }
       } else {
         log("config for #" + (inst + 1) + " read, enabled: " + _.c.i[inst].en);
         _.si[inst].cOK = ok ? 1 : 0;
         _.si[inst].cTs = 0; //To run the logic again with new settings
+        // --- CACHE SLOT ARRAY AFTER CONFIG CHANGE ---
+        if (_.c.i[inst].en) {
+          _.si[inst].slots = buildSlotCharmap(inst);
+          log("slot array updated for instance #" + (inst + 1));
+        }
       }
       lRun = false;
-      Timer.set(500, false, loop);
+      restartLoop(500);
+      key = null;
+      res = null;
+      msg = null;
     });
   });
 }
@@ -596,7 +640,7 @@ function logicRunNeeded(inst) {
   //If not enabled, do nothing
   if (cfg.en != 1) {
     //clear history
-    _.h[inst] = [];
+    _.h[inst].splice(0);
     return false;
   }
 
@@ -604,24 +648,26 @@ function logicRunNeeded(inst) {
   let chk = new Date(st.cTs * 1000);
 
   //for debugging (run every minute)
-  /*
-  return st.chkTs == 0
-    || (chk.getMinutes() !== now.getMinutes()
+  /*return st.cTs == 0
+  || (chk.getMinutes() !== now.getMinutes()
     || chk.getFullYear() !== now.getFullYear())
-    || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
-    || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
+  || (st.fTs > 0 && st.fTs - epoch(now) < 0)
+  || (st.fTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
   */
+
+  // Convert last checked timestamp to its slot index
+  const prevSlot = Math.floor(st.cTs / SLOT);
+  const currSlot = Math.floor(epoch(now) / SLOT);
 
   /*
     Logic should be run if
     - never run before
-    - hour has changed
-    - year has changed (= time has been received)
+    - slot index has changed (new 15-min or 1h period)
     - manually forced command is active and time has passed
     - user wants the output to be commanded only for x first minutes of the hour which has passed (and command is not yet reset)
   */
   return st.cTs == 0
-    || (chk.getHours() !== now.getHours()
+    || (prevSlot !== currSlot
       || chk.getFullYear() !== now.getFullYear())
     || (st.fTs > 0 && st.fTs - epoch(now) < 0)
     || (st.fTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
@@ -692,7 +738,7 @@ function getPrices(dayIndex) {
 
     // Initialize result arrays and statistics
     // These persist across all chunks and accumulate data
-    _.pv[dayIndex] = [];
+    _.pv[dayIndex].splice(0);
     _.s.p[dayIndex].avg = 0;
     _.s.p[dayIndex].high = -999;
     _.s.p[dayIndex].low = 999;
@@ -708,11 +754,11 @@ function getPrices(dayIndex) {
 
       // Trigger logic re-run if today's prices failed
       if (dayIndex == 0) {
-        reqLogic();
+        reqLogic();      
       }
 
       lRun = false;
-      Timer.set(500, false, loop);
+      restartLoop(500);
     }
 
     /**
@@ -742,10 +788,18 @@ function getPrices(dayIndex) {
         // Trigger logic re-run if today's prices were updated
         if (dayIndex == 0) {
           reqLogic();
+          // --- CACHE SLOT ARRAYS AFTER PRICE UPDATE ---
+          for (i = 0; i < CNST.INST; i++) {
+            if (_.c.i[i].en) {
+              _.si[i].slots = buildSlotCharmap(i);
+            }
+          }
+          log("slot arrays updated after new price data");          
         }
         lRun = false;
-        Timer.set(500, false, loop);
+        restartLoop(500);
         cRng = null;
+        now = null;
         return;
       }
 
@@ -803,12 +857,15 @@ function getPrices(dayIndex) {
             _.s.p[dayIndex].avg += activeData[1];
 
             if (activeData[1] > _.s.p[dayIndex].high) {
-                _.s.p[dayIndex].high = activeData[1];
+               _.s.p[dayIndex].high = activeData[1];
             }
 
             if (activeData[1] < _.s.p[dayIndex].low) {
-                _.s.p[dayIndex].low = activeData[1];
+              _.s.p[dayIndex].low = activeData[1];
             }
+
+            valueCount = 0;
+            activeData[1] = 0;
           }
 
           // Parsing CSV rows
@@ -826,7 +883,7 @@ function getPrices(dayIndex) {
             if (activePos === 0) {
               //" character not found -> end of data
               if (valueCount > 0) {
-                addSlot();
+                 addSlot();
               }
 
               break;
@@ -846,7 +903,7 @@ function getPrices(dayIndex) {
             row[1] = row[1] / 10.0 * (100 + (row[1] > 0 ? _.c.c.vat : 0)) / 100.0;
 
             //Add transfer fees (if any)
-            let hour = new Date(row[0] * 1000).getHours();
+            const hour = new Date(row[0] * 1000).getHours();
 
             if (hour >= 7 && hour < 22) {
               //day
@@ -858,30 +915,30 @@ function getPrices(dayIndex) {
 
             //find next row
             activePos = res.body_b64.indexOf("\n", activePos);
-            
-            //If first row, set the epoch
+
+            // Determine SLOT start (15 min/1 h)
+            let slotStart = Math.floor(row[0] / SLOT) * SLOT;
             if (activeSlot < 0) {
               activeData[0] = row[0];
-              activeSlot = hour;
+              activeSlot = slotStart;
             }
 
-            //If new hour (or EOF), we should handle the previous one
-            if (activeSlot != hour || activePos < 0) {
+            if (slotStart !== activeSlot) {
               addSlot();
-
-              //Take starting epoch and reset total
-              activeData = [row[0], 0];
-
-              valueCount = 0;
-              activeSlot = hour;
+              activeData[0] = row[0];
+              activeSlot = slotStart;
             }
 
             activeData[1] += row[1];
             valueCount++;
           }
 
+          if (valueCount > 0) addSlot();
           //Again to save memory..
           res = null;
+          row = null;
+          order = null;
+          activeData = null;
 
         } catch (err) {
           handleError("chunk " + idx + " parse error: " + err);
@@ -1061,10 +1118,13 @@ function logic(inst) {
               st.cTs = epoch();
 
               //We can continue almost immediately as everything went nicely
-              Timer.set(500, false, loop);
+              restartLoop(500);
             }
 
             lRun = false;
+            now = null;
+            cfg = null;
+            st = null;
           }
         });
       }
@@ -1104,20 +1164,35 @@ function isCheapestHour(inst) {
   cfg.m2.c = limit(0, cfg.m2.c, cfg.m2.p > 0 ? cfg.m2.p : cfg.m2.pe - cfg.m2.ps);
   cfg.m2.c2 = limit(0, cfg.m2.c2, cfg.m2.pe2 - cfg.m2.ps2);
 
+  // --- 15‑minute slot scaling (new) ---
+  const scale = 3600 / SLOT; // 1 for hourly, 4 for 15 min
+
+  // Convert hour-based configs to slot indices
+  const ps = Math.floor(cfg.m2.ps * scale);
+  const pe = Math.floor(cfg.m2.pe * scale);
+  const ps2 = Math.floor(cfg.m2.ps2 * scale);
+  const pe2 = Math.floor(cfg.m2.pe2 * scale);
+
+  // Convert “cheapest hours” & periods to slot counts
+  const c1 = Math.floor(cfg.m2.c * scale);
+  const c2 = Math.floor(cfg.m2.c2 * scale);
+  const periodSlots = cfg.m2.p < 0 ? cfg.m2.p : Math.floor(cfg.m2.p * scale);
+  // ------------------------------------
+
   // Use compact price array and start epoch
   let slotPrices = _.pv[0];
   if (!slotPrices || slotPrices.length === 0 || !_.ps[0]) {
     return false;
   }
 
-   //This is (and needs to be) 1:1 in both frontend and backend code
- let cheapest = [];
+  //This is (and needs to be) 1:1 in both frontend and backend code
+  let cheapest = [];
 
   //Select increment (a little hacky - to support custom periods too)
-  _inc = cfg.m2.p < 0 ? 1 : cfg.m2.p;
+  _inc = periodSlots < 0 ? 1 : periodSlots;
 
   for (_i = 0; _i < slotPrices.length; _i += _inc) {
-    _cnt = (cfg.m2.p == -2 && _i >= 1 ? cfg.m2.c2 : cfg.m2.c);
+    _cnt = (periodSlots == -2 && _i >= 1 ? c2 : c1);
 
     //Safety check
     if (_cnt <= 0)
@@ -1128,17 +1203,17 @@ function isCheapestHour(inst) {
 
     //If custom period -> select slots from that range. Otherwise use this period
     _st = _i;
-    _end = (_i + cfg.m2.p);
+    _end = (_i + periodSlots);
 
-    if (cfg.m2.p < 0 && _i == 0) {
+    if (periodSlots < 0 && _i == 0) {
       //Custom period 1
-      _st = cfg.m2.ps;
-      _end = cfg.m2.pe;
+      _st = ps;
+      _end = pe;
 
-    } else if (cfg.m2.p == -2 && _i == 1) {
+    } else if (periodSlots == -2 && _i == 1) {
       //Custom period 2
-      _st = cfg.m2.ps2;
-      _end = cfg.m2.pe2;
+      _st = ps2;
+      _end = pe2;
     }
 
     // Build array of indices for this period
@@ -1197,7 +1272,7 @@ function isCheapestHour(inst) {
     }
 
     //If custom period, quit when all periods are done (1 or 2 periods)
-    if (cfg.m2.p == -1 || (cfg.m2.p == -2 && _i >= 1))
+    if (periodSlots == -1 || (periodSlots == -2 && _i >= 1))
       break;
   }
 
@@ -1271,11 +1346,11 @@ function updateCurrentPrice() {
   //   a) System clock wrong
   //   b) Price data is wrong
   } else {
-    log("updateCurrentPrice: out-of-range idx=" + idx);
+    log("updateCurrentPrice: out-of-range idx=" + idx + ", SLOT=" + SLOT);
     _.s.tOK = false;
     clearPrice(0);
     _.s.eCnt++;
-    _.s.eTs = epoch();
+    _.s.eTs = now;
   }
 }
 
@@ -1296,6 +1371,130 @@ function parseParams(params) {
   }
 
   return res;
+}
+
+/**
+ * Returns an array of cheapest slots (1 = ON, 0 = OFF)
+ * Used by buildSlotCharmap()
+ */
+function getCheapestSlots(inst) {
+  const cfg = _.c.i[inst];
+  const price = _.pv[0];
+  const slots = price ? price.length : 0;
+  if (slots === 0 || !_.ps[0]) return [];
+
+  // --- Sanitize configuration ---
+  const m2 = cfg.m2;
+  m2.ps  = limit(0, m2.ps, 23);
+  m2.pe  = limit(m2.ps, m2.pe, 24);
+  m2.ps2 = limit(0, m2.ps2, 23);
+  m2.pe2 = limit(m2.ps2, m2.pe2, 24);
+  m2.c   = limit(0, m2.c,   m2.p > 0 ? m2.p : m2.pe - m2.ps);
+  m2.c2  = limit(0, m2.c2,  m2.pe2 - m2.ps2);
+
+  // --- Derived slot‑based values ---
+  const scale = 3600 / SLOT;       // hourly→slot conversion
+  const ps  = Math.floor(m2.ps  * scale);
+  const pe  = Math.floor(m2.pe  * scale);
+  const ps2 = Math.floor(m2.ps2 * scale);
+  const pe2 = Math.floor(m2.pe2 * scale);
+  const c1  = Math.floor(m2.c   * scale);
+  const c2  = Math.floor(m2.c2  * scale);
+  const per = m2.p < 0 ? m2.p : Math.floor(m2.p * scale);
+
+  // --- Init output (0 = not cheapest) ---
+  const flag = [];
+  for (let i = 0; i < slots; i++) flag[i] = 0;
+
+  // --- Work variables reused globally for Shelly safety ---
+  _inc = per < 0 ? 1 : per;
+
+  for (_i = 0; _i < slots; _i += _inc) {
+    _cnt = per == -2 && _i >= 1 ? c2 : c1;
+    if (_cnt <= 0) continue;
+
+    // Range of this search period
+    _st  = _i; _end = _i + per;
+    if (per < 0 && _i == 0) { _st = ps;  _end = pe;  }
+    if (per == -2 && _i == 1){ _st = ps2; _end = pe2; }
+
+    // Build simple index list
+    const order = [];
+    for (_j = _st; _j < _end && _j < slots; _j++) order.push(_j);
+    if (order.length === 0) continue;
+
+    // Insertion‑sort by increasing price
+    for (_k = 1; _k < order.length; _k++) {
+      const idx = order[_k];
+      _j = _k - 1;
+      while (_j >= 0 && price[idx] < price[order[_j]]) {
+        order[_j + 1] = order[_j];
+        _j--;
+      }
+      order[_j + 1] = idx;
+    }
+
+    // Mark cheapest slots
+    for (_j = 0; _j < _cnt && _j < order.length; _j++) {
+      flag[order[_j]] = 1;
+    }
+
+    if (per == -1 || (per == -2 && _i >= 1)) break;
+  }
+
+  return flag;
+}
+
+
+/**
+ * Builds compact charmap string (e.g. "01034")
+ *  0 = OFF
+ *  1 = Cheapest slot
+ *  2 = Below price limit
+ *  3 = Forced ON
+ *  5 = Manual ON
+ */
+function buildSlotCharmap(inst) {
+  const prices = _.pv[0];
+  if (!prices || prices.length === 0) return "";
+
+  const cfg   = _.c.i[inst];
+  const avg   = _.s.p[0].avg;
+  const mode  = cfg.mode;
+  const cheap = getCheapestSlots(inst);
+  const len   = prices.length;
+  const fmask = cfg.f;
+  const fcmd  = cfg.fc;
+  const outArr = new Array(len);
+
+  for (let i = 0; i < len; i++) {
+    let code = 0;
+    const p = prices[i];
+
+    // --- Determine reason (same logic, kept identical) ---
+    if (mode === 0) {
+      if (cfg.m0.c) code = 5;
+    } else if (mode === 1) {
+      const limit = (cfg.m1.l == "avg") ? avg : cfg.m1.l;
+      if (p <= limit) code = 2;
+    } else if (mode === 2) {
+      const limAlways = (cfg.m2.l == "avg") ? avg : cfg.m2.l;
+      if (cheap[i]) code = 1;
+      else if (p <= limAlways) code = 2;
+    }
+
+    // --- Forced override (unchanged) ---
+    if (fmask > 0) {
+      const h = (i * SLOT / 3600) | 0;
+      const bit = 1 << h;
+      if ((fmask & bit) && (fcmd & bit)) code = 3;
+    }
+
+    outArr[i] = code; // store numeric value in array
+  }
+
+  // Join once
+  return outArr.join("");
 }
 
 /**
@@ -1333,22 +1532,22 @@ function onServerRequest(request, response) {
       updateState();
 
       if (inst >= 0 && inst < CNST.INST) {
-        // Build minimal object - send compact price data directly
-        let resp = {
+        // Use cached slot data (no rebuild unless prices or config changed)
+        const resp = {
           s: _.s,
           si: _.si[inst],
           c: _.c.c,
           ci: _.c.i[inst],
-          // Send compact price format with metadata
           p: [
-            { ps: _.ps[0], pv: _.pv[0] },  // today
-            { ps: _.ps[1], pv: _.pv[1] }   // tomorrow
+            { ps: _.ps[0], pv: _.pv[0] },
+            { ps: _.ps[1], pv: _.pv[1] }
           ],
-          slot: SLOT  // Frontend needs this to calculate epochs
+          slot: SLOT
         };
+
         response.body = JSON.stringify(resp);
       }
-      GZIP = false;
+      GZIP = false
 
     } else if (params.r === "c") {
       //c = get config
@@ -1486,6 +1685,7 @@ function initialize() {
   CNST.DINS = null; //No longer needed
 
   pEp = epoch();
+  SLOT = (_.c.c.q === 1) ? 900 : 3600;
 }
 
 //Startup

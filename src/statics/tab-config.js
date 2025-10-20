@@ -7,20 +7,20 @@
  * License: GNU Affero General Public License v3.0
  */
 {
-  /** 
+  /**
    * Flag indicating if config is already read
    * If not, inputs are updated
    */
   let configRead = false;
 
-  /** 
+  /**
    * Helper to convert value to number 
    */
   let n = (v) => typeof v === "string" ? Number(v.replace(",", ".")) : Number(v);
 
   /**
    * Helper to show/hide custom period inputs
-   * 
+   *
    * @param {*} value 
    */
   let checkCustomPeriodDisplay = (value) => {
@@ -30,7 +30,7 @@
 
   /**
    * Helper to set radio button value
-   * 
+   *
    * @param {*} name 
    * @param {*} value 
    */
@@ -48,7 +48,7 @@
 
   /**
    * Helper to limit value between min...max
-   * 
+   *
    * @param {*} min 
    * @param {*} value 
    * @param {*} max 
@@ -65,7 +65,7 @@
 
   /**
    * Callback called by main loop
-   * 
+   *
    * @param {*} instChanged true = instance has changed (reset data)
    * @returns 
    */
@@ -94,6 +94,7 @@
       qs("vat").value = c.vat;
       qs("day").value = c.day;
       qs("night").value = c.night;
+      qs("q").checked = c.q ? "checked" : "";
 
       qs("ci").innerHTML = (inst + 1);
 
@@ -163,6 +164,7 @@
       c.vat = n(qs("vat").value);
       c.day = n(qs("day").value);
       c.night = n(qs("night").value);
+      c.q = qs("q").checked ? 1 : 0;
 
       ci.en = qs("en").checked ? 1 : 0;
       c.nms[inst] = qs("n").value;

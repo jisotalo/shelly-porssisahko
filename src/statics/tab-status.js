@@ -150,172 +150,46 @@
           return;
         }
 
-        // Reusable loop variables
-        let i, j, k, temp, sum, avg, inc, cnt, start, end;
+        const rows = [header];
+        const now = Date.now();
+        // slotCodes is "char map". Each char 0–5 indicates ON/OFF reason; "0"=off, nonzero=type of ON
+        const slotCodes = typeof si.slots === "string" ? si.slots : "";
+        // 0:"OFF" 1:"Cheapest", 2:"Below limit", 3:"Forced", 4:"Backup", 5:"Manual"
+        const rMap = ["", "", "", "**", "B", "M"];
 
-        //------------------------------
-        // Cheapest hours logic
-        // This needs match 1:1 the Shelly script side
-        //------------------------------
-        let cheapest = [];
-        if (ci.mode === 2 && slotPrices && slotPrices.length > 0) {
-          //Select increment (a little hacky - to support custom periods too)
-          inc = ci.m2.p < 0 ? 1 : ci.m2.p;
+        for (let i = 0; i < slotPrices.length; i++) {
+          const slotEp = startEpoch + i * slot;
+          const price = slotPrices[i];
+          const date = new Date(slotEp * 1000);
 
-          for (i = 0; i < slotPrices.length; i += inc) {
-            cnt = (ci.m2.p == -2 && i >= 1 ? ci.m2.c2 : ci.m2.c);
+          const isCurr = (dayIndex === 0 &&
+                          now >= slotEp * 1000 &&
+                          now < (slotEp + slot) * 1000);
 
-            //Safety check
-            if (cnt <= 0)
-              continue;
+          // Convert char → integer (e.g. '2' → 2)
+          const codeChar = slotCodes.charAt(i) || "0";
+          const code = codeChar.charCodeAt(0) - 48; // fast numeric conversion
+          const cmd = code > 0;
 
-            //Create array of indexes in selected period
-            let order = [];
-
-            //If custom period -> select slots from that range. Otherwise use this period
-            start = i;
-            end = (i + ci.m2.p);
-
-            if (ci.m2.p < 0 && i == 0) {
-              //Custom period 1
-              start = ci.m2.ps;
-              end = ci.m2.pe;
-
-            } else if (ci.m2.p == -2 && i == 1) {
-              //Custom period 2
-              start = ci.m2.ps2;
-              end = ci.m2.pe2;
-            }
-
-            for (j = start; j < end; j++) {
-              //If we have less slots than expected, skip the rest
-              if (j > slotPrices.length - 1)
-                break;
-
-              order.push(j);
-            }
-
-            //Skip if no valid slots in period
-            if (order.length === 0) continue;
-
-            if (ci.m2.s) {
-              //Find cheapest in a sequence
-              //Loop through each possible starting index and compare average prices
-              avg = 999;
-              let startIndex = 0;
-
-              for (j = 0; j <= order.length - cnt; j++) {
-                sum = 0;
-
-                //Calculate sum of these sequential slots
-                for (k = j; k < j + cnt; k++) {
-                  sum += slotPrices[order[k]];
-                }
-
-                //If average price of these sequential slots is lower -> it's better
-                if (sum / cnt < avg) {
-                  avg = sum / cnt;
-                  startIndex = j;
-                }
-              }
-
-              for (j = startIndex; j < startIndex + cnt; j++) {
-                cheapest.push(order[j]);
-              }
-
-            } else {
-              //Sort indexes by price (insertion sort)
-              for (k = 1; k < order.length; k++) {
-                temp = order[k];
-
-                // Find correct position by comparing prices
-                j = k - 1;
-                while (j >= 0 && slotPrices[temp] < slotPrices[order[j]]) {
-                  order[j + 1] = order[j];
-                  j--;
-                }
-                order[j + 1] = temp;
-              }
-
-              //Select the cheapest ones (with bounds check)
-              for (j = 0; j < cnt && j < order.length; j++) {
-                cheapest.push(order[j]);
-              }
-            }
-
-            //If custom period, quit when all periods are done (1 or 2 periods)
-            if (ci.m2.p == -1 || (ci.m2.p == -2 && i >= 1))
-              break;
-          }
-        }
-
-        //------------------------------
-        // Building the price list
-        //------------------------------
-        // Build array of rows, then join once (avoids repeated string concatenation)
-        let rows = [header];
-
-        let per = 0;
-        let bg = false;
-
-        for (i = 0; i < slotPrices.length; i++) {
-          // Calculate epoch for this slot on-the-fly
-          let slotEpoch = startEpoch + (i * slot);
-          let price = slotPrices[i];
-          let date = new Date(slotEpoch * 1000);
-
-          //Forced hour on
-          let fon = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == (1 << i));
-          //Forced hour off
-          let foff = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == 0);
-
-          let mode2MaxPrice = ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m;
-
-          let cmd =
-            ((ci.mode === 0 && ci.m0.c)
-              || (ci.mode === 1 && price <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-              || (ci.mode === 2 && cheapest.includes(i) && price <= mode2MaxPrice)
-              || (ci.mode === 2 && price <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && price <= mode2MaxPrice)
-              || fon)
-            && !foff;
-
-          //Invert
-          if (ci.i) {
-            cmd = !cmd;
-          }
-
-          if (!ci.en) {
-            cmd = false;
-          }
-
-          if (ci.en && ci.mode === 2
-            && ((ci.m2.p < 0 && (i == ci.m2.ps || i == ci.m2.pe))
-              || (ci.m2.p == -2 && (i == ci.m2.ps2 || i == ci.m2.pe2))
-              || (ci.m2.p > 0 && i >= per + ci.m2.p))) {
-
-            //Period changed
-            per += ci.m2.p;
-            bg = !bg;
-          }
-
-          rows.push(
-            `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
+          rows.push(`<tr style="${isCurr ? 'font-weight:bold;' : ''}">
               <td class="fit">${formatTime(date, false)}</td>
               <td>${price.toFixed(2)} c/kWh</td>
-              <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
-            </tr>`
-          );
+              <td>${cmd ? "&#x2714;" : ""} ${rMap[code] || ""}</td>
+            </tr>`);
         }
 
-        // Set innerHTML once with all rows joined
-        element.innerHTML = rows.join('');
-
-        return s.p[dayIndex].ts;
-      }
+        // --- Replace only if changed to avoid frequent DOM recreation ---
+        const newHtml = rows.join('');
+        if (element.innerHTML !== newHtml) {
+          element.innerHTML = newHtml;
+        }
+      };
 
       //Creating price/cmd tables for today and tomorrow
       buildPriceList(0, qs("s-p0"));
       buildPriceList(1, qs("s-p1"));
+      d = s = c = si = ci = null;
+      slot = null;
 
     } catch (err) {
       console.error(err);
@@ -327,5 +201,8 @@
   };
 
   onUpdate();
-  CBS.push(onUpdate);
+  // --- Prevent multiple frontend callback registrations ---
+  if (!CBS.includes(onUpdate)) {
+    CBS.push(onUpdate);
+  }
 }
