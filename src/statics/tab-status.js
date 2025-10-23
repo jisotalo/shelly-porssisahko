@@ -152,8 +152,15 @@
 
         const rows = [header];
         const now = Date.now();
-        // slotCodes is "char map". Each char 0–5 indicates ON/OFF reason; "0"=off, nonzero=type of ON
-        const slotCodes = typeof si.slots === "string" ? si.slots : "";
+        // Pick correct charmap depending on dayIndex:
+        //   - dayIndex 0 → use si.slots0  (today)
+        //   - dayIndex 1 → use si.slots1  (tomorrow)
+        let slotCodes = "";
+        if (dayIndex === 0 && typeof si.slots0 === "string") {
+          slotCodes = si.slots0;
+        } else if (dayIndex === 1 && typeof si.slots1 === "string") {
+          slotCodes = si.slots1;
+        }
         // 0:"OFF" 1:"Cheapest", 2:"Below limit", 3:"Forced", 4:"Backup", 5:"Manual"
         const rMap = ["", "", "", "**", "B", "M"];
 

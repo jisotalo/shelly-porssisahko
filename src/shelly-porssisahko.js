@@ -136,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0-alpha.2",
+    v: "4.0.0-alpha.3",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -520,7 +520,13 @@ function getConfig(inst) {
         _.si[inst].cTs = 0; //To run the logic again with new settings
         // --- CACHE SLOT ARRAY AFTER CONFIG CHANGE ---
         if (_.c.i[inst].en) {
-          _.si[inst].slots = buildSlotCharmap(inst);
+          // Rebuild "today" slots
+          _.si[inst].slots0 = buildSlotCharmap(inst, 0);
+
+          // Also build "tomorrow" slots if we already have tomorrow's prices.
+          if (_.pv[1].length > 0) {
+            _.si[inst].slots1 = buildSlotCharmap(inst, 1);
+          }
           log("slot array updated for instance #" + (inst + 1));
         }
       }
@@ -805,7 +811,13 @@ function getPrices(dayIndex) {
           // --- CACHE SLOT ARRAYS AFTER PRICE UPDATE ---
           for (i = 0; i < CNST.INST; i++) {
             if (_.c.i[i].en) {
-              _.si[i].slots = buildSlotCharmap(i);
+              // Rebuild "today" slots
+              _.si[i].slots0 = buildSlotCharmap(i, 0);
+
+              // Also build "tomorrow" slots if we already have tomorrow's prices.
+              if (_.pv[1].length > 0) {
+                _.si[i].slots1 = buildSlotCharmap(i, 1);
+              }
             }
           }
           log("slot arrays updated after new price data");          
@@ -1391,11 +1403,12 @@ function parseParams(params) {
  * Returns an array of cheapest slots (1 = ON, 0 = OFF)
  * Used by buildSlotCharmap()
  */
-function getCheapestSlots(inst) {
+function getCheapestSlots(inst, dIdx) {
   const cfg = _.c.i[inst];
-  const price = _.pv[0];
+  const price = _.pv[dIdx];
+  const psDay = _.ps[dIdx]
   const slots = price ? price.length : 0;
-  if (slots === 0 || !_.ps[0]) return [];
+  if (slots === 0 || !psDay) return [];
 
   // --- Sanitize configuration ---
   const m2 = cfg.m2;
@@ -1468,14 +1481,14 @@ function getCheapestSlots(inst) {
  *  3 = Forced ON
  *  5 = Manual ON
  */
-function buildSlotCharmap(inst) {
-  const prices = _.pv[0];
+function buildSlotCharmap(inst, dIdx) {
+  const prices = _.pv[dIdx];
   if (!prices || prices.length === 0) return "";
 
   const cfg   = _.c.i[inst];
-  const avg   = _.s.p[0].avg;
+  const avg   = _.s.p[dIdx].avg;
   const mode  = cfg.mode;
-  const cheap = getCheapestSlots(inst);
+  const cheap = getCheapestSlots(inst, dIdx);
   const len   = prices.length;
   const fmask = cfg.f;
   const fcmd  = cfg.fc;
