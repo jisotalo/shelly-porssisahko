@@ -136,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0-alpha.1",
+    v: "4.0.0-alpha.2",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -462,13 +462,27 @@ function chkConfig(inst, callback) {
       if (err) {
         log("failed to set config: " + err + " - " + msg);
       }
-      callback(err == 0);
-
-    }, callback);
+      // ensure callback safety
+      try {
+        callback(err == 0);
+      } catch (e) {
+        // If Shelly's callback throws, release main loop manually.
+        log("chkConfig callback error: " + e);
+        lRun = false;
+        restartLoop(1000);
+      }
+    },
+    function(ok){
+      // always resume loop even if Shelly.call misbehaves
+      lRun = false;
+      restartLoop(1000);
+    });
     return;
   }
 
   //All settings OK
+  lRun = false;
+  restartLoop(1000);
   callback(true);
 }
 

@@ -93,7 +93,7 @@
       qs("g").value = c.g;
       qs("vat").value = c.vat;
       qs("day").value = c.day;
-      qs("night").value = c.night;
+      qs("nite").value = c.nite;
       qs("q").checked = c.q ? "checked" : "";
 
       qs("ci").innerHTML = (inst + 1);
@@ -163,7 +163,7 @@
       c.g = qs("g").value;
       c.vat = n(qs("vat").value);
       c.day = n(qs("day").value);
-      c.night = n(qs("night").value);
+      c.nite = n(qs("nite").value);
       c.q = qs("q").checked ? 1 : 0;
 
       ci.en = qs("en").checked ? 1 : 0;

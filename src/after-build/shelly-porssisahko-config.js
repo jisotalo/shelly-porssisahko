@@ -30,7 +30,7 @@ let cfg = {
     //day: 0,
 
     /** Night (22...07) transfer price [c/kWh] */
-    //night: 0,
+    //nite: 0,
 
     /** Instance names */
     //names: ['yksi', 'kaksi', 'kolme']
