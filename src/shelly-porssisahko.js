@@ -136,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0-alpha.3",
+    v: "4.0.0-alpha.4",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -796,10 +796,17 @@ function getPrices(dayIndex) {
         _.s.p[dayIndex].avg = slotCount > 0 ? (_.s.p[dayIndex].avg / slotCount) : 0;
         _.s.p[dayIndex].ts = epoch(now);
 
-        // Validate we have enough data (assume 23-hours is OK)
-        let minSlots = (86400 / SLOT) - 1;
+        // Validate we have enough data
+        // Allow up to 1 hour (3600s) of missing data, regardless of slot size
+        const expectedSlots = 86400 / SLOT;
+        const toleranceSlots = Math.max(1, 3600 / SLOT); // 1h tolerance in slot units
+        const minSlots = expectedSlots - toleranceSlots;
+
         if (slotCount < minSlots) {
-          log("invalid data: got " + slotCount + " slots, expected " + minSlots);
+          log(
+            "invalid data: got " + slotCount +
+            " slots, expected ≥ " + Math.floor(minSlots)
+          );
           handleError("insufficient slot count");
           cRng = null;
           return;
