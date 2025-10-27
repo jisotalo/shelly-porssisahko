@@ -136,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0-alpha.4",
+    v: "4.0.0-alpha.5",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -297,6 +297,16 @@ function clearPrice(dayIndex) {
   _.pv[dayIndex].splice(0); // clears but preserves array reference
   _.ps[dayIndex] = 0;
   _.s.p[dayIndex].ts = 0;
+
+  // When price data is wiped (due to date change, errors, etc.)
+  // remove corresponding slot info to prevent stale visuals.
+  for (_i = 0; _i < CNST.INST; _i++) {
+    if (dayIndex === 0) {
+      _.si[_i].slots0 = "";
+    } else if (dayIndex === 1) {
+      _.si[_i].slots1 = "";
+    }
+  }
 }
 
 /**
@@ -812,23 +822,17 @@ function getPrices(dayIndex) {
           return;
         }
 
-        // Trigger logic re-run if today's prices were updated
-        if (dayIndex == 0) {
-          reqLogic();
-          // --- CACHE SLOT ARRAYS AFTER PRICE UPDATE ---
-          for (i = 0; i < CNST.INST; i++) {
-            if (_.c.i[i].en) {
-              // Rebuild "today" slots
-              _.si[i].slots0 = buildSlotCharmap(i, 0);
-
-              // Also build "tomorrow" slots if we already have tomorrow's prices.
-              if (_.pv[1].length > 0) {
-                _.si[i].slots1 = buildSlotCharmap(i, 1);
-              }
-            }
+        // Rebuild slot map for the day that was just fetched.
+        for (_i = 0; _i < CNST.INST; _i++) {
+          if (!_.c.i[_i].en) continue;
+          if (dayIndex === 0) {
+            _.si[_i].slots0 = buildSlotCharmap(_i, 0);
+          } else if (dayIndex === 1) {
+            _.si[_i].slots1 = buildSlotCharmap(_i, 1);
           }
-          log("slot arrays updated after new price data");          
         }
+
+        log("slot arrays updated after price data for dayIndex=" + dayIndex);
         lRun = false;
         restartLoop(500);
         cRng = null;
