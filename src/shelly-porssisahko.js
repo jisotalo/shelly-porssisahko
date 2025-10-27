@@ -136,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0-alpha.5",
+    v: "4.0.0-alpha.6",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -823,12 +823,12 @@ function getPrices(dayIndex) {
         }
 
         // Rebuild slot map for the day that was just fetched.
-        for (_i = 0; _i < CNST.INST; _i++) {
-          if (!_.c.i[_i].en) continue;
+        for (let i = 0; i < CNST.INST; i++) {
+          if (!_.c.i[i].en) continue;
           if (dayIndex === 0) {
-            _.si[_i].slots0 = buildSlotCharmap(_i, 0);
+            _.si[i].slots0 = buildSlotCharmap(i, 0);
           } else if (dayIndex === 1) {
-            _.si[_i].slots1 = buildSlotCharmap(_i, 1);
+            _.si[i].slots1 = buildSlotCharmap(i, 1);
           }
         }
 
@@ -1288,18 +1288,15 @@ function isCheapestHour(inst) {
 
     } else {
       //Sort indexes by price
-      _j = 0;
-
-      for (_k = 1; _k < order.length; _k++) {
-        let temp = order[_k];
-
+      for (let k = 1; k < order.length; k++) {
+        const temp = order[k];
         // Find correct position by comparing prices
-        _j = _k - 1;
-        while (_j >= 0 && slotPrices[temp] < slotPrices[order[_j]]) {
-          order[_j + 1] = order[_j];
-          _j--;
+        let j = k - 1;
+        while (j >= 0 && slotPrices[temp] < slotPrices[order[j]]) {
+          order[j + 1] = order[j];
+          j--;
         }
-        order[_j + 1] = temp;
+        order[j + 1] = temp;
       }
 
       //Select the cheapest ones
@@ -1442,7 +1439,7 @@ function getCheapestSlots(inst, dIdx) {
 
   // --- Init output (0 = not cheapest) ---
   const flag = [];
-  for (let i = 0; i < slots; i++) flag[i] = 0;
+  for (_i = 0; _i < slots; _i++) flag[_i] = 0;
 
   // --- Work variables reused globally for Shelly safety ---
   _inc = per < 0 ? 1 : per;
@@ -1462,14 +1459,14 @@ function getCheapestSlots(inst, dIdx) {
     if (order.length === 0) continue;
 
     // Insertion‑sort by increasing price
-    for (_k = 1; _k < order.length; _k++) {
-      const idx = order[_k];
-      _j = _k - 1;
-      while (_j >= 0 && price[idx] < price[order[_j]]) {
-        order[_j + 1] = order[_j];
-        _j--;
+    for (let k = 1; k < order.length; k++) {
+      const idx = order[k];
+      let j = k - 1;
+      while (j >= 0 && price[idx] < price[order[j]]) {
+        order[j + 1] = order[j];
+        j--;
       }
-      order[_j + 1] = idx;
+      order[j + 1] = idx;
     }
 
     // Mark cheapest slots
