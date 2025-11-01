@@ -381,6 +381,8 @@ Yksi keino on myös valita 22-00 ja 00-06, jolloin lopputulema pitkässä juoksu
 
 Joskus Eleringillä voi olla ongelmia. Tämän takia on tärkeää aina asettaa varmuustunnit.
 
+Tarkista ensin keskustelu osoitteessa [https://github.com/jisotalo/shelly-porssisahko/issues/59](https://github.com/jisotalo/shelly-porssisahko/issues/59) ja laita sinne tarvittaessa viestiä.
+
 Tarkista Shellyn Diagnostics-loki virheilmoitusten varalta. 
 Voit koittaa avata lokissa näkyvän Elering-osoitteen omassa selaimessa ja katsoa näkyykö ladatattavassa csv-tiedostossa kaikki hinnat. Jos ei näy, ei skriptikään saa niitä luettua. 
 
