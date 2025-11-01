@@ -199,6 +199,7 @@ K채sitelt채v채 ohjaus valitaan alasvetovalikosta sivun yl채laidasta. Hallinta n�
 ### Yleiset asetukset
 
 N채m채 asetukset ovat samat kaikille ohjauksille.
+
 ![alt text](img/common-settings.png)
 
 | Asetus       | Selite                                                                                                                                                                                                        | Esim. (kuva yll채)       |
