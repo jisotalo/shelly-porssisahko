@@ -185,6 +185,7 @@ Skripti toimii **tunnetusti** ainakin seuraavilla:
   * Shelly Plus 1 Mini
   * Shelly Plus Plug S
     * Plugin valon värin ohjaus sähkön hinnan mukaan onnistuu skriptillä [shelly-plug-nordpool-light](https://github.com/jisotalo/shelly-plug-nordpool-light)
+    * HUOM: Gen 3 -laitteissa Matter-tuki [täytyy ottaa pois päältä](https://github.com/jisotalo/shelly-porssisahko/issues/32)
 
 
 ## Asetukset
