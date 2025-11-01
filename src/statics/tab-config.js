@@ -16,7 +16,7 @@
   /** 
    * Helper to convert value to number 
    */
-  let n = (v) => Number(v);
+  let n = (v) => typeof v === "string" ? Number(v.replace(",", ".")) : Number(v);
 
   /**
    * Helper to show/hide custom period inputs
