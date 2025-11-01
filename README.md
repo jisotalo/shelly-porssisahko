@@ -17,7 +17,7 @@ Vanhat versiot eivät toimi varttihintojen tultua voimaan. Päivitä skripti uus
 
 Skripti laskee keskihinnan vuorokauden jokaiselle tunnille ja toimii muuten tuntipohjaisesti, kuten ennenkin.
 
-Lisää keskustelua täällä: [https://github.com/jisotalo/shelly-porssisahko/issues/38](https://github.com/jisotalo/shelly-porssisahko/issues/38)
+Lisää keskustelua täällä: [https://github.com/jisotalo/shelly-porssisahko/discussions/63](https://github.com/jisotalo/shelly-porssisahko/discussions/63)
 
 --- 
 **IN ENGLISH** 
