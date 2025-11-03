@@ -136,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0-alpha.6",
+    v: "4.0.0-alpha.7",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
