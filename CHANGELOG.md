@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 04.11.2025
+- Historia palautettu ennalleen vastaamaan v. 3.2.0
+- Muistin käyttö testattu Shelly Pro3:lla (kolme ohjausta ja historia) - reserviä jää vielä ~4000 tavua
+
+```
+script:1: {
+  id: 1,
+  running: true,
+  mem_used: 11886,
+  mem_peak: 21434,
+  mem_free: 13300,
+  cpu: 2
+},
+```
+
 ## [3.3.1] - 01.11.2025
 - Bugikorjaus: Desimaalipilkku ei toiminut (vain piste)
   - Kiitos [https://github.com/vaahtokarkki](https://github.com/vaahtokarkki)

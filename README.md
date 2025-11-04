@@ -466,17 +466,20 @@ Kokonaishistoriaa tallennetaan ainoastaan 24 ohjauksen verran muistin säästäm
 * Staattiset serverin tiedostot pakataan ja base64-enkoodataan
 * Pääskripti minimoidaan
 * Käyttää [Eleringin CSV-apia](https://dashboard.elering.ee/assets/api-doc.html#/nps-controller/getPriceAsCSVUsingGET) muistin säästämiseksi (JSON vie liikaa)
-* Muistin käyttö 3.0.0 versiolla huipussaan noin 18kt (Shellyn maksimi 25kt)
+* Muistin käyttö 3.4.0 versiolla huipussaan noin 21kt (Shellyn maksimi 25kt)
   * Muille skripteille jää vielä hyvin tilaa
 
 ```
 script:1: {
   id: 1,
   running: true,
-  mem_used: 11900,
-  mem_peak: 18116,
-  mem_free: 13286
+  mem_used: 11886,
+  mem_peak: 21434,
+  mem_free: 13300,
+  cpu: 2
 },
+```
+
 ```
 ### Skriptin kääntäminen
 

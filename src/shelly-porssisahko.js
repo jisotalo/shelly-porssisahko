@@ -125,7 +125,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "3.3.1",
+    v: "3.4.0",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -315,10 +315,6 @@ function log(str) {
  * Adds command to history
  */
 function addHistory(inst) {
-  //TODO: Currently v.3.3.0 has no history
-  //We aren't sure yet about memory usage
-  return;
-
   //Calculate history max length (based on instance count)
   let max = _.s.enCnt > 0
     ? CNST.HIST_LEN / _.s.enCnt
@@ -604,9 +600,10 @@ function logicRunNeeded(inst) {
   let chk = new Date(st.chkTs * 1000);
 
   //for debugging (run every minute)
-  /*return st.chkTs == 0
+  /*
+  return st.chkTs == 0
     || (chk.getMinutes() !== now.getMinutes()
-      || chk.getFullYear() !== now.getFullYear())
+    || chk.getFullYear() !== now.getFullYear())
     || (st.fCmdTs > 0 && st.fCmdTs - epoch(now) < 0)
     || (st.fCmdTs == 0 && cfg.m < 60 && now.getMinutes() >= cfg.m && (st.cmd + cfg.i) == 1);
   */
@@ -789,7 +786,8 @@ function getPrices(dayIndex) {
         }
 
       } catch (err) {
-        log("error getting prices: " + err);
+        log("getting prices failed, help: https://github.com/jisotalo/shelly-porssisahko/issues/59");
+        log(err);
         _.s.errCnt += 1;
         _.s.errTs = epoch();
         _.s.p[dayIndex].ts = 0;
@@ -807,7 +805,8 @@ function getPrices(dayIndex) {
     });
 
   } catch (err) {
-    log("error getting prices: " + err);
+    log("getting prices failed, help: https://github.com/jisotalo/shelly-porssisahko/issues/59");
+    log(err);
     _.s.errCnt += 1;
     _.s.errTs = epoch();
     _.s.p[dayIndex].ts = 0;
