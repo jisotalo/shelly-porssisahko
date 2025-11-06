@@ -136,7 +136,7 @@ const CNST = {
 let _ = {
   s: {
     /** version number */
-    v: "4.0.0-alpha.7",
+    v: "4.0.0-alpha.8",
     /** Device name */
     dn: '',
     /** 1 if config is checked */
@@ -297,16 +297,6 @@ function clearPrice(dayIndex) {
   _.pv[dayIndex].splice(0); // clears but preserves array reference
   _.ps[dayIndex] = 0;
   _.s.p[dayIndex].ts = 0;
-
-  // When price data is wiped (due to date change, errors, etc.)
-  // remove corresponding slot info to prevent stale visuals.
-  for (_i = 0; _i < CNST.INST; _i++) {
-    if (dayIndex === 0) {
-      _.si[_i].slots0 = "";
-    } else if (dayIndex === 1) {
-      _.si[_i].slots1 = "";
-    }
-  }
 }
 
 /**
@@ -528,17 +518,6 @@ function getConfig(inst) {
         log("config for #" + (inst + 1) + " read, enabled: " + _.c.i[inst].en);
         _.si[inst].cOK = ok ? 1 : 0;
         _.si[inst].cTs = 0; //To run the logic again with new settings
-        // --- CACHE SLOT ARRAY AFTER CONFIG CHANGE ---
-        if (_.c.i[inst].en) {
-          // Rebuild "today" slots
-          _.si[inst].slots0 = buildSlotCharmap(inst, 0);
-
-          // Also build "tomorrow" slots if we already have tomorrow's prices.
-          if (_.pv[1].length > 0) {
-            _.si[inst].slots1 = buildSlotCharmap(inst, 1);
-          }
-          log("slot array updated for instance #" + (inst + 1));
-        }
       }
       lRun = false;
       restartLoop(500);
@@ -777,7 +756,8 @@ function getPrices(dayIndex) {
      * Helper: Handle price fetch errors
      */
     function handleError(errMsg) {
-      log("error getting prices: " + errMsg);
+      log("getting prices failed, help: https://github.com/jisotalo/shelly-porssisahko/issues/59");
+      log(errMsg);
       _.s.eCnt += 1;
       _.s.eTs = epoch();
       clearPrice(dayIndex);
@@ -822,17 +802,6 @@ function getPrices(dayIndex) {
           return;
         }
 
-        // Rebuild slot map for the day that was just fetched.
-        for (let i = 0; i < CNST.INST; i++) {
-          if (!_.c.i[i].en) continue;
-          if (dayIndex === 0) {
-            _.si[i].slots0 = buildSlotCharmap(i, 0);
-          } else if (dayIndex === 1) {
-            _.si[i].slots1 = buildSlotCharmap(i, 1);
-          }
-        }
-
-        log("slot arrays updated after price data for dayIndex=" + dayIndex);
         lRun = false;
         restartLoop(500);
         cRng = null;
@@ -1333,6 +1302,224 @@ function isCheapestHour(inst) {
 }
 
 /**
+ * ============================================================================
+ * SHARED LOGIC - START
+ * These functions can be copy-pasted to frontend (tab-status.js)
+ * They work in both Shelly backend and browser frontend
+ * ============================================================================
+ */
+
+/**
+ * Checks if given slot index is among the cheapest slots
+ * This is the core logic extracted from isCheapestHour() but works with any slot
+ * 
+ * @param {object} cfg - Instance config (_.c.i[inst] or ci from frontend)
+ * @param {array} slotPrices - Price array (_.pv[dayIndex] or p[dayIndex].pv from frontend)
+ * @param {number} slotIdx - Slot index to check (0..95 for 15min, 0..23 for hourly)
+ * @param {number} slotSize - Slot duration in seconds (900 or 3600)
+ * @returns {boolean} - true if slot is among cheapest
+ */
+function isSlotInCheapest(cfg, slotPrices, slotIdx, slotSize) {
+  if (!slotPrices || slotPrices.length === 0 || slotIdx >= slotPrices.length) {
+    return false;
+  }
+
+  //Safety checks
+  cfg.m2.ps = limit(0, cfg.m2.ps, 23);
+  cfg.m2.pe = limit(cfg.m2.ps, cfg.m2.pe, 24);
+  cfg.m2.ps2 = limit(0, cfg.m2.ps2, 23);
+  cfg.m2.pe2 = limit(cfg.m2.ps2, cfg.m2.pe2, 24);
+  cfg.m2.c = limit(0, cfg.m2.c, cfg.m2.p > 0 ? cfg.m2.p : cfg.m2.pe - cfg.m2.ps);
+  cfg.m2.c2 = limit(0, cfg.m2.c2, cfg.m2.pe2 - cfg.m2.ps2);
+
+  // --- 15‑minute slot scaling ---
+  const scale = 3600 / slotSize; // 1 for hourly, 4 for 15 min
+
+  // Convert hour-based configs to slot indices
+  const ps = Math.floor(cfg.m2.ps * scale);
+  const pe = Math.floor(cfg.m2.pe * scale);
+  const ps2 = Math.floor(cfg.m2.ps2 * scale);
+  const pe2 = Math.floor(cfg.m2.pe2 * scale);
+
+  // Convert "cheapest hours" & periods to slot counts
+  const c1 = Math.floor(cfg.m2.c * scale);
+  const c2 = Math.floor(cfg.m2.c2 * scale);
+  const periodSlots = cfg.m2.p < 0 ? cfg.m2.p : Math.floor(cfg.m2.p * scale);
+
+  //This is (and needs to be) 1:1 in both frontend and backend code
+  let cheapest = [];
+
+  //Select increment (a little hacky - to support custom periods too)
+  _inc = periodSlots < 0 ? 1 : periodSlots;
+
+  for (_i = 0; _i < slotPrices.length; _i += _inc) {
+    _cnt = (periodSlots == -2 && _i >= 1 ? c2 : c1);
+
+    //Safety check
+    if (_cnt <= 0)
+      continue;
+
+    //Create array of indexes in selected period
+    let order = [];
+
+    //If custom period -> select slots from that range. Otherwise use this period
+    _st = _i;
+    _end = (_i + periodSlots);
+
+    if (periodSlots < 0 && _i == 0) {
+      //Custom period 1
+      _st = ps;
+      _end = pe;
+
+    } else if (periodSlots == -2 && _i == 1) {
+      //Custom period 2
+      _st = ps2;
+      _end = pe2;
+    }
+
+    // Build array of indices for this period
+    for (_j = _st; _j < _end && _j < slotPrices.length; _j++) {
+      order.push(_j);
+    }
+
+    // Skip if no valid slots in period
+    if (order.length === 0) continue;
+
+    if (cfg.m2.s) {
+      //Find cheapest in a sequence
+      //Loop through each possible starting index and compare average prices
+      _avg = 999;
+      _sId = 0;
+
+      for (_j = 0; _j <= order.length - _cnt; _j++) {
+        _sum = 0;
+
+        //Calculate sum of these sequential slots
+        for (_k = _j; _k < _j + _cnt; _k++) {
+          _sum += slotPrices[order[_k]];
+        };
+
+        //If average price of these sequential slots is lower -> it's better
+        if (_sum / _cnt < _avg) {
+          _avg = _sum / _cnt;
+          _sId = _j;
+        }
+      }
+
+      for (_j = _sId; _j < _sId + _cnt; _j++) {
+        cheapest.push(order[_j]);
+      }
+
+    } else {
+      //Sort indexes by price
+      for (let k = 1; k < order.length; k++) {
+        const temp = order[k];
+        // Find correct position by comparing prices
+        let j = k - 1;
+        while (j >= 0 && slotPrices[temp] < slotPrices[order[j]]) {
+          order[j + 1] = order[j];
+          j--;
+        }
+        order[j + 1] = temp;
+      }
+
+      //Select the cheapest ones
+      for (_j = 0; _j < _cnt && _j < order.length; _j++) {
+        cheapest.push(order[_j]);
+      }
+    }
+
+    //If custom period, quit when all periods are done (1 or 2 periods)
+    if (periodSlots == -1 || (periodSlots == -2 && _i >= 1))
+      break;
+  }
+
+  // Check if given slot index is in cheapest array
+  for (let i = 0; i < cheapest.length; i++) {
+    if (cheapest[i] === slotIdx) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Calculates relay command and status code for a specific slot
+ * This replaces the per-slot logic from buildSlotCharmap()
+ * 
+ * @param {object} cfg - Instance config (_.c.i[inst] or ci from frontend)
+ * @param {object} priceData - Object with {pv: array, avg: number} 
+ * @param {number} slotIdx - Slot index to calculate (0..95 for 15min, 0..23 for hourly)
+ * @param {number} slotSize - Slot duration in seconds (900 or 3600)
+ * @returns {object} - {cmd: boolean, st: number} where cmd is relay state and st is status code
+ */
+function calcSlotCmd(cfg, priceData, slotIdx, slotSize) {
+  let cmd = false;
+  let st = 0;
+
+  // Mode 0: Manual
+  if (cfg.mode === 0) {
+    cmd = cfg.m0.c === 1;
+    st = cmd ? 1 : 0;
+    return { cmd: cmd, st: st };
+  }
+
+  // Need price data for other modes
+  if (!priceData.pv || priceData.pv.length === 0 || slotIdx >= priceData.pv.length) {
+    return { cmd: false, st: 0 };
+  }
+
+  const price = priceData.pv[slotIdx];
+  const avg = priceData.avg;
+
+  // Mode 1: Price limit
+  if (cfg.mode === 1) {
+    const limitVal = (cfg.m1.l === "avg") ? avg : cfg.m1.l;
+    cmd = price <= limitVal;
+    st = cmd ? 2 : 3;
+    return { cmd: cmd, st: st };
+  }
+
+  // Mode 2: Cheapest hours
+  if (cfg.mode === 2) {
+    const isCheap = isSlotInCheapest(cfg, priceData.pv, slotIdx, slotSize);
+    const limAlways = (cfg.m2.l === "avg") ? avg : cfg.m2.l;
+    const limMax = (cfg.m2.m === "avg") ? avg : cfg.m2.m;
+
+    if (isCheap) {
+      cmd = true;
+      st = 5; // Cheapest slot
+      
+      // Check maximum price limit
+      if (price > limMax) {
+        cmd = false;
+        st = 11; // Exceeds max price
+      }
+    } else {
+      cmd = false;
+      st = 4; // Not selected
+      
+      // Check always-on price limit
+      if (price <= limAlways) {
+        cmd = true;
+        st = 6; // Always-on limit
+      }
+    }
+    
+    return { cmd: cmd, st: st };
+  }
+
+  return { cmd: false, st: 0 };
+}
+
+/**
+ * ============================================================================
+ * SHARED LOGIC - END
+ * ============================================================================
+ */
+
+/**
  * Update current price to _.s.p[0].now
  * Returns true if OK, false if failed
  *
@@ -1405,131 +1592,6 @@ function parseParams(params) {
   }
 
   return res;
-}
-
-/**
- * Returns an array of cheapest slots (1 = ON, 0 = OFF)
- * Used by buildSlotCharmap()
- */
-function getCheapestSlots(inst, dIdx) {
-  const cfg = _.c.i[inst];
-  const price = _.pv[dIdx];
-  const psDay = _.ps[dIdx]
-  const slots = price ? price.length : 0;
-  if (slots === 0 || !psDay) return [];
-
-  // --- Sanitize configuration ---
-  const m2 = cfg.m2;
-  m2.ps  = limit(0, m2.ps, 23);
-  m2.pe  = limit(m2.ps, m2.pe, 24);
-  m2.ps2 = limit(0, m2.ps2, 23);
-  m2.pe2 = limit(m2.ps2, m2.pe2, 24);
-  m2.c   = limit(0, m2.c,   m2.p > 0 ? m2.p : m2.pe - m2.ps);
-  m2.c2  = limit(0, m2.c2,  m2.pe2 - m2.ps2);
-
-  // --- Derived slot‑based values ---
-  const scale = 3600 / SLOT;       // hourly→slot conversion
-  const ps  = Math.floor(m2.ps  * scale);
-  const pe  = Math.floor(m2.pe  * scale);
-  const ps2 = Math.floor(m2.ps2 * scale);
-  const pe2 = Math.floor(m2.pe2 * scale);
-  const c1  = Math.floor(m2.c   * scale);
-  const c2  = Math.floor(m2.c2  * scale);
-  const per = m2.p < 0 ? m2.p : Math.floor(m2.p * scale);
-
-  // --- Init output (0 = not cheapest) ---
-  const flag = [];
-  for (_i = 0; _i < slots; _i++) flag[_i] = 0;
-
-  // --- Work variables reused globally for Shelly safety ---
-  _inc = per < 0 ? 1 : per;
-
-  for (_i = 0; _i < slots; _i += _inc) {
-    _cnt = per == -2 && _i >= 1 ? c2 : c1;
-    if (_cnt <= 0) continue;
-
-    // Range of this search period
-    _st  = _i; _end = _i + per;
-    if (per < 0 && _i == 0) { _st = ps;  _end = pe;  }
-    if (per == -2 && _i == 1){ _st = ps2; _end = pe2; }
-
-    // Build simple index list
-    const order = [];
-    for (_j = _st; _j < _end && _j < slots; _j++) order.push(_j);
-    if (order.length === 0) continue;
-
-    // Insertion‑sort by increasing price
-    for (let k = 1; k < order.length; k++) {
-      const idx = order[k];
-      let j = k - 1;
-      while (j >= 0 && price[idx] < price[order[j]]) {
-        order[j + 1] = order[j];
-        j--;
-      }
-      order[j + 1] = idx;
-    }
-
-    // Mark cheapest slots
-    for (_j = 0; _j < _cnt && _j < order.length; _j++) {
-      flag[order[_j]] = 1;
-    }
-
-    if (per == -1 || (per == -2 && _i >= 1)) break;
-  }
-
-  return flag;
-}
-
-
-/**
- * Builds compact charmap string (e.g. "01034")
- *  0 = OFF
- *  1 = Cheapest slot
- *  2 = Below price limit
- *  3 = Forced ON
- *  5 = Manual ON
- */
-function buildSlotCharmap(inst, dIdx) {
-  const prices = _.pv[dIdx];
-  if (!prices || prices.length === 0) return "";
-
-  const cfg   = _.c.i[inst];
-  const avg   = _.s.p[dIdx].avg;
-  const mode  = cfg.mode;
-  const cheap = getCheapestSlots(inst, dIdx);
-  const len   = prices.length;
-  const fmask = cfg.f;
-  const fcmd  = cfg.fc;
-  const outArr = new Array(len);
-
-  for (let i = 0; i < len; i++) {
-    let code = 0;
-    const p = prices[i];
-
-    // --- Determine reason (same logic, kept identical) ---
-    if (mode === 0) {
-      if (cfg.m0.c) code = 5;
-    } else if (mode === 1) {
-      const limit = (cfg.m1.l == "avg") ? avg : cfg.m1.l;
-      if (p <= limit) code = 2;
-    } else if (mode === 2) {
-      const limAlways = (cfg.m2.l == "avg") ? avg : cfg.m2.l;
-      if (cheap[i]) code = 1;
-      else if (p <= limAlways) code = 2;
-    }
-
-    // --- Forced override (unchanged) ---
-    if (fmask > 0) {
-      const h = (i * SLOT / 3600) | 0;
-      const bit = 1 << h;
-      if ((fmask & bit) && (fcmd & bit)) code = 3;
-    }
-
-    outArr[i] = code; // store numeric value in array
-  }
-
-  // Join once
-  return outArr.join("");
 }
 
 /**
