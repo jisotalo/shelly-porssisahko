@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+- Muistinkäytön optimointia
+- Varttihinnoittelu mahdollisuus
+- Releen tilat lasketaan sekä backendissä että frontendissä samalla
+  copy/paste funktiolla
+
 ## [3.4.0] - 04.11.2025
 - Historia palautettu ennalleen vastaamaan v. 3.2.0
 - Muistin käyttö testattu Shelly Pro3:lla (kolme ohjausta ja historia) - reserviä jää vielä ~4000 tavua

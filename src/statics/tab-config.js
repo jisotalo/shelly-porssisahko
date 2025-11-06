@@ -1,26 +1,26 @@
 /**
  * shelly-porssisahko
- * 
+ *
  * (c) Jussi isotalo - http://jisotalo.fi
  * https://github.com/jisotalo/shelly-porssisahko
- * 
- * License: GNU Affero General Public License v3.0 
+ *
+ * License: GNU Affero General Public License v3.0
  */
 {
-  /** 
+  /**
    * Flag indicating if config is already read
    * If not, inputs are updated
    */
   let configRead = false;
 
-  /** 
+  /**
    * Helper to convert value to number 
    */
   let n = (v) => typeof v === "string" ? Number(v.replace(",", ".")) : Number(v);
 
   /**
    * Helper to show/hide custom period inputs
-   * 
+   *
    * @param {*} value 
    */
   let checkCustomPeriodDisplay = (value) => {
@@ -30,7 +30,7 @@
 
   /**
    * Helper to set radio button value
-   * 
+   *
    * @param {*} name 
    * @param {*} value 
    */
@@ -48,7 +48,7 @@
 
   /**
    * Helper to limit value between min...max
-   * 
+   *
    * @param {*} min 
    * @param {*} value 
    * @param {*} max 
@@ -65,7 +65,7 @@
 
   /**
    * Callback called by main loop
-   * 
+   *
    * @param {*} instChanged true = instance has changed (reset data)
    * @returns 
    */
@@ -93,12 +93,13 @@
       qs("g").value = c.g;
       qs("vat").value = c.vat;
       qs("day").value = c.day;
-      qs("night").value = c.night;
+      qs("nite").value = c.nite;
+      qs("q").checked = c.q ? "checked" : "";
 
       qs("ci").innerHTML = (inst + 1);
 
       qs("en").checked = ci.en ? "checked" : "";
-      qs("n").value = c.names[inst];
+      qs("n").value = c.nms[inst];
       qs("mode").innerHTML = MODE_STR.map((m, i) => `<option value="${i}">${m}</option>`)
       qs("mode").value = ci.mode;
       qs("outs").value = ci.o.join(",");
@@ -162,10 +163,11 @@
       c.g = qs("g").value;
       c.vat = n(qs("vat").value);
       c.day = n(qs("day").value);
-      c.night = n(qs("night").value);
+      c.nite = n(qs("nite").value);
+      c.q = qs("q").checked ? 1 : 0;
 
       ci.en = qs("en").checked ? 1 : 0;
-      c.names[inst] = qs("n").value;
+      c.nms[inst] = qs("n").value;
       ci.mode = n(qs("mode").value);
       ci.o = qs("outs").value.split(",").map(v => n(v));
       ci.i = qs("inv").checked ? 1 : 0;

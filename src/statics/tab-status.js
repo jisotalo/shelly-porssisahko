@@ -8,9 +8,247 @@
  */
 {
   /**
+   * ============================================================================
+   * SHARED LOGIC - START
+   * These functions are copied from backend (shelly-porssisahko.js)
+   * They work in both Shelly backend and browser frontend
+   * ============================================================================
+   */
+
+  /**
+   * Limits the value to min..max range
+   * (Copy of limit() from backend)
+   */
+  const limit = (min, value, max) => {
+    return Math.min(max, Math.max(min, value));
+  };
+
+  // Global variables for slot calculation (reused to avoid stack issues)
+  let _i = 0;
+  let _j = 0;
+  let _k = 0;
+  let _inc = 0;
+  let _cnt = 0;
+  let _st = 0;
+  let _end = 0;
+  let _avg = 999;
+  let _sId = 0;
+  let _sum = 0;
+
+  /**
+   * Checks if given slot index is among the cheapest slots
+   * This is the core logic extracted from isCheapestHour() but works with any slot
+   * 
+   * @param {object} cfg - Instance config (ci from frontend)
+   * @param {array} slotPrices - Price array (p[dayIndex].pv from frontend)
+   * @param {number} slotIdx - Slot index to check (0..95 for 15min, 0..23 for hourly)
+   * @param {number} slotSize - Slot duration in seconds (900 or 3600)
+   * @returns {boolean} - true if slot is among cheapest
+   */
+  const isSlotInCheapest = (cfg, slotPrices, slotIdx, slotSize) => {
+    if (!slotPrices || slotPrices.length === 0 || slotIdx >= slotPrices.length) {
+      return false;
+    }
+
+    //Safety checks
+    cfg.m2.ps = limit(0, cfg.m2.ps, 23);
+    cfg.m2.pe = limit(cfg.m2.ps, cfg.m2.pe, 24);
+    cfg.m2.ps2 = limit(0, cfg.m2.ps2, 23);
+    cfg.m2.pe2 = limit(cfg.m2.ps2, cfg.m2.pe2, 24);
+    cfg.m2.c = limit(0, cfg.m2.c, cfg.m2.p > 0 ? cfg.m2.p : cfg.m2.pe - cfg.m2.ps);
+    cfg.m2.c2 = limit(0, cfg.m2.c2, cfg.m2.pe2 - cfg.m2.ps2);
+
+    // --- 15‑minute slot scaling ---
+    const scale = 3600 / slotSize; // 1 for hourly, 4 for 15 min
+
+    // Convert hour-based configs to slot indices
+    const ps = Math.floor(cfg.m2.ps * scale);
+    const pe = Math.floor(cfg.m2.pe * scale);
+    const ps2 = Math.floor(cfg.m2.ps2 * scale);
+    const pe2 = Math.floor(cfg.m2.pe2 * scale);
+
+    // Convert "cheapest hours" & periods to slot counts
+    const c1 = Math.floor(cfg.m2.c * scale);
+    const c2 = Math.floor(cfg.m2.c2 * scale);
+    const periodSlots = cfg.m2.p < 0 ? cfg.m2.p : Math.floor(cfg.m2.p * scale);
+
+    //This is (and needs to be) 1:1 in both frontend and backend code
+    let cheapest = [];
+
+    //Select increment (a little hacky - to support custom periods too)
+    _inc = periodSlots < 0 ? 1 : periodSlots;
+
+    for (_i = 0; _i < slotPrices.length; _i += _inc) {
+      _cnt = (periodSlots == -2 && _i >= 1 ? c2 : c1);
+
+      //Safety check
+      if (_cnt <= 0)
+        continue;
+
+      //Create array of indexes in selected period
+      let order = [];
+
+      //If custom period -> select slots from that range. Otherwise use this period
+      _st = _i;
+      _end = (_i + periodSlots);
+
+      if (periodSlots < 0 && _i == 0) {
+        //Custom period 1
+        _st = ps;
+        _end = pe;
+
+      } else if (periodSlots == -2 && _i == 1) {
+        //Custom period 2
+        _st = ps2;
+        _end = pe2;
+      }
+
+      // Build array of indices for this period
+      for (_j = _st; _j < _end && _j < slotPrices.length; _j++) {
+        order.push(_j);
+      }
+
+      // Skip if no valid slots in period
+      if (order.length === 0) continue;
+
+      if (cfg.m2.s) {
+        //Find cheapest in a sequence
+        //Loop through each possible starting index and compare average prices
+        _avg = 999;
+        _sId = 0;
+
+        for (_j = 0; _j <= order.length - _cnt; _j++) {
+          _sum = 0;
+
+          //Calculate sum of these sequential slots
+          for (_k = _j; _k < _j + _cnt; _k++) {
+            _sum += slotPrices[order[_k]];
+          };
+
+          //If average price of these sequential slots is lower -> it's better
+          if (_sum / _cnt < _avg) {
+            _avg = _sum / _cnt;
+            _sId = _j;
+          }
+        }
+
+        for (_j = _sId; _j < _sId + _cnt; _j++) {
+          cheapest.push(order[_j]);
+        }
+
+      } else {
+        //Sort indexes by price
+        for (let k = 1; k < order.length; k++) {
+          const temp = order[k];
+          // Find correct position by comparing prices
+          let j = k - 1;
+          while (j >= 0 && slotPrices[temp] < slotPrices[order[j]]) {
+            order[j + 1] = order[j];
+            j--;
+          }
+          order[j + 1] = temp;
+        }
+
+        //Select the cheapest ones
+        for (_j = 0; _j < _cnt && _j < order.length; _j++) {
+          cheapest.push(order[_j]);
+        }
+      }
+
+      //If custom period, quit when all periods are done (1 or 2 periods)
+      if (periodSlots == -1 || (periodSlots == -2 && _i >= 1))
+        break;
+    }
+
+    // Check if given slot index is in cheapest array
+    for (let i = 0; i < cheapest.length; i++) {
+      if (cheapest[i] === slotIdx) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Calculates relay command and status code for a specific slot
+   * This replaces the per-slot logic from buildSlotCharmap()
+   * 
+   * @param {object} cfg - Instance config (ci from frontend)
+   * @param {object} priceData - Object with {pv: array, avg: number} 
+   * @param {number} slotIdx - Slot index to calculate (0..95 for 15min, 0..23 for hourly)
+   * @param {number} slotSize - Slot duration in seconds (900 or 3600)
+   * @returns {object} - {cmd: boolean, st: number} where cmd is relay state and st is status code
+   */
+  const calcSlotCmd = (cfg, priceData, slotIdx, slotSize) => {
+    let cmd = false;
+    let st = 0;
+
+    // Mode 0: Manual
+    if (cfg.mode === 0) {
+      cmd = cfg.m0.c === 1;
+      st = cmd ? 1 : 0;
+      return { cmd: cmd, st: st };
+    }
+
+    // Need price data for other modes
+    if (!priceData.pv || priceData.pv.length === 0 || slotIdx >= priceData.pv.length) {
+      return { cmd: false, st: 0 };
+    }
+
+    const price = priceData.pv[slotIdx];
+    const avg = priceData.avg;
+
+    // Mode 1: Price limit
+    if (cfg.mode === 1) {
+      const limitVal = (cfg.m1.l === "avg") ? avg : cfg.m1.l;
+      cmd = price <= limitVal;
+      st = cmd ? 2 : 3;
+      return { cmd: cmd, st: st };
+    }
+
+    // Mode 2: Cheapest hours
+    if (cfg.mode === 2) {
+      const isCheap = isSlotInCheapest(cfg, priceData.pv, slotIdx, slotSize);
+      const limAlways = (cfg.m2.l === "avg") ? avg : cfg.m2.l;
+      const limMax = (cfg.m2.m === "avg") ? avg : cfg.m2.m;
+
+      if (isCheap) {
+        cmd = true;
+        st = 5; // Cheapest slot
+        
+        // Check maximum price limit
+        if (price > limMax) {
+          cmd = false;
+          st = 11; // Exceeds max price
+        }
+      } else {
+        cmd = false;
+        st = 4; // Not selected
+        
+        // Check always-on price limit
+        if (price <= limAlways) {
+          cmd = true;
+          st = 6; // Always-on limit
+        }
+      }
+      
+      return { cmd: cmd, st: st };
+    }
+
+    return { cmd: false, st: 0 };
+  };
+
+  /**
+   * ============================================================================
+   * SHARED LOGIC - END
+   * ============================================================================
+   */
+
+  /**
    * Table content if data not yet available
    */
-  let notYetKnown = `<tr><td colspan="3">Ei vielä tiedossa</td></tr>`;
+  const notK = `<tr><td colspan="3">Ei vielä tiedossa</td></tr>`;
 
   /**
    * Clears status page
@@ -59,6 +297,8 @@
       let si = d.si;
       /** instance config */
       let ci = d.ci;
+      /** slot size (seconds) */
+      let slot = d.slot || 3600;
 
       //If instance is enabled (otherwise just update price lists)
       if (ci.en) {
@@ -67,12 +307,12 @@
 
         qs("s-mode").innerHTML = MODE_STR[ci.mode];
 
-        qs("s-now").innerHTML = d.p.length > 0
+        qs("s-now").innerHTML = d.p[0].pv && d.p[0].pv.length > 0
           ? `${s.p[0].now.toFixed(2)} c/kWh`
           : "";
 
         qs("s-st").innerHTML = si.st === 9
-          ? STATE_STR[si.st].replace("%s", formatDateTime(new Date(si.fCmdTs * 1000), false))
+          ? STATE_STR[si.st].replace("%s", formatDateTime(new Date(si.fTs * 1000), false))
           : STATE_STR[si.st] + (ci.i ? " (käänteinen)" : "");
 
         //Extended status for instance (by user scripts)
@@ -80,8 +320,8 @@
           qs("s-st").innerHTML += `<br><br>${si.str}`;
         }
 
-        qs("s-info").innerHTML = si.chkTs > 0
-          ? `Ohjaus tarkistettu ${formatTime(new Date(si.chkTs * 1000))}`
+        qs("s-info").innerHTML = si.cTs > 0
+          ? `Ohjaus tarkistettu ${formatTime(new Date(si.cTs * 1000))}`
           : `Tarkistetaan ohjausta...`;
 
       } else {
@@ -94,8 +334,8 @@
 
       //Device name and instance
       let dn = s.dn ? s.dn : '<i>Ei asetettu</i>';
-      if (c.names[inst]) {
-        dn += ` | ${c.names[inst]}`
+      if (c.nms[inst]) {
+        dn += ` | ${c.nms[inst]}`
       }
       dn += ` (ohjaus #${(inst + 1)})`;
       qs("s-dn").innerHTML = dn;
@@ -112,10 +352,10 @@
        * Helper that builds price info table for today or tomorrow
        */
       const buildPriceTable = (priceInfo) => {
-        let header = `<tr><td class="t bg">Keskiarvo</td><td class="t bg">Halvin</td><td class="t bg">Kallein</td></tr>`;
+        const header = `<tr><td class="t bg">Keskiarvo</td><td class="t bg">Halvin</td><td class="t bg">Kallein</td></tr>`;
 
         if (priceInfo.ts == 0) {
-          return `${header}${notYetKnown}`;
+          return `${header}${notK}`;
         }
 
         return `${header}
@@ -131,167 +371,78 @@
       qs("s-pi1").innerHTML = buildPriceTable(s.p[1]);
 
       /**
-       * Helper that builds price/cmd table for today or tomorrow
-       */
+      * Helper that builds price/cmd table for today or tomorrow
+      *
+      * @param {number} dayIndex 0=today, 1=tomorrow
+      * @param {HTMLElement} element Target element
+      */
       const buildPriceList = (dayIndex, element) => {
-        let header = ` <tr><td class="t bg">Aika</td><td class="t bg">Hinta</td><td class="t bg">Ohjaus</td></tr>`;
+        const header = ` <tr><td class="t bg">Aika</td><td class="t bg">Hinta</td><td class="t bg">Ohjaus</td></tr>`;
 
-        if (s.p[dayIndex].ts == 0) {
-          element.innerHTML = `${header}${notYetKnown}`;;
+        // Get compact price data
+        const slotPrices = d.p[dayIndex].pv;
+        const startEpoch = d.p[dayIndex].ps;
+
+        if (s.p[dayIndex].ts == 0 || !slotPrices || slotPrices.length === 0 || !startEpoch) {
+          element.innerHTML = `${header}${notK}`;
           return;
         }
 
-        //------------------------------
-        // Cheapest hours logic
-        // This needs match 1:1 the Shelly script side
-        //------------------------------
-        let cheapest = [];
-        if (ci.mode === 2) {
-          //Select increment (a little hacky - to support custom periods too)
-          let inc = ci.m2.p < 0 ? 1 : ci.m2.p;
+        const rows = [header];
+        const now = Date.now();
+        
+        // Prepare price data for calculation
+        const priceData = {
+          pv: slotPrices,
+          avg: s.p[dayIndex].avg
+        };
 
-          for (let i = 0; i < d.p[dayIndex].length; i += inc) {
-            let cnt = (ci.m2.p == -2 && i >= 1 ? ci.m2.c2 : ci.m2.c);
+        for (let i = 0; i < slotPrices.length; i++) {
+          const slotEp = startEpoch + i * slot;
+          const price = slotPrices[i];
+          const date = new Date(slotEp * 1000);
 
-            //Safety check
-            if (cnt <= 0)
-              continue;
+          const isCurr = (dayIndex === 0 &&
+                          now >= slotEp * 1000 &&
+                          now < (slotEp + slot) * 1000);
 
-            //Create array of indexes in selected period
-            let order = [];
+          // Calculate command and status using shared logic
+          const result = calcSlotCmd(ci, priceData, i, slot);
+          let cmd = result.cmd;
+          let st = result.st;
+          let marker = "";
 
-            //If custom period -> select hours from that range. Otherwise use this period
-            let start = i;
-            let end = (i + ci.m2.p);
-
-            if (ci.m2.p < 0 && i == 0) {
-              //Custom period 1
-              start = ci.m2.ps;
-              end = ci.m2.pe;
-
-            } else if (ci.m2.p == -2 && i == 1) {
-              //Custom period 2
-              start = ci.m2.ps2;
-              end = ci.m2.pe2;
+          // Apply forced hours override (hour-based, not slot-based)
+          if (ci.f > 0) {
+            const slotHour = date.getHours();
+            const hourBit = 1 << slotHour;
+            if ((ci.f & hourBit) === hourBit) {
+              cmd = (ci.fc & hourBit) === hourBit;
+              st = 3; // Forced
+              marker = "**"; // Forced marker
             }
-
-            for (let j = start; j < end; j++) {
-              //If we have less hours than 24 then skip the rest from the end
-              if (j > d.p[dayIndex].length - 1)
-                break;
-
-              order.push(j);
-            }
-
-            if (ci.m2.s) {
-              //Find cheapest in a sequence
-              //Loop through each possible starting index and compare average prices
-              let avg = 999;
-              let startIndex = 0;
-
-              for (let j = 0; j <= order.length - cnt; j++) {
-                let sum = 0;
-
-                //Calculate sum of these sequential hours
-                for (let k = j; k < j + cnt; k++) {
-                  sum += d.p[dayIndex][order[k]][1];
-                };
-
-                //If average price of these sequential hours is lower -> it's better
-                if (sum / cnt < avg) {
-                  avg = sum / cnt;
-                  startIndex = j;
-                }
-              }
-
-              for (let j = startIndex; j < startIndex + cnt; j++) {
-                cheapest.push(order[j]);
-              }
-
-            } else {
-              //Sort indexes by price
-              let j = 0;
-
-              for (let k = 1; k < order.length; k++) {
-                let temp = order[k];
-
-                for (j = k - 1; j >= 0 && d.p[dayIndex][temp][1] < d.p[dayIndex][order[j]][1]; j--) {
-                  order[j + 1] = order[j];
-                }
-                order[j + 1] = temp;
-              }
-
-              //Select the cheapest ones
-              for (let j = 0; j < cnt; j++) {
-                cheapest.push(order[j]);
-              }
-            }
-
-            //If custom period, quit when all periods are done (1 or 2 periods)
-            if (ci.m2.p == -1 || (ci.m2.p == -2 && i >= 1))
-              break;
           }
+
+          // Show only checkmark for relay ON, no additional markers except for forced
+          rows.push(`<tr style="${isCurr ? 'font-weight:bold;' : ''}">
+              <td class="fit">${formatTime(date, false)}</td>
+              <td>${price.toFixed(2)} c/kWh</td>
+              <td>${cmd ? "&#x2714;" : ""} ${marker}</td>
+            </tr>`);
         }
 
-        //------------------------------
-        // Building the price list
-        //------------------------------
-        element.innerHTML = header;
-
-        let per = 0;
-        let bg = false;
-        for (let i = 0; i < d.p[dayIndex].length; i++) {
-          let row = d.p[dayIndex][i];
-          let date = new Date(row[0] * 1000);
-
-          //Forced hour on
-          let fon = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == (1 << i));
-          //Forced hour off
-          let foff = ((ci.f & (1 << i)) == (1 << i) && (ci.fc & (1 << i)) == 0);
-
-          let mode2MaxPrice = ci.m2.m == "avg" ? s.p[dayIndex].avg : ci.m2.m;
-
-          let cmd =
-            ((ci.mode === 0 && ci.m0.c)
-              || (ci.mode === 1 && row[1] <= (ci.m1.l == "avg" ? s.p[dayIndex].avg : ci.m1.l))
-              || (ci.mode === 2 && cheapest.includes(i) && row[1] <= mode2MaxPrice)
-              || (ci.mode === 2 && row[1] <= (ci.m2.l == "avg" ? s.p[dayIndex].avg : ci.m2.l) && row[1] <= mode2MaxPrice)
-              || fon)
-            && !foff;
-
-          //Invert
-          if (ci.i) {
-            cmd = !cmd;
-          }
-
-          if (!ci.en) {
-            cmd = false;
-          }
-
-          if (ci.en && ci.mode === 2
-            && ((ci.m2.p < 0 && (i == ci.m2.ps || i == ci.m2.pe))
-              || (ci.m2.p == -2 && (i == ci.m2.ps2 || i == ci.m2.pe2))
-              || (ci.m2.p > 0 && i >= per + ci.m2.p))) {
-
-            //Period changed
-            per += ci.m2.p;
-            bg = !bg;
-          }
-
-          element.innerHTML +=
-          `<tr style="${date.getHours() === new Date().getHours() && dayIndex == 0 ? `font-weight:bold;` : ``}${(bg ? "background:#ededed;" : "")}">
-            <td class="fit">${formatTime(date, false)}</td>
-            <td>${row[1].toFixed(2)} c/kWh</td>
-            <td>${cmd ? "&#x2714;" : ""}${fon || foff ? `**` : ""}</td>
-          </tr>`;
+        // --- Replace only if changed to avoid frequent DOM recreation ---
+        const newHtml = rows.join('');
+        if (element.innerHTML !== newHtml) {
+          element.innerHTML = newHtml;
         }
-
-        return s.p[dayIndex].ts;
-      }
+      };
 
       //Creating price/cmd tables for today and tomorrow
       buildPriceList(0, qs("s-p0"));
       buildPriceList(1, qs("s-p1"));
+      d = s = c = si = ci = null;
+      slot = null;
 
     } catch (err) {
       console.error(err);
@@ -303,5 +454,8 @@
   };
 
   onUpdate();
-  CBS.push(onUpdate);
+  // --- Prevent multiple frontend callback registrations ---
+  if (!CBS.includes(onUpdate)) {
+    CBS.push(onUpdate);
+  }
 }
